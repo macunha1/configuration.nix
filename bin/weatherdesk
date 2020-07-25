@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export XDG_CURRENT_DESKTOP=awesome
+
+python "${XDG_CONFIG_DIR:-$HOME/.config}/awesome/plugins/weatherdesk/WeatherDesk.py" \
+	--dir "${XDG_WALLPAPERS_DIR:-$HOME/Pictures/.wallpapers}/weather" \
+	--no-weather -w 1800 -t 4
