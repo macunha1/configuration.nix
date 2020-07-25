@@ -71,7 +71,6 @@
 
   environment.systemPackages = with pkgs; [
     # OS basics
-    git
     pciutils
 
     networkmanager
@@ -81,29 +80,22 @@
     nmap
     dnsutils
 
+    curl
     openssl
 
     pavucontrol
-    ly
-    ripgrep
 
+    # TODO: Create the LY overlay to support DM, systemctl missing
+    ly
+
+    # TODO: Convert into module, using the lockscreen script
     i3lock
 
-    curl
-
-    # Security
-    expect # Handles passwords from storage
-
     # CLI Tools and Utils
-    tree
     rofi  # TUI all the things
-    fzf   # Fuzzy finder
 
-    neofetch # Fancy fetch
     scrot    # Lightweight screenshooter
-    stow     # GNU Stow, symlink manager
     feh      # Simple image viewer
-    jq       # JSON for shell
 
     cmake
     gnumake

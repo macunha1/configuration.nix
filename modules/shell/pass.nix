@@ -12,11 +12,13 @@ with lib;
     my = {
       packages = with pkgs; [
         (pass.withExtensions (exts: [
-          exts.pass-otp
+          # exts.pass-otp
           exts.pass-genphrase
         ]))
+        expect # Handles passwords from storage
       ];
-      env.PASSWORD_STORE_DIR = "$HOME/.secrets/password-store";
+      # Use the default value. What's the matter?
+      # env.PASSWORD_STORE_DIR = "$HOME/.password-store";
     };
   };
 }

@@ -8,50 +8,68 @@ with lib;
       type = types.bool;
       default = false;
     };
+
+    ohMyZsh = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
+
+      plugins = mkOption {
+        type = (types.listOf types.str);
+        default = [];
+      };
+    };
+
+    historySize = mkOption {
+      type = types.int;
+      default = 9223372036854775807; # LONG_MAX: Unlimited
+    };
   };
 
   config = mkIf config.modules.shell.zsh.enable {
-    my = {
-      packages = with pkgs; [
-        zsh
-        nix-zsh-completions
-        bat
-        exa
-        fasd
-        fd
-        fzf
-        htop
-        tldr
-        tree
-      ];
-      env.ZDOTDIR   = "$XDG_CONFIG_HOME/zsh";
-      env.ZSH_CACHE = "$XDG_CACHE_HOME/zsh";
+      my = {
+        packages = with pkgs; [
+          zsh
+          nix-zsh-completions
 
-      alias.exa = "exa --group-directories-first";
-      alias.l   = "exa -1";
-      alias.ll  = "exa -lg";
-      alias.la  = "LC_COLLATE=C exa -la";
-      alias.sc = "systemctl";
-      alias.ssc = "sudo systemctl";
+          ## Utils
+          fzf      # fuzzy-finder all the things
+          htop     # colorful top
+          tldr     # short man util
+          tree     # Tree view of dirs
+          ripgrep  # Fancy fast grep
+          stow     # GNU Stow, symlink manager
+          jq       # JSON for shell
+          neofetch # Fancy fetch
+        ];
 
-      # TODO: Change from dotfiles to NixOS (fetch from Git)
-      # home.xdg.configFile."zsh" = {
-      #   source = <config/zsh>;
-      #   # Write it recursively so other modules can write files to it
-      #   recursive = true;
-      # };
+        # TODO: Change from dotfiles to NixOS (fetch from Git)
+        # home.xdg.configFile."zsh" = {
+        #   source = <config/zsh>;
+        #   # Write it recursively so other modules can write files to it
+        #   recursive = true;
+        # };
+
+        zsh.rc = ''
+          source $HOME/.zprofile
+          source $HOME/.zshrc
+        '';
+      };
+
+      programs.zsh = {
+        enable = true;
+        enableCompletion = true;
+
+        # loginShellInit = ''
+        #   source $HOME/.zprofile
+        #   source $HOME/.zshrc
+        # '';
+
+        # shellInit = ''
+        #   source $HOME/.zprofile
+        #   source $HOME/.zshrc
+        # '';
+      };
     };
-
-    programs.zsh = {
-      enable = true;
-      enableCompletion = true;
-      # I init completion myself, because enableGlobalCompInit initializes it too
-      # soon, which means commands initialized later in my config won't get
-      # completion, and running compinit twice is slow.
-      enableGlobalCompInit = false;
-      promptInit = "";
-    };
-
-    system.userActivationScripts.cleanupZgen = "rm -fv $XDG_CACHE_HOME/zsh/*";
-  };
 }

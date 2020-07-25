@@ -1,6 +1,6 @@
 # default.nix --- let the games begin
 
-device: username:
+device: username: # parameters
 { pkgs, options, lib, config, ... }:
 {
   networking.hostName = lib.mkDefault device;
@@ -19,15 +19,14 @@ device: username:
     "config=/etc/dotfiles/config"
   ];
 
-  # Add custom packages & unstable channel, so they can be accessed via pkgs.*
+  # Add overlays. Available through pkgs.*
   nixpkgs.overlays = import ./packages;
 
   # Internationalisation
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # These are the things I want installed on all my systems
+  # Bare minimum, shared (between installations) packages
   environment.systemPackages = with pkgs; [
-    # Just the bear necessities~
     coreutils
     git
     unzip

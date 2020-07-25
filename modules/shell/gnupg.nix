@@ -3,7 +3,6 @@
 with lib;
 let cfg = config.modules;
     gnupgCfg = cfg.shell.gnupg;
-    homedir = "$XDG_CONFIG_HOME/gpg";
 in {
   options.modules.shell.gnupg = {
     enable = mkOption { type = types.bool; default = false; };
@@ -12,7 +11,8 @@ in {
 
   config = mkIf gnupgCfg.enable {
     my = {
-      env.GNUPGHOME = homedir;
+      # Use the default value
+      # env.GNUPGHOME = "$XDG_CONFIG_HOME/gpg";
 
       # HACK Without this config file you get "No pinentry program" on 20.03.
       #      program.gnupg.agent.pinentryFlavor doesn't appear to work, and this
