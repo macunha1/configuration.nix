@@ -1,4 +1,4 @@
-# modules/dev/lua.nix --- https://www.lua.org/
+# modules/development/lua.nix --- https://www.lua.org/
 #
 # Lua is Moon in Portuguese, the natural satellite of Earth. Acting as the
 # perfect satellite language for system's programming languages.
@@ -7,14 +7,14 @@
 { config, options, lib, pkgs, ... }:
 with lib;
 {
-  options.modules.dev.lua = {
+  options.modules.development.lua = {
     enable = mkOption {
       type = types.bool;
       default = true;
     };
   };
 
-  config = mkIf config.modules.dev.lua.enable {
+  config = mkIf config.modules.development.lua.enable {
     my = {
       packages = with pkgs; [
         lua

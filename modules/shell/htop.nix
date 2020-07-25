@@ -4,7 +4,7 @@ with lib;
   options.modules.shell.htop = {
     enable = mkOption {
       type = types.bool;
-      default = false;
+      default = true;
     };
   };
 

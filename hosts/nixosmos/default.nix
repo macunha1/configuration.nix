@@ -9,6 +9,7 @@
       <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
       ./networking.nix
       ./file-systems.nix
+      ./modules.nix
     ];
 
   # Boot Configuration (GRUB)
@@ -26,12 +27,6 @@
 
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
-
-  virtualisation.libvirtd.enable = true;
-  virtualisation.docker = {
-    enable = true;
-    enableNvidia = true;
-  };
 
   boot.loader = {
     efi = {
@@ -64,16 +59,64 @@
     };
   };
 
+  nixpkgs.config.allowUnfree = true; # necessary evil
+
   hardware.opengl = {
     enable = true;
     setLdLibraryPath = true;
     driSupport32Bit = true;
   };
 
+  services.xserver.videoDrivers = [ "nvidia" ];
+
   environment.systemPackages = with pkgs; [
-    nvtop # htop for NVidia GPU(s)
+    # OS basics
+    git
+    pciutils
+
+    networkmanager
+    nettools
+    netcat
+    telnet
+    nmap
+    dnsutils
+
+    openssl
+
+    pavucontrol
+    ly
+    ripgrep
+
+    i3lock
+
+    curl
+
+    # Security
+    expect # Handles passwords from storage
+
+    # CLI Tools and Utils
+    tree
+    rofi  # TUI all the things
+    fzf   # Fuzzy finder
+
+    neofetch # Fancy fetch
+    scrot    # Lightweight screenshooter
+    stow     # GNU Stow, symlink manager
+    feh      # Simple image viewer
+    jq       # JSON for shell
+
+    cmake
+    gnumake
+
+    # Infra/Cloud
+    kubectl
+    helm
+    awscli
+    # google-cloud-sdk
+    # aws-iam-authenticator
   ];
 
   nix.maxJobs = lib.mkDefault 8;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
+  hardware.cpu.intel.updateMicrocode = true;
 }

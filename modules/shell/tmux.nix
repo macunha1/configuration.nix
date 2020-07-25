@@ -20,17 +20,17 @@ with lib;
           '')
       ];
 
-      env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
+      env.TMUX_HOME = "$XDG_CONFIG_DIR/tmux";
 
       zsh.rc = ''
         alias t=tmux
       '';
 
-      home.xdg.configFile = {
-        "tmux" = { source = <config/tmux>; recursive = true; };
-         # TODO: Currently managing plugins via TPM, change to NixOS config
-        # "tmux/plugins".text = '' '';
-      };
+      # TODO: Currently managing plugins via TPM, change to NixOS config
+      # home.xdg.configFile = {
+      #   "tmux" = { source = <config/tmux>; recursive = true; };
+      #   "tmux/plugins".text = '' '';
+      # };
     };
   };
 }

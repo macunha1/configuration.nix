@@ -6,6 +6,11 @@ with lib;
       type = types.bool;
       default = false;
     };
+
+    nvidia.enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
   };
 
   config = mkIf config.modules.services.docker.enable {
@@ -13,16 +18,18 @@ with lib;
       packages = with pkgs; [ docker docker-compose ];
 
       env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
-      env.MACHINE_STORAGE_PATH = "$XDG_DATA_HOME/docker/machine";
+
+      # Keep /var/lib/docker for the first iteration
+      # env.MACHINE_STORAGE_PATH = "$XDG_DATA_HOME/docker/machine";
 
       user.extraGroups = [ "docker" ];
-      zsh.rc = lib.readFile <config/docker/aliases.zsh>;
     };
 
     virtualisation = {
       docker = {
         enable = true;
         autoPrune.enable = true;
+        enableNvidia = config.modules.services.docker.nvidia.enable;
         enableOnBoot = false;
       };
     };

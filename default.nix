@@ -25,8 +25,6 @@ device: username:
   # Internationalisation
   i18n.defaultLocale = "en_US.UTF-8";
 
-  time.timeZone = "Europe/Berlin";
-
   # These are the things I want installed on all my systems
   environment.systemPackages = with pkgs; [
     # Just the bear necessities~
@@ -58,8 +56,6 @@ device: username:
     nenv = "nix-env";
   };
 
-  nixpkgs.config.allowUnfree = true; # necessary evil
-
   # Default settings for primary user account. `my` is defined in
   # modules/default.nix
   my.user = {
@@ -68,7 +64,6 @@ device: username:
     shell = pkgs.zsh;
     extraGroups = [
       "wheel"  # Enable ‘sudo’ for the user.
-      "networkmanager"
     ];
   };
 

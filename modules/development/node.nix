@@ -1,16 +1,16 @@
-# modules/dev/node.nix --- https://nodejs.org/en/
+# modules/development/node.nix --- https://nodejs.org/en/
 
 { config, options, lib, pkgs, ... }:
 with lib;
 {
-  options.modules.dev.node = {
+  options.modules.development.node = {
     enable = mkOption {
       type = types.bool;
       default = false;
     };
   };
 
-  config = mkIf config.modules.dev.node.enable {
+  config = mkIf config.modules.development.node.enable {
     my = {
       packages = with pkgs; [
         nodejs
@@ -28,10 +28,11 @@ with lib;
       alias.n  = "PATH=\"$(npm bin):$PATH\"";
       alias.ya = "yarn";
 
-      home.xdg.configFile."npm/config".text = ''
-        cache=$XDG_CACHE_HOME/npm
-        prefix=$XDG_DATA_HOME/npm
-      '';
+      # TODO: Set the cache value to store in /data/1/...
+      # home.xdg.configFile."npm/config".text = ''
+      #   cache=$XDG_CACHE_HOME/npm
+      #   prefix=$XDG_DATA_HOME/npm
+      # '';
     };
   };
 }

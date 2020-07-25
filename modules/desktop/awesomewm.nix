@@ -36,18 +36,21 @@ with lib;
       layout = "us";
       xkbVariant = "intl";
 
-      displayManager.startx.enable = true;
       windowManager.awesome.enable = true;
+
+      displayManager = {
+        startx.enable = true;
+        defaultSession = "none+awesome";
+      };
 
       desktopManager = {
         xterm.enable = false;
-        default = "none";
       };
     };
 
     # link recursively so other modules can link files in their folders
-    my.home.xdg.configFile = {
-      "awesome" = {  }; # Fetch from Git
-    };
+    # my.home.xdg.configFile = {
+    #   "awesome" = {  }; # Fetch from Git
+    # };
   };
 }
