@@ -12,7 +12,7 @@ with lib;
     };
   };
 
-  config = mkIf (config.modules.desktop.browsers.default != null) {
-    my.env.BROWSER = config.modules.desktop.browsers.default;
-  };
+  # config = mkIf (config.modules.desktop.browsers.default != null) {
+  #   my.env.BROWSER = config.modules.desktop.browsers.default;
+  # };
 }

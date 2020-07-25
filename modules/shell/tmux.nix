@@ -20,7 +20,7 @@ with lib;
           '')
       ];
 
-      env.TMUX_HOME = "$XDG_CONFIG_DIR/tmux";
+      env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
 
       zsh.rc = ''
         alias t=tmux
