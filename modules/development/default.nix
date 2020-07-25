@@ -1,4 +1,4 @@
-# modules/dev --- common settings for dev modules
+# modules/development --- root config for development modules
 
 { pkgs, ... }:
 {

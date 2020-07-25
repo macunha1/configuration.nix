@@ -17,12 +17,12 @@ in {
       # HACK Without this config file you get "No pinentry program" on 20.03.
       #      program.gnupg.agent.pinentryFlavor doesn't appear to work, and this
       #      is cleaner than overriding the systemd unit.
-      home.xdg.configFile."gnupg/gpg-agent.conf" = {
-        text = ''
-          default-cache-ttl ${toString gnupgCfg.cacheTTL}
-          pinentry-program ${pkgs.pinentry.gtk2}/bin/pinentry
-        '';
-      };
+      # home.xdg.configFile."gnupg/gpg-agent.conf" = {
+      #   text = ''
+      #     default-cache-ttl ${toString gnupgCfg.cacheTTL}
+      #     pinentry-program ${pkgs.pinentry.gtk2}/bin/pinentry
+      #   '';
+      # };
     };
 
     programs.gnupg.agent.enable = true;

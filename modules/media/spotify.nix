@@ -1,6 +1,7 @@
 { config, options, lib, pkgs, ... }:
 with lib;
 {
+  # TODO: Include Spicetify support and theme configuration
   options.modules.media.spotify = {
     enable = mkOption {
       type = types.bool;

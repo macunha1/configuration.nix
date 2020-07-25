@@ -1,7 +1,7 @@
 [
   (self: super: with super; {
     my = {
-      uhkAgent = (callPackage ./uhkAgent.nix {});
+      # uhkAgent = (callPackage ./uhk-agent.nix {});
       cached-nix-shell =
         (callPackage
           (builtins.fetchTarball

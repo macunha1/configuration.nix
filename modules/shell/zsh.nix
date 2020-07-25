@@ -34,11 +34,12 @@ with lib;
       alias.sc = "systemctl";
       alias.ssc = "sudo systemctl";
 
-      # Write it recursively so other modules can write files to it
-      home.xdg.configFile."zsh" = {
-        source = <config/zsh>;
-        recursive = true;
-      };
+      # TODO: Change from dotfiles to NixOS (fetch from Git)
+      # home.xdg.configFile."zsh" = {
+      #   source = <config/zsh>;
+      #   # Write it recursively so other modules can write files to it
+      #   recursive = true;
+      # };
     };
 
     programs.zsh = {

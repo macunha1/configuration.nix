@@ -1,4 +1,4 @@
-# modules/dev/java.nix --- https://www.java.com/en/
+# modules/development/java.nix --- https://www.java.com/en/
 #
 # Java ooh Java, why you have to be so ugly and nice at the same time?
 # You are the perfect mid-term between performance and productivity.
@@ -7,14 +7,14 @@
 { config, options, lib, pkgs, ... }:
 with lib;
 {
-  options.modules.dev.java = {
+  options.modules.development.java = {
     enable = mkOption {
       type = types.bool;
       default = true;
     };
   };
 
-  config = mkIf config.modules.dev.java.enable {
+  config = mkIf config.modules.development.java.enable {
     my = {
       packages = with pkgs; [
         openjdk

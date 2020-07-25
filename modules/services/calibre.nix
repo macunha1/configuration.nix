@@ -9,7 +9,8 @@ with lib;
   };
 
   config = mkIf config.modules.services.calibre.enable {
-    services.calibre-server.enable = true;
-    networking.firewall.allowedTCPPorts = [ 8080 ];
+    environment.systemPackages = with pkgs; [
+      calibre
+    ];
   };
 }

@@ -1,4 +1,4 @@
-# modules/dev/python.nix --- https://godotengine.org/
+# modules/development/python.nix --- https://godotengine.org/
 #
 # Python was the main igniter for using NixOS, the mess with minor versions
 # updates breaking system dependencies, packages and creating a dependency hell
@@ -7,14 +7,14 @@
 { config, options, lib, pkgs, ... }:
 with lib;
 {
-  options.modules.dev.python = {
+  options.modules.development.python = {
     enable = mkOption {
       type = types.bool;
       default = true;
     };
   };
 
-  config = mkIf config.modules.dev.python.enable {
+  config = mkIf config.modules.development.python.enable {
     my = {
       packages = with pkgs; [
         python39Full
@@ -23,7 +23,7 @@ with lib;
         pipenv                      # spin virtual envs like a god
 
         python39Packages.autopep8   # pep8 prettify
-        python39Packages.flake8     # code lint
+        # python39Packages.flake8     # code lint: failing for py3.9
         python39Packages.setuptools # distutils++
       ];
 

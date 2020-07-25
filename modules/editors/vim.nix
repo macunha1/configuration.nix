@@ -15,11 +15,11 @@ with lib;
     my = {
       packages = with pkgs; [
         editorconfig-core-c
-        vim
+        vim_configurable
       ];
 
-      env.VIMINIT = "let \\$MYVIMRC='\\$XDG_CONFIG_HOME/vim/init.vim' | source \\$MYVIMRC";
-      alias.vim = "vim";
+      # TODO: Adjust vim configurations to XDG, + fetch from Git
+      # env.VIMINIT = "let \\$MYVIMRC='\\$XDG_CONFIG_HOME/vim/init.vim' | source \\$MYVIMRC";
       alias.v = "vim";
     };
   };

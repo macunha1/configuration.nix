@@ -2,14 +2,14 @@
 
 with lib;
 {
-  options.modules.desktop.term.alacritty = {
+  options.modules.desktop.terminal.alacritty = {
     enable = mkOption {
       type = types.bool;
       default = false;
     };
   };
 
-  config = mkIf config.modules.desktop.term.alacritty.enable {
+  config = mkIf config.modules.desktop.terminal.alacritty.enable {
     # workaroung TERM=alacritty issues with Vim and Tmux
     my.zsh.rc = ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
 
