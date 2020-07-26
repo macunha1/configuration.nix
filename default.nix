@@ -66,14 +66,7 @@ device: username: # parameters
 
   security.sudo = {
     enable = true;
-    extraRules = [{
-      runAs = "ALL:ALL";
-      groups = [ "wheel" ];
-      commands = [{
-        command = "ALL";
-        options = [ "NOPASSWD" ]; # YOLO
-      }];
-    }];
+    wheelNeedsPassword = false; # YOLO
   };
 
   # This value determines the NixOS release with which your system is to be

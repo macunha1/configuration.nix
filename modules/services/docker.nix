@@ -11,16 +11,24 @@ with lib;
       type = types.bool;
       default = false;
     };
+
+    onBoot.enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
   };
 
   config = mkIf config.modules.services.docker.enable {
     my = {
-      packages = with pkgs; [ docker docker-compose ];
+      packages = with pkgs; [
+        docker
+        docker-compose
+        buildah
+      ];
 
-      env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
-
-      # Keep /var/lib/docker for the first iteration
+      # Manage env append file to $HOME/.profiles.d/docker.sh
       # env.MACHINE_STORAGE_PATH = "$XDG_DATA_HOME/docker/machine";
+      # env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
 
       user.extraGroups = [ "docker" ];
     };
@@ -30,7 +38,7 @@ with lib;
         enable = true;
         autoPrune.enable = true;
         enableNvidia = config.modules.services.docker.nvidia.enable;
-        enableOnBoot = false;
+        enableOnBoot = config.modules.services.docker.onBoot.enable;
       };
     };
   };

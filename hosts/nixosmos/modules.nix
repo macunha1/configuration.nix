@@ -4,8 +4,12 @@
   modules = {
     desktop = {
       awesomewm.enable = true;
-      applications.uhkAgent.enable = true;
       terminal.alacritty.enable = true;
+
+      applications = {
+        uhkAgent.enable = true;
+        redshift.enable = true;
+      };
 
       browsers = {
         default = "chromium";

@@ -3,5 +3,6 @@
 {
   imports = [
     ./uhk-agent.nix
+    ./redshift.nix
   ];
 }

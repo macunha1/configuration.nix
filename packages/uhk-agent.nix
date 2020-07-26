@@ -1,4 +1,6 @@
 # packages/uhk-agent -- UHK configuration agent overlay
+#
+# Ref: https://discourse.nixos.org/t/ultimate-hacking-keyboard-firmware-update/3001/6
 
 { config, lib, pkgs, stdenv, makeDesktopItem, ... }:
 

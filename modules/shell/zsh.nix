@@ -1,4 +1,4 @@
-# modules/shell/zsh.nix --- ...
+# modules/shell/zsh.nix --- ZSH, my dear and loved ZSH
 
 { config, options, pkgs, lib, ... }:
 with lib;
@@ -55,21 +55,25 @@ with lib;
           source $HOME/.zprofile
           source $HOME/.zshrc
         '';
+
+        # Home Manager configuration
+        home.programs.zsh.plugins = [
+          {
+            # Antigen to the rescue
+            name = "antigen";
+            src = pkgs.fetchFromGitHub {
+              owner = "zsh-users";
+              repo = "antigen";
+            };
+          }
+        ];
       };
 
       programs.zsh = {
         enable = true;
         enableCompletion = true;
 
-        # loginShellInit = ''
-        #   source $HOME/.zprofile
-        #   source $HOME/.zshrc
-        # '';
-
-        # shellInit = ''
-        #   source $HOME/.zprofile
-        #   source $HOME/.zshrc
-        # '';
+        histSize = config.modules.shell.zsh.historySize;
       };
-    };
+  };
 }
