@@ -30,13 +30,13 @@ device: username: # parameters
     coreutils
     git
     unzip
-    vim
     curl
+    openssl
 
+    vim
+
+    cmake
     gnumake
-
-    # Mainly used for virtualization
-    pciutils
 
     # Network troubleshooting tools
     nettools
@@ -44,8 +44,6 @@ device: username: # parameters
     telnet
     nmap
     dnsutils
-
-    openssl
 
     my.cached-nix-shell # for instant nix-shell scripts
   ];

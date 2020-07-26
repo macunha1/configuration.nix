@@ -71,18 +71,6 @@
 
   environment.systemPackages = with pkgs; [
     # OS basics
-    pciutils
-
-    networkmanager
-    nettools
-    netcat
-    telnet
-    nmap
-    dnsutils
-
-    curl
-    openssl
-
     pavucontrol
 
     # TODO: Create the LY overlay to support DM, systemctl missing
@@ -94,11 +82,8 @@
     # CLI Tools and Utils
     rofi  # TUI all the things
 
-    scrot    # Lightweight screenshooter
-    feh      # Simple image viewer
-
-    cmake
-    gnumake
+    scrot # Lightweight screenshooter
+    feh   # Simple image viewer
 
     # Infra/Cloud
     kubectl

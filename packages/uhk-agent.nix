@@ -1,70 +1,125 @@
-# https://github.com/garbas/dotfiles/blob/76f9da7c5d84b1595e8b9af31505bb13968ba7a4/nixos/grayworm.nix#L63
-# https://www.reddit.com/r/NixOS/comments/f98mou/buildfhsuserenvappimage_recipe_for_gtk_programs/
+# packages/uhk-agent -- UHK configuration agent overlay
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, stdenv, makeDesktopItem, ... }:
 
 let
-  name = "uhk-agent-${version}";
-      # version >1.3.0 causes it to hang on launch ("Loading configuration. Hang on")
-      # use at your own risk.
-      version = "1.3.0";
-      src = builtins.fetchurl {
-        url = "https://github.com/UltimateHackingKeyboard/agent/releases/download/v${version}/UHK.Agent-${version}-linux-x86_64.AppImage";
-        sha256 = {
-          "1.2.12" = "1gr3q37ldixcqbwpxchhldlfjf7wcygxvnv6ff9nl7l8gxm732l6";
-          "1.3.0" =  "09k09yn0iyivc9hf283cxrcrcyswgg2jslc85k4dwvp1pc6bpp07";
-          "1.3.1" =  "0inps9q6f6cmlnl3knmfm2mmgqb5frl4ghxplbzvas7kmrd2wg4k";
-          "1.3.2" =  "1y2n2kkkkqsqxw7rsya7qxh8m5nh0n93axcssi54srp3h7040w3h";
-          "1.4.0" =  "1y6gy3zlj0pkvydby7ibm7hx83lmc3vs2m0bfww5dq1114j99dy5";
-        }."${version}";
-      };
+  pname = "uhk-agent";
+  name = "${pname}-${version}";
 
-      xdg_dirs = builtins.concatStringsSep ":" [
-        "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}"
-      ];
+  # version >1.3.0 causes uhk-agent to hang on launch
+  # "Loading keyboard configuration. Hang tight!") -- literally tight.
+  version = "1.3.0"; # Change at your own risk.
 
-      # not necessary, here for debugging purposes
-      # adapted from the original runScript of appimageTools
-      extracted_source = pkgs.appimageTools.extractType2 { inherit name src; };
-      debugScript = pkgs.writeScript "run" ''
-        #!${pkgs.stdenv.shell}
-
-        export APPDIR=${extracted_source}
-        export APPIMAGE_SILENT_INSTALL=1
-
-        # >>> inspect the script running environment here <<<
-        echo "INSPECT: ''${GIO_EXTRA_MODULES:-no extra modules!}"
-        echo "INSPECT: ''${GSETTINGS_SCHEMA_DIR:-no schemas!}"
-        echo "INSPECT: ''${XDG_DATA_DIRS:-no data dirs!}"
-
-        cd $APPDIR
-        exec ./AppRun "$@"
-      '';
-in pkgs.appimageTools.wrapType2 {
-  inherit name src;
-
-      # for debugging purposes only
-      # runScript = debugScript;
-
-      extraPkgs = pkgs: with pkgs; [
-        # put runtime dependencies here, if any
-      ];
-
-      extraInstallCommands = ''
-        ln -s "$out/bin/${name}" "$out/bin/uhk-agent";
-        mkdir -p $out/etc/udev/rules.d
-        cat > $out/etc/udev/rules.d/50-uhk60.rules <<EOF
-        # Ultimate Hacking Keyboard rules
-        # These are the udev rules for accessing the USB interfaces of the UHK as non-root users.
-        # Copy this file to /etc/udev/rules.d and physically reconnect the UHK afterwards.
-        SUBSYSTEM=="input", GROUP="input", MODE="0666"
-        SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", MODE:="0666", GROUP="plugdev"
-        KERNEL=="hidraw*", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", MODE="0666", GROUP="plugdev"
-        EOF
-      '';
-      profile = ''
-        export XDG_DATA_DIRS="${xdg_dirs}''${XDG_DATA_DIRS:+:}"
-        export APPIMAGE=''${APPIMAGE-""} # Kill a seemingly useless error message
-      '';
-    };
+  src = builtins.fetchurl {
+    url = "https://github.com/UltimateHackingKeyboard/agent/releases/download/v${version}/UHK.Agent-${version}-linux-x86_64.AppImage";
+    sha256 = {
+      "1.2.12" = "1gr3q37ldixcqbwpxchhldlfjf7wcygxvnv6ff9nl7l8gxm732l6";
+      "1.3.0" =  "09k09yn0iyivc9hf283cxrcrcyswgg2jslc85k4dwvp1pc6bpp07";
+      "1.3.1" =  "0inps9q6f6cmlnl3knmfm2mmgqb5frl4ghxplbzvas7kmrd2wg4k";
+      "1.3.2" =  "1y2n2kkkkqsqxw7rsya7qxh8m5nh0n93axcssi54srp3h7040w3h";
+      "1.4.0" =  "1y6gy3zlj0pkvydby7ibm7hx83lmc3vs2m0bfww5dq1114j99dy5";
+      "1.4.5" =  "1nimb8ab7p478p8xpa5lkdddwr1g59cp9jly167fc47gqq8zs7kl";
+      "1.5.0" =  "1kwp133ipxd5al9jf0v40grpnpyiqvz95yydv9rylagxllcvr2s4";
+    }."${version}";
   };
+
+  desktopItem = makeDesktopItem {
+    name = pname;
+    desktopName = "UHK Agent";
+    genericName = "Keyboard configuration";
+    comment = "Agent is the configuration application of the Ultimate Hacking Keyboard";
+    icon = "uhk-keyboard";
+    terminal = "false";
+    exec = pname;
+    categories = "Utility;";
+  };
+
+  xdgDirs = builtins.concatStringsSep ":" [
+    "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+    "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}"
+    "$XDG_DATA_DIRS"
+  ];
+
+  appimageContents = pkgs.appimageTools.extractType2 {
+    inherit name src;
+  };
+
+in pkgs.appimageTools.wrapType2 rec {
+  inherit name src;
+  
+  # Uncomment in case debugging is necessary {{
+  # runScript = pkgs.writeScript "run" ''
+  #   #!${pkgs.stdenv.shell}
+
+  #   export APPDIR=${pkgs.appimageTools.extractType2 { inherit name src; }}
+  #   export APPIMAGE_SILENT_INSTALL=1
+
+  #   # >>> inspect the script running environment here <<<
+  #   echo "INSPECT: ''${GIO_EXTRA_MODULES:-no extra modules!}"
+  #   echo "INSPECT: ''${GSETTINGS_SCHEMA_DIR:-no schemas!}"
+  #   echo "INSPECT: ''${XDG_DATA_DIRS:-no data dirs!}"
+
+  #   cd $APPDIR
+  #   exec ./AppRun "$@"
+  # '';
+  # }} Uncomment in case debugging is necessary
+
+  multiPkgs = null;
+
+  # Borrows Electron packages from Atom
+  # Ref: https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/atom/env.nix
+  extraPkgs = pkgs: with pkgs; atomEnv.packages ++ [
+    pciutils
+    libusb1
+
+    # Additional electron dependencies (pinning version)
+    at-spi2-atk
+    at-spi2-core
+  ];
+  
+  extraInstallCommands = ''
+    ln -s "$out/bin/${name}" "$out/bin/uhk-agent"
+    mkdir -p $out/etc/udev/rules.d
+
+    cat > $out/etc/udev/rules.d/50-uhk60.rules <<EOF
+    # Ultimate Hacking Keyboard rules
+    # These are the udev rules for accessing the USB interfaces of the UHK as non-root users.
+    # Copy this file to /etc/udev/rules.d and physically reconnect the UHK afterwards.
+    SUBSYSTEM=="input", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", GROUP="input", MODE="0660"
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="612[0-7]", TAG+="uaccess"
+    EOF
+
+    mkdir -p $out/share/applications
+    cp ${desktopItem}/share/applications/* $_
+
+    mkdir -p $out/share/icons/hicolor
+    # Iterate over icons and copy them to out, dynamically
+    for icon_file in $(find ${appimageContents}/usr/share/icons/hicolor -name uhk-agent.png); do
+      # sed erases the appimageContents path
+      install -m 444 -D $icon_file $out/share/icons/$(echo $icon_file | sed 's/.*hicolor/hicolor/')
+    done
+  '';
+
+  profile = ''
+    export XDG_DATA_DIRS="${xdgDirs}"
+    export APPIMAGE=''${APPIMAGE-""} # Kill a seemingly useless error message
+  '';
+
+  meta = with stdenv.lib; {
+    description = ''
+      Agent is the configuration application of the Ultimate Hacking Keyboard
+    '';
+    
+    longDescription = ''
+      The Ultimate Hacking Keyboard is a split mechanical keyboard which utilizes
+      Cherry MX-style switches. It's also a fully programmable keyboard which
+      can be vastly customized through this agent for your needs.
+    ''; # adapted from https://ultimatehackingkeyboard.com/
+
+    homepage = https://ultimatehackingkeyboard.com/start/agent;
+    license = licenses.unfreeRedistributable;
+    maintainers = with maintainers; [ macunha1 ];
+    platforms = [ "i386-linux" "x86_64-linux" ];
+  };
+}
