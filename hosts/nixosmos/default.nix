@@ -4,45 +4,16 @@
 { config, lib, pkgs, ... }:
 
 {
-  imports =
-    [
-      <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
-      ./networking.nix
-      ./file-systems.nix
-      ./modules.nix
-    ];
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
 
-  # Boot Configuration (GRUB)
-  boot.initrd = {
-    availableKernelModules = [
-      "xhci_pci"
-      "ahci"
-      "usbhid"
-      "usb_storage"
-      "sd_mod"
-    ];
+    ./boot.nix
+    ./networking.nix
+    ./file-systems.nix
+    ./modules.nix
+  ];
 
-    kernelModules = [ ];
-  };
-
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
-
-  boot.loader = {
-    efi = {
-      canTouchEfiVariables = false;
-    };
-
-    grub = {
-      enable = true;
-      efiSupport = true;
-      version = 2;
-      device = "nodev";
-      useOSProber = true;
-    };
-  };
-
-  # Bluetooth
+  # Bluetooth (especially for audio)
   hardware.bluetooth.enable = true;
 
   hardware.pulseaudio = {
@@ -52,14 +23,25 @@
 
   services.blueman.enable = true;
 
-  # GPU and Graphics
-  nixpkgs.config.packageOverrides = pkgs: {
-    vaapiIntel = pkgs.vaapiIntel.override {
-      enableHybridCodec = true;
-    };
+  # Bluetooth device proxy for media control
+  my.home.systemd.user.services.mpris-proxy = {
+    Unit.Description = "Mpris proxy";
+    Unit.After = [ "network.target" "sound.target" ];
+    Service.ExecStart = "${pkgs.bluez}/bin/mpris-proxy";
+    Install.WantedBy = [ "default.target" ];
   };
 
-  nixpkgs.config.allowUnfree = true; # necessary evil
+  # GPU and Graphics
+  nixpkgs.config = {
+    packageOverrides = pkgs: {
+      vaapiIntel = pkgs.vaapiIntel.override {
+        enableHybridCodec = true;
+      };
+    };
+
+    allowUnfree = true; # necessary evil
+  };
+
 
   hardware.opengl = {
     enable = true;
@@ -73,24 +55,18 @@
     # OS basics
     pavucontrol
 
-    # TODO: Create the LY overlay to support DM, systemctl missing
+    # TODO: Create the Ly overlay adding support for systemctl
     ly
 
-    # TODO: Convert into module, using the lockscreen script
-    i3lock
-
-    # CLI Tools and Utils
-    rofi  # TUI all the things
-
-    scrot # Lightweight screenshooter
-    feh   # Simple image viewer
-
-    # Infra/Cloud
+    # DEA: Data Engineering and Analytics
+    # ICE: Infrastructure and Cloud Engineering
     kubectl
     helm
+
     awscli
-    # google-cloud-sdk
-    # aws-iam-authenticator
+    aws-iam-authenticator
+
+    google-cloud-sdk
   ];
 
   nix.maxJobs = lib.mkDefault 8;
