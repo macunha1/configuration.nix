@@ -8,7 +8,7 @@
     ./node.nix
     ./python.nix
     ./rust.nix
-    # ./go.nix # TODO
+    ./go.nix
   ];
 
   options = {};

@@ -22,7 +22,7 @@ with lib;
         feh  # Simple image viewer
         rofi # TUI all the things
       ];
-      
+
       home = {
         services.screen-locker = {
           inactiveInterval = 10;
@@ -50,22 +50,28 @@ with lib;
         })
     ];
 
-    services.compton.enable = true;
+    services = {
+      # compton.enable = true;
 
-    services.xserver = {
-      enable = true;
-      layout = "us";
-      xkbVariant = "intl";
+      xserver = {
+        enable = true;
+        layout = "us";
+        xkbVariant = "intl";
 
-      windowManager.awesome.enable = true;
+        windowManager.awesome.enable = true;
 
-      displayManager = {
-        startx.enable = true;
-        defaultSession = "none+awesome";
-      };
+        displayManager = {
+          startx.enable = true;
 
-      desktopManager = {
-        xterm.enable = false;
+          # TODO: Create ly overlay with systemd for display-manager
+          # ly.enable = true;
+
+          defaultSession = "none+awesome";
+        };
+
+        desktopManager = {
+          xterm.enable = false;
+        };
       };
     };
   };

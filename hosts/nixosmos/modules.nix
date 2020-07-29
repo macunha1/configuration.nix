@@ -28,7 +28,7 @@
       lua.enable = true;
       java.enable = true;
       rust.enable = true;
-      # go.enable = true; # TODO: Coming soon
+      go.enable = true;
     };
 
     media = {

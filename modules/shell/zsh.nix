@@ -9,18 +9,6 @@ with lib;
       default = false;
     };
 
-    ohMyZsh = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
-
-      plugins = mkOption {
-        type = (types.listOf types.str);
-        default = [];
-      };
-    };
-
     historySize = mkOption {
       type = types.int;
       default = 9223372036854775807; # LONG_MAX: Unlimited
