@@ -22,6 +22,7 @@
   };
 
   services.blueman.enable = true;
+  services.dbus.packages = with pkgs; [ blueman ];
 
   # Bluetooth device proxy for media control
   my.home.systemd.user.services.mpris-proxy = {

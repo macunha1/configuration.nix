@@ -1,6 +1,7 @@
 # default.nix --- let the games begin
 
 device: username: # parameters
+
 { pkgs, options, lib, config, ... }:
 {
   networking.hostName = lib.mkDefault device;
@@ -14,7 +15,7 @@ device: username: # parameters
   ### NixOS
   nix.autoOptimiseStore = true;
   nix.nixPath = options.nix.nixPath.default ++ [
-    # So we can use absolute import paths
+    # Enables absolute import paths
     "bin=/etc/dotfiles/bin"
     "config=/etc/dotfiles/config"
   ];

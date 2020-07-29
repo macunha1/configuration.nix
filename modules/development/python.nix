@@ -27,11 +27,11 @@ with lib;
         python39Packages.setuptools # distutils++
       ];
 
-      env.PYTHONSTARTUP      = "$XDG_CONFIG_HOME/python/pythonrc";
-      env.PYTHON_EGG_CACHE   = "$XDG_CACHE_HOME/python-eggs";
-      env.FLAKE8_CONFIG_FILE = "$XDG_CONFIG_HOME/flake8";
-      env.PIP_CONFIG_FILE    = "$XDG_CONFIG_HOME/pip/pip.conf";
-      env.PIP_LOG_FILE       = "$XDG_DATA_HOME/pip/log";
+      # env.PYTHONSTARTUP      = "$XDG_CONFIG_HOME/python/pythonrc";
+      # env.PYTHON_EGG_CACHE   = "$XDG_CACHE_HOME/python-eggs";
+      # env.FLAKE8_CONFIG_FILE = "$XDG_CONFIG_HOME/flake8";
+      # env.PIP_CONFIG_FILE    = "$XDG_CONFIG_HOME/pip/pip.conf";
+      # env.PIP_LOG_FILE       = "$XDG_DATA_HOME/pip/log";
 
       alias.py  = "python";
       alias.py2 = "python2";
