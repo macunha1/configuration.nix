@@ -17,8 +17,9 @@ with lib;
         go
       ];
 
-      env.GOPATH = "$XDG_DATA_HOME/go";
-      env.PATH = [ "$GOPATH/bin" ];
+      # XDG variables aren't loading in time
+      # env.GOPATH = "$XDG_DATA_HOME/go";
+      # env.PATH = [ "$GOPATH/bin" ];
     };
   };
 }
