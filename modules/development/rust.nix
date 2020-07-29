@@ -16,9 +16,10 @@ with lib;
         rustup
       ];
 
-      env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
-      env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
-      env.PATH = [ "$CARGO_HOME/bin" ];
+      # XDG variables aren't loading in time
+      # env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
+      # env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
+      # env.PATH = [ "$CARGO_HOME/bin" ];
 
       alias.rs  = "rustc";
       alias.rsp = "rustup";
