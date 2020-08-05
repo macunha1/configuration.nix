@@ -24,6 +24,7 @@
     };
 
     development = {
+      cc.enable = true;
       python.enable = true;
       lua.enable = true;
       java.enable = true;

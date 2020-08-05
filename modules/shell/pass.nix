@@ -20,7 +20,7 @@ with lib;
         pwgen  # generates randomized passwords
       ];
 
-      env.PASSWORD_STORE_DIR = "$HOME/.password-store";
+      env.PASSWORD_STORE_DIR = "$HOME/.config/pass";
     };
   };
 }
