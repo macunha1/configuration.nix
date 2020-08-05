@@ -11,12 +11,22 @@ with lib;
 
   config = mkIf config.modules.shell.gnupg.enable {
     my = {
+      # Set on the corresponding .profile.d
       # env.GNUPGHOME = "$XDG_CONFIG_HOME/gpg";
-    };
 
-    programs.gnupg.agent = {
-      enable = true;
-      pinentryFlavor = "curses";
+      home.services.gpg-agent = {
+        enable = true;
+
+        # Would be nice, but doesn't respect the XDG config
+        # pinentryFlavor = "curses";
+      };
+
+      # Fallback for pinentryFlavor
+      home.xdg.configFile."gpg/gpg-agent.conf" = {
+        text = ''
+          pinentry-program ${pkgs.pinentry-curses}/bin/pinentry
+        '';
+      };
     };
   };
 }

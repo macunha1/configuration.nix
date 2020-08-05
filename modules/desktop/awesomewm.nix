@@ -55,8 +55,6 @@ with lib;
 
       xserver = {
         enable = true;
-        layout = "us";
-        xkbVariant = "intl";
 
         windowManager.awesome.enable = true;
 

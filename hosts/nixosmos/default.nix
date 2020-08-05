@@ -50,7 +50,11 @@
     driSupport32Bit = true;
   };
 
-  services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver = {
+    videoDrivers = [ "nvidia" ];
+    layout = "us";
+    xkbVariant = "intl";
+  };
 
   environment.systemPackages = with pkgs; [
     # OS basics
@@ -62,6 +66,7 @@
     # DEA: Data Engineering and Analytics
     # ICE: Infrastructure and Cloud Engineering
     kubectl
+    minikube
     helm
 
     awscli
