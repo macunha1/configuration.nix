@@ -1,7 +1,7 @@
 [![Made with Doom Emacs](https://img.shields.io/badge/Made_with-Doom_Emacs-blueviolet.svg?style=flat-square&logo=GNU%20Emacs&logoColor=white)](https://github.com/hlissner/doom-emacs)
 [![NixOS 20.03](https://img.shields.io/badge/NixOS-v20.03-blue.svg?style=flat-square&logo=NixOS&logoColor=white)](https://nixos.org)
 
-# dotdotfiles i.e. .dotfile
+# configuration.nix -> NixOS config as code
 
 + **Operating System:** NixOS
 + **Shell:** zsh + antigen
@@ -11,8 +11,6 @@
 + **Terminal:** alacritty
 + **Launcher:** rofi
 + **Browser:** chromium
-
-*Works on my machine* ¯\\\_(ツ)_/¯
 
 ## Quick start
 

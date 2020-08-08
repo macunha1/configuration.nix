@@ -1,8 +1,9 @@
-# modules/shell/zsh.nix --- ZSH, my dear and loved ZSH
+# modules/shell/zsh.nix --- https://www.zsh.org
+#
+# ZSH, Oh my dear and loved ZSH.
 
 { config, options, pkgs, lib, ... }:
-with lib;
-{
+with lib; {
   options.modules.shell.zsh = {
     enable = mkOption {
       type = types.bool;
@@ -16,52 +17,53 @@ with lib;
   };
 
   config = mkIf config.modules.shell.zsh.enable {
-      my = {
-        packages = with pkgs; [
-          zsh
-          nix-zsh-completions
+    my = {
+      packages = with pkgs; [
+        zsh
+        nix-zsh-completions
 
-          ## Utils
-          fzf      # fuzzy-finder all the things
-          htop     # colorful top
-          tldr     # short man util
-          tree     # Tree view of dirs
-          ripgrep  # Fancy fast grep
-          stow     # GNU Stow, symlink manager
-          jq       # JSON for shell
-          neofetch # Fancy fetch
-        ];
+        ## Theme
+        starship # Spaceship prompt reimplemented in Rust
 
-        # TODO: Change from dotfiles to NixOS (fetch from Git)
-        # home.xdg.configFile."zsh" = {
-        #   source = <config/zsh>;
-        #   # Write it recursively so other modules can write files to it
-        #   recursive = true;
-        # };
+        ## Utils
+        fzf      # fuzzy-finder all the things
+        htop     # colorful top
+        tldr     # short man util
+        tree     # Tree view of dirs
+        ripgrep  # Fancy fast grep
+        stow     # GNU Stow, symlink manager
+        jq       # JSON for shell
+        neofetch # Fancy fetch
+      ];
 
-        zsh.rc = ''
-          source $HOME/.zprofile
-          source $HOME/.zshrc
-        '';
+      # TODO: Change from dotfiles to NixOS (fetch from Git)
+      # home.xdg.configFile."zsh" = {
+      #   source = <config/zsh>;
+      #   # Write it recursively so other modules can write files to it
+      #   recursive = true;
+      # };
 
-        # Home Manager configuration
-        home.programs.zsh.plugins = [
-          {
-            # Antigen to the rescue
-            name = "antigen";
-            src = pkgs.fetchFromGitHub {
-              owner = "zsh-users";
-              repo = "antigen";
-            };
-          }
-        ];
-      };
+      zsh.rc = ''
+        source $HOME/.zprofile
+        source $HOME/.zshrc
+      '';
 
-      programs.zsh = {
-        enable = true;
-        enableCompletion = true;
+      # Home Manager configuration
+      home.programs.zsh.plugins = [{
+        # Antigen to the rescue
+        name = "antigen";
+        src = pkgs.fetchFromGitHub {
+          owner = "zsh-users";
+          repo = "antigen";
+        };
+      }];
+    };
 
-        histSize = config.modules.shell.zsh.historySize;
-      };
+    programs.zsh = {
+      enable = true;
+      enableCompletion = true;
+
+      histSize = config.modules.shell.zsh.historySize;
+    };
   };
 }

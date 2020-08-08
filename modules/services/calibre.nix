@@ -9,8 +9,8 @@ with lib;
   };
 
   config = mkIf config.modules.services.calibre.enable {
-    environment.systemPackages = with pkgs; [
-      calibre
+    my.packages = with pkgs; [
+      calibre # ebooks manager
     ];
   };
 }

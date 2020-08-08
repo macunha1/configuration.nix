@@ -2,11 +2,11 @@
 
 {
   imports = [
-    ./common.nix
     ./awesomewm.nix
-    
     ./applications
-    ./terminal
     ./browsers
+
+    ./common.nix
+    ./terminal
   ];
 }

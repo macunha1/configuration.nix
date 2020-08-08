@@ -11,6 +11,7 @@ with lib;
 
   config = mkIf config.modules.media.mpv.enable {
     my.packages = with pkgs; [
+      mpv     # video player
       (mpv-with-scripts.override {
         # Adds support for DBus and controls over playerctl
         scripts = [ mpvScripts.mpris ];
