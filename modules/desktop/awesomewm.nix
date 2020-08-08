@@ -6,10 +6,15 @@ with lib;
     ./common.nix
   ];
 
-  options.modules.desktop.awesomewm = {
-    enable = mkOption {
-      type = types.bool;
-      default = false;
+  options.modules.desktop = {
+    awesomewm.enable = mkOption {
+        type = types.bool;
+        default = false;
+    };
+
+    comptom.enable = mkOption {
+        type = types.bool;
+        default = false;
     };
   };
 
@@ -17,10 +22,7 @@ with lib;
     my = {
       packages = with pkgs; [
         i3lock # screenlock.sh uses i3lock
-        scrot  # Lightweight screenshooter
-
-        feh  # Simple image viewer
-        rofi # TUI all the things
+        rofi   # TUI all the things
       ];
 
       home = {
@@ -51,22 +53,15 @@ with lib;
     ];
 
     services = {
-      # compton.enable = true;
-
+      compton.enable = config.modules.desktop.comptom.enable;
       xserver = {
         enable = true;
 
-        windowManager.awesome.enable = true;
-
         displayManager = {
           startx.enable = true;
-
-          # TODO: Create ly overlay with systemd for display-manager
-          # ly.enable = true;
-
-          defaultSession = "none+awesome";
         };
 
+        windowManager.awesome.enable = true;
         desktopManager = {
           xterm.enable = false;
         };

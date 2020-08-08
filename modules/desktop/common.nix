@@ -2,17 +2,15 @@
 
 {
   my.packages = with pkgs; [
-    pcmanfm    # lightweight file manager
+    pcmanfm         # lightweight file manager
     xfce.xfce4panel # system trail
 
     # Screenshooters
-    scrot
+    scrot # Lightweight screenshooter
     xfce.xfce4-screenshooter
 
-    calibre # ebooks manager
-    feh     # image viewer
-    mpv     # video player
-    xclip   # clipboard access from terminal
+    feh   # Simple image viewer
+    xclip # clipboard access from terminal
   ];
 
   ## Sound

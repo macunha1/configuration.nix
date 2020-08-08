@@ -1,8 +1,9 @@
-# modules/applications/uhk-agent.nix --- https://ultimatehackingkeyboard.com/
+# modules/applications/redshift.nix --- http://jonls.dk/redshift/
+#
+# Redshift adjusts screen color according to sun's position.
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.desktop.applications.redshift = {
     enable = mkOption {
       type = types.bool;
@@ -18,9 +19,7 @@ with lib;
 
   config = mkIf config.modules.desktop.applications.redshift.enable {
     my = {
-      packages = with pkgs; [
-        redshift
-      ];
+      packages = with pkgs; [ redshift ];
 
       home.services.redshift = {
         enable = true;
