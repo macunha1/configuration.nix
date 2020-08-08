@@ -18,7 +18,7 @@
 
 ```sh
 # Assumes your partitions are set up and root is mounted on /mnt
-git clone https://github.com/macunha1/.dotfiles /etc/dotfiles
+git clone https://github.com/macunha1/configuration.nix /etc/dotfiles
 make -C /etc/dotfiles install
 ```
 
