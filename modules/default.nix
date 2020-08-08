@@ -11,6 +11,7 @@ in {
     ./development
     ./editors
     ./media
+    ./networking
     ./services
     ./shell
     # ./themes

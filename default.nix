@@ -29,6 +29,8 @@ device: username: # parameters
   # Bare minimum, shared (between installations) packages
   environment.systemPackages = with pkgs; [
     coreutils
+    dateutils
+    
     git
     unzip
     curl

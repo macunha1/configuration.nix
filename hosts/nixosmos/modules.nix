@@ -36,6 +36,25 @@
       mpv.enable = true;
     };
 
+    networking = {
+      terraform.enable = true;
+
+      kubernetes = {
+        enable = true;
+        helm.enable = true;
+        kops.enable = true;
+      };
+
+      aws = {
+        enable = true;
+        iamAuthenticator.enable = true;
+      };
+
+      gcp = {
+        enable = true;
+      };
+    };
+
     shell = {
       zsh.enable = true;
       tmux.enable = true;
