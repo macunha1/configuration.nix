@@ -1,20 +1,17 @@
 { config, options, lib, pkgs, ... }:
 
-with lib;
-{
-  imports = [
-    ./common.nix
-  ];
+with lib; {
+  imports = [ ./common.nix ];
 
   options.modules.desktop = {
     awesomewm.enable = mkOption {
-        type = types.bool;
-        default = false;
+      type = types.bool;
+      default = false;
     };
 
     comptom.enable = mkOption {
-        type = types.bool;
-        default = false;
+      type = types.bool;
+      default = false;
     };
   };
 
@@ -44,11 +41,10 @@ with lib;
     };
 
     nixpkgs.overlays = [
-      (
-        self: super: with super; {
-          awesome = super.awesome.override {
-            luaPackages = super.luajitPackages;
-          };
+      (self: super:
+        with super; {
+          awesome =
+            super.awesome.override { luaPackages = super.luajitPackages; };
         })
     ];
 
@@ -57,13 +53,12 @@ with lib;
       xserver = {
         enable = true;
 
-        displayManager = {
-          startx.enable = true;
-        };
+        displayManager.startx.enable = true;
+        desktopManager.xterm.enable = false;
 
-        windowManager.awesome.enable = true;
-        desktopManager = {
-          xterm.enable = false;
+        windowManager.awesome = {
+          enable = true;
+          luaModules = with pkgs; [ my.luaDbusProxy ];
         };
       };
     };
