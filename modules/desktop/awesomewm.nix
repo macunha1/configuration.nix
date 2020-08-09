@@ -20,6 +20,8 @@ with lib; {
       packages = with pkgs; [
         i3lock # screenlock.sh uses i3lock
         rofi   # TUI all the things
+
+        my.luaDbusProxy
       ];
 
       home = {
@@ -40,13 +42,14 @@ with lib; {
       };
     };
 
-    nixpkgs.overlays = [
-      (self: super:
-        with super; {
-          awesome =
-            super.awesome.override { luaPackages = super.luajitPackages; };
-        })
-    ];
+    # Unfortunatelly, LuaJIT is crashing with naughty.notify
+    # nixpkgs.overlays = [
+    #   (self: super:
+    #     with super; {
+    #       awesome =
+    #         super.awesome.override { luaPackages = super.luajitPackages; };
+    #     })
+    # ];
 
     services = {
       compton.enable = config.modules.desktop.comptom.enable;
