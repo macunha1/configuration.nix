@@ -2,8 +2,7 @@
 
 device: username: # parameters
 
-{ pkgs, options, lib, config, ... }:
-{
+{ pkgs, options, lib, config, ... }: {
   networking.hostName = lib.mkDefault device;
   my.username = username;
 
@@ -30,7 +29,7 @@ device: username: # parameters
   environment.systemPackages = with pkgs; [
     coreutils
     dateutils
-    
+
     git
     unzip
     curl
@@ -52,7 +51,7 @@ device: username: # parameters
   ];
 
   environment.shellAliases = {
-    nsh  = "nix-shell";
+    nsh = "nix-shell";
     nenv = "nix-env";
   };
 
@@ -63,7 +62,7 @@ device: username: # parameters
     uid = 1000;
     shell = pkgs.zsh;
     extraGroups = [
-      "wheel"  # Enable ‘sudo’ for the user.
+      "wheel" # Enable ‘sudo’ for the user.
     ];
   };
 
