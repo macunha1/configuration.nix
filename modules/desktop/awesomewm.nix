@@ -53,13 +53,9 @@ with lib; {
       xserver = {
         enable = true;
 
+        windowManager.awesome.enable = true;
         displayManager.startx.enable = true;
         desktopManager.xterm.enable = false;
-
-        windowManager.awesome = {
-          enable = true;
-          luaModules = with pkgs; [ my.luaDbusProxy ];
-        };
       };
     };
   };

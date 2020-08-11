@@ -1,19 +1,30 @@
-# modules/networking/gcp.nix --- https://cloud.google.com/
+# modules/networking/aws.nix --- https://aws.amazon.com/
 #
-# Google Cloud Platform, next big thing in Cloud computing
-# After all, everybody wants to be Google (look at Kubernetes).
+# Amazon Web Services, biggest Cloud player (ATM of this writing).
+# Built on top of a prototype to manage VMs at Amazon.
 
 { config, options, lib, pkgs, ... }:
 with lib;
 {
-  options.modules.networking.gcp = {
+  options.modules.networking.aws = {
     enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
+    iamAuthenticator.enable = mkOption {
       type = types.bool;
       default = false;
     };
   };
 
-  config = mkIf config.modules.networking.gcp.enable {
-    my.packages = with pkgs; [ google-cloud-sdk ];
-  };
+  config = mkMerge [
+    (mkIf config.modules.networking.aws.enable {
+      my.packages = with pkgs; [ awscli ];
+    })  
+
+    (mkIf config.modules.networking.aws.iamAuthenticator.enable {
+      my.packages = with pkgs; [ aws-iam-authenticator ];
+    })
+  ];
 }
