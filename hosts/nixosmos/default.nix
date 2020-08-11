@@ -59,20 +59,6 @@
   environment.systemPackages = with pkgs; [
     # OS basics
     pavucontrol
-
-    # TODO: Create the Ly overlay adding support for systemctl
-    ly
-
-    # DEA: Data Engineering and Analytics
-    # ICE: Infrastructure and Cloud Engineering
-    kubectl
-    minikube
-    helm
-
-    awscli
-    aws-iam-authenticator
-
-    google-cloud-sdk
   ];
 
   nix.maxJobs = lib.mkDefault 8;

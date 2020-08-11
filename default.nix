@@ -26,7 +26,7 @@ device: username: # parameters
   # Internationalisation
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Bare minimum, shared (between installations) packages
+  # Bare minimum packages, shared between installations
   environment.systemPackages = with pkgs; [
     coreutils
     dateutils
