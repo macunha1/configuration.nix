@@ -1,6 +1,8 @@
 # modules/applications/redshift.nix --- http://jonls.dk/redshift/
 #
-# Redshift adjusts screen color according to sun's position.
+# Redshift adjusts screen color according to sun's position given a lat/long of
+# an Earth location for the observer. If you're from the future and live in
+# Mars, I'm sorry, at the time of this writing only Earth is supported.
 
 { config, options, lib, pkgs, ... }:
 with lib; {
@@ -10,10 +12,26 @@ with lib; {
       default = false;
     };
 
-    version = mkOption {
+    latitude = mkOption {
       type = types.str;
-      # version >1.3.0 causes it to hang on launch ("Loading configuration. Hang on")
-      default = "1.3.0";
+      default = "48.1";
+    };
+
+    longitude = mkOption {
+      type = types.str;
+      default = "11.6";
+    };
+
+    temperature = {
+      day = mkOption {
+        type = types.int;
+        default = 3245;
+      };
+
+      night = mkOption {
+        type = types.int;
+        default = 2897;
+      };
     };
   };
 
@@ -23,12 +41,13 @@ with lib; {
 
       home.services.redshift = {
         enable = true;
-        latitude = "48.1";
-        longitude = "11.6";
+        latitude = config.modules.desktop.applications.redshift.latitude;
+        longitude = config.modules.desktop.applications.redshift.longitude;
 
         temperature = {
-          day = 3245;
-          night = 2897;
+          day = config.modules.desktop.applications.redshift.temperature.day;
+          night =
+            config.modules.desktop.applications.redshift.temperature.night;
         };
       };
     };

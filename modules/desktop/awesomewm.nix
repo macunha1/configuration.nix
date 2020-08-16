@@ -17,9 +17,17 @@ with lib; {
     my = {
       packages = with pkgs; [
         i3lock # screenlock.sh uses i3lock
-        rofi   # TUI all the things
 
         my.luaDbusProxy
+
+        # TODO: Wrapper
+        # (writeScriptBin "awesome" ''
+        #   #!${stdenv.shell}
+        #   exec ${pkgs.awesome}/bin/awesome \
+        #     --search ${my.luaDbusProxy}/share/lua/${pkgs.lua.luaversion} \
+        #     >>${config.my.home.xdg.dataHome}/stdout.log \
+        #     2>>${config.my.home.xdg.dataHome}/stderr.log
+        # '')
       ];
 
       home = {

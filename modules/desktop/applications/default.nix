@@ -2,7 +2,9 @@
 
 {
   imports = [
+    ./calibre.nix
     ./uhk-agent.nix
     ./redshift.nix
+    ./rofi.nix
   ];
 }

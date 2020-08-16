@@ -105,8 +105,13 @@ with lib; {
         env.ZSH = "$XDG_CONFIG_HOME/oh-my-zsh";
         env.ZSH_CUSTOM = "$XDG_CONFIG_HOME/oh-my-zsh/custom";
 
-        env.DISABLE_UPDATE_PROMPT = "true";
-        env.COMPLETION_WAITING_DOTS = "true";
+        zsh.env = ''
+          export ZSH="${config.my.env.ZSH}"
+          export ZSH_CUSTOM="${config.my.env.ZSH_CUSTOM}"
+
+          export DISABLE_UPDATE_PROMPT="true"
+          export COMPLETION_WAITING_DOTS="true"
+        '';
 
         home.xdg.configFile."oh-my-zsh" = {
           source = pkgs.fetchFromGitHub {
@@ -115,6 +120,8 @@ with lib; {
             rev = "079e7bb5e0a79171f3356d55d3f6302a82645a39";
             sha256 = "10fpq57alk117991wwbprcmv69f27hbpp7a3gb70mzyjmfiflgk3";
           };
+
+          recursive = true;
         };
       })
     ];

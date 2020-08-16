@@ -40,17 +40,17 @@ with lib; {
         "grhh!" = "gf && grhh origin/$(current_branch) && ggpull";
         "gcm!" = "gcm && ggpull"; # Checkout and sync master
 
-        gcmd = ''
-          CURRENT_BRANCH=$(git_current_branch)
-          gcm!
-          gbd $CURRENT_BRANCH"
-        '';
+        gcmd = concatStringsSep " && " [
+          "CURRENT_BRANCH=$(git_current_branch)"
+          "gcm!"
+          "gbd $CURRENT_BRANCH"
+        ];
 
-        gcmD = ''
-          CURRENT_BRANCH=$(git_current_branch)
-          gcm!
-          gbD $CURRENT_BRANCH"
-        '';
+        gcmD = concatStringsSep " && " [
+          "CURRENT_BRANCH=$(git_current_branch)"
+          "gcm!"
+          "gbD $CURRENT_BRANCH"
+        ];
 
         "gstc!" = "gsta && gstc"; # Clear local changes
         gl = "git log";
