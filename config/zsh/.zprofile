@@ -1,12 +1,5 @@
 #!/usr/bin/env zsh
 
-# source profiles
-if [[ -d "${HOME}/.profile.d" ]]; then
-	for i in ${HOME}/.profile.d/*.sh ; do
-		[[ -x "${i}" ]] && source "${i}"
-	done
-fi
-
 declare -A ZSH_HIGHLIGHT_HIGHLIGHTERS=(
 	main
 	brackets
@@ -35,3 +28,10 @@ declare -A ZSH_HIGHLIGHT_STYLES=(
 	[single-quoted-argument]='fg=10'
 	[suffix-alias]='fg=14,underline'
 )
+
+# source profiles
+if [[ -d "${HOME}/.profile.d" ]]; then
+	for i in ${HOME}/.profile.d/*.sh ; do
+		[[ -x "${i}" ]] && source "${i}"
+	done
+fi

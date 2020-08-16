@@ -46,7 +46,7 @@ with lib; {
       home.xdg.dataFile."vagrant" = {
         source = pkgs.fetchFromGitHub {
           owner = "macunha1";
-          repo = "vagrantfiles";
+          repo = "Vagrantfiles";
           rev = "7e4c495536950281782f07b04e6e7dacd20134da";
           sha256 = "1rbp8cnpl8h6mrrgk5jd2q72rv57dszqn8vpc8mcfrrbw8ghxcbn";
         };

@@ -4,8 +4,7 @@
 # Well ... Most probably, you already know Kubernetes.
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.networking.kubernetes = {
     enable = mkOption {
       type = types.bool;
@@ -23,17 +22,24 @@ with lib;
     };
   };
 
-  config = mkMerge [
-    (mkIf config.modules.networking.kubernetes.enable {
-      my.packages = with pkgs; [ minikube kubectl ];
-    })
+  config = mkIf config.modules.networking.kubernetes.enable {
+    my = mkMerge [
+      { packages = with pkgs; [ minikube kubectl ]; }
 
-    (mkIf config.modules.networking.kubernetes.helm.enable {
-      my.packages = with pkgs; [ helm ];
-    })
+      (mkIf config.modules.networking.kubernetes.helm.enable {
+        packages = with pkgs; [ helm ];
+      })
 
-    (mkIf config.modules.networking.kubernetes.kops.enable {
-      my.packages = with pkgs; [ kops ];
-    })
-  ];
+      (mkIf config.modules.networking.kubernetes.kops.enable {
+        packages = with pkgs; [ kops ];
+      })
+
+      (mkIf config.modules.shell.zsh.ohMyZsh.enable {
+        home.xdg.configFile."oh-my-zsh/custom/plugins/kubectl" = {
+          source = <config/kubectl/zsh>;
+          recursive = true;
+        };
+      })
+    ];
+  };
 }

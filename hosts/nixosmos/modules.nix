@@ -7,8 +7,10 @@
       terminal.alacritty.enable = true;
 
       applications = {
+        calibre.enable = true;
         uhkAgent.enable = true;
         redshift.enable = true;
+        rofi.enable = true;
       };
 
       browsers = {
@@ -69,7 +71,6 @@
     };
 
     services = {
-      calibre.enable = true;
       kvm2.enable = true;
 
       docker = {

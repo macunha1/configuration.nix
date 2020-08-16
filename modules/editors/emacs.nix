@@ -1,8 +1,7 @@
 # Doom Emacs configuration, with Evil activated, after all Vim <3
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.editors.emacs = {
     enable = mkOption {
       type = types.bool;
@@ -14,11 +13,11 @@ with lib;
     my = {
       packages = with pkgs; [
         emacsUnstable
-        (ripgrep.override {withPCRE2 = true;})
-        
-        gnutls  # TLS connectivity
-        zstd    # undo-fu-session/undo-tree compression
-        fd      # speed-up projectile indexing
+        (ripgrep.override { withPCRE2 = true; })
+
+        gnutls # TLS connectivity
+        zstd   # undo-fu-session/undo-tree compression
+        fd     # speed-up projectile indexing
 
         ## Module dependencies
         # :checkers spell
@@ -30,7 +29,7 @@ with lib;
         languagetool # :checkers grammar
 
         editorconfig-core-c # :tools editorconfig
-        direnv              # :tools direnv -> extends lorri
+        direnv # :tools direnv -> extends lorri
       ];
 
       env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ];

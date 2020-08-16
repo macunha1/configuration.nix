@@ -7,10 +7,9 @@ plugins=(
     kubectl
 )
 
-# Antigen (ZSH package manager)
+source "${HOME}/.config/zsh/env.zsh"
+source "${ZSH}/oh-my-zsh.sh"
 source "${ANTIGEN_HOME}/antigen.zsh"
-
-antigen use ohmyzsh/ohmyzsh
 
 antigen bundles <<EOFBUNDLES
     zsh-users/zsh-autosuggestions

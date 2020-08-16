@@ -28,9 +28,8 @@ in {
       email = mkOptionStr "matheuz.a@gmail.com";
 
       ## Convenience aliases
-      home = mkOption {
-        type = options.home-manager.users.type.functor.wrapped;
-      };
+      home =
+        mkOption { type = options.home-manager.users.type.functor.wrapped; };
 
       user = mkOption { type = types.submodule; };
 
@@ -81,10 +80,7 @@ in {
     users.users.${config.my.username} = mkAliasDefinitions options.my.user;
 
     my.user.packages = config.my.packages;
-    my.env.PATH = [
-      <bin> "$PATH"
-      "~/.local/bin"
-    ];
+    my.env.PATH = [ <bin> "$PATH" "$HOME/.local/bin" ];
 
     environment.extraInit = let
       exportLines = mapAttrsToList (n: v: ''export ${n}="${v}"'') config.my.env;

@@ -24,12 +24,12 @@ with lib; {
       };
 
       env.FZF_HOME = "$XDG_DATA_HOME/fzf";
-      env.FZF_DEFAULT_OPTS = ''
-        --color=fg:15,bg:0,hl:1,spinner:14
-        --color=fg+:15,hl+:14
-        --color=header:14,info:10,pointer:6
-        --color=marker:10,prompt:12
-      '';
+      env.FZF_DEFAULT_OPTS = escapeShellArgs [
+        "--color=fg:15,bg:0,hl:1,spinner:14"
+        "--color=fg+:15,hl+:14"
+        "--color=header:14,info:10,pointer:6"
+        "--color=marker:10,prompt:12"
+      ];
     };
 
     # Autocompletion for ZSH
