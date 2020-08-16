@@ -1,7 +1,6 @@
 { config, options, pkgs, lib, ... }:
 
-with lib;
-{
+with lib; {
   options.modules.shell.tmux = {
     enable = mkOption {
       type = types.bool;
@@ -11,22 +10,19 @@ with lib;
 
   config = mkIf config.modules.shell.tmux.enable {
     my = {
-      packages = with pkgs; [
-        # The developer of tmux chooses not to add XDG support for religious
-        # reasons (see tmux/tmux#142). Nix to the rescue
-        (writeScriptBin "tmux" ''
-          #!${stdenv.shell}
-          exec ${tmux}/bin/tmux -f "$TMUX_HOME/tmux.conf" "$@"
+      packages = with pkgs;
+        [
+          # Since Tmux doesn't support XDG spec, we force it with a wrapper
+          (writeScriptBin "tmux" ''
+            #!${stdenv.shell}
+            exec ${tmux}/bin/tmux -f "$TMUX_HOME/tmux.conf" "$@"
           '')
-      ];
+        ];
 
-      zsh.rc = ''
-        alias t=tmux
-      '';
+      alias.t = "tmux";
 
-      # Environment values currently managed through .profiles.d from .zprofile
-      # env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
-      # env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_DATA_HOME/tmux/plugins"
+      env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
+      env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_DATA_HOME/tmux/plugins";
 
       # Following path from https://github.com/tmux-plugins/tpm
       home.xdg.configFile."tmux/tmux.conf" = {
@@ -34,10 +30,11 @@ with lib;
       };
 
       home.xdg.configFile."tmux/plugins/tpm" = {
-        source = builtins.fetchGit {
-          url = "https://github.com/tmux-plugins/tpm";
-          ref = "tags/v3.0.0";
-          rev = "234002ad1c58e04b4e74853c7f1698874f69da60";
+        source = pkgs.fetchFromGitHub {
+          owner = "tmux-plugins";
+          repo = "tpm";
+          rev = "v3.0.0";
+          sha256 = "18q5j92fzmxwg8g9mzgdi5klfzcz0z01gr8q2y9hi4h4n864r059";
         };
       };
     };

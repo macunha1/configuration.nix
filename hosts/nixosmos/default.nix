@@ -43,7 +43,6 @@
     allowUnfree = true; # necessary evil
   };
 
-
   hardware.opengl = {
     enable = true;
     setLdLibraryPath = true;
@@ -54,6 +53,12 @@
     videoDrivers = [ "nvidia" ];
     layout = "us";
     xkbVariant = "intl";
+  };
+
+  my.home.xdg = {
+    configHome = "/home/${config.my.username}/.config";
+    cacheHome  = "/home/${config.my.username}/.cache";
+    dataHome   = "/data/1/home/${config.my.username}/.local/share";
   };
 
   environment.systemPackages = with pkgs; [

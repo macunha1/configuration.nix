@@ -5,25 +5,25 @@
 # Mainly used for AwesomeWM and performance-critical scenarios.
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.development.lua = {
     enable = mkOption {
       type = types.bool;
       default = true;
     };
+
+    includeBinToPath = mkOption {
+      type = types.bool;
+      default = false;
+    };
   };
 
   config = mkIf config.modules.development.lua.enable {
-    my = {
-      packages = with pkgs; [
-        lua
-        luajit
-        luaPackages.moonscript
-        luarocks
-      ];
-
-      zsh.rc = ''eval "$(luarocks path --bin)"'';
-    };
+    my = mkMerge [
+      { packages = with pkgs; [ lua luajit luarocks ]; }
+      (mkIf config.modules.development.lua.includeBinToPath {
+        zsh.rc = ''eval "$(luarocks path --bin)"'';
+      })
+    ];
   };
 }

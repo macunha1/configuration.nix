@@ -50,9 +50,7 @@
         iamAuthenticator.enable = true;
       };
 
-      gcp = {
-        enable = true;
-      };
+      gcp.enable = true;
     };
 
     shell = {
