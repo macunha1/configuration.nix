@@ -24,7 +24,25 @@ with lib; {
 
   config = mkIf config.modules.networking.kubernetes.enable {
     my = mkMerge [
-      { packages = with pkgs; [ minikube kubectl ]; }
+      {
+        packages = with pkgs; [
+          minikube
+
+          (writeScriptBin "kubectl" ''
+            #!${stdenv.shell}
+            exec ${unstable.kubectl}/bin/kubectl \
+                 --cache-dir $KUBECACHE "$@"
+          '')
+        ];
+
+        # Let's handle XDG dir specification on our own since Kubernetes'
+        # devs aren't interested.
+        # Ref: https://github.com/kubernetes/kubernetes/issues/56402
+        env.KUBECONFIG = "$XDG_CONFIG_HOME/kubectl/config";
+        env.KUBECACHE = "$XDG_CACHE_HOME/kubectl/cache";
+
+        env.MINIKUBE_HOME = "$XDG_DATA_HOME/minikube";
+      }
 
       (mkIf config.modules.networking.kubernetes.helm.enable {
         packages = with pkgs; [ helm ];

@@ -4,8 +4,7 @@
 # After all, everybody wants to be Google (look at Kubernetes).
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.networking.gcp = {
     enable = mkOption {
       type = types.bool;
@@ -14,6 +13,10 @@ with lib;
   };
 
   config = mkIf config.modules.networking.gcp.enable {
-    my.packages = with pkgs; [ google-cloud-sdk ];
+    my = {
+      packages = with pkgs; [ google-cloud-sdk ];
+
+      env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
+    };
   };
 }
