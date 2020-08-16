@@ -1,0 +1,83 @@
+prompt_order = [
+    "time",
+    "username",
+    "hostname",
+    "directory",
+    "git_branch",
+    "git_commit",
+    "git_state",
+    "git_status",
+    "hg_branch",
+    # Programming language related
+    "package",
+    "crystal",
+    "dotnet",
+    "elixir",
+    "elm",
+    "erlang",
+    "golang",
+    "java",
+    "julia",
+    "nim",
+    "nodejs",
+    "ocaml",
+    "php",
+    "purescript",
+    "python",
+    "ruby",
+    "rust",
+    "terraform",
+    "zig",
+    "nix_shell",
+    "conda",
+    # OS specific and cloud
+    "memory_usage",
+    "kubernetes",
+    "docker_context",
+    "aws",
+    "env_var",
+    "custom",
+    "cmd_duration",
+    # Display on new line
+    "line_break",
+    "battery",
+    "jobs",
+    "character",
+]
+
+[character]
+symbol = "➜"
+style_success = "cyan"
+
+[kubernetes]
+symbol = "⛵ "
+disabled = true
+
+[aws]
+style = "lightgreen"
+symbol = "🅰  "
+
+[terraform]
+disabled = true
+
+[time]
+disabled = false
+format = "[ ◷ %T ]"
+style = "bold 10"
+
+[username]
+style_user = "bold cyan"
+style_root = "bold red"
+
+[python]
+pyenv_version_name = true
+
+[cmd_duration]
+style = "red"
+
+[git_branch]
+style = "bold red"
+
+[package]
+style = "bold red"
+display_private = true

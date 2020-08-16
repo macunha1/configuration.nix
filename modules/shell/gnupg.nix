@@ -1,7 +1,6 @@
 { config, options, lib, pkgs, ... }:
 
-with lib;
-{
+with lib; {
   options.modules.shell.gnupg = {
     enable = mkOption {
       type = types.bool;
@@ -11,12 +10,8 @@ with lib;
 
   config = mkIf config.modules.shell.gnupg.enable {
     my = {
-      # Set on the corresponding .profile.d
-      # env.GNUPGHOME = "$XDG_CONFIG_HOME/gpg";
-
       home.services.gpg-agent = {
         enable = true;
-
         # Would be nice, but doesn't respect the XDG config
         # pinentryFlavor = "curses";
       };
@@ -27,6 +22,8 @@ with lib;
           pinentry-program ${pkgs.pinentry-curses}/bin/pinentry
         '';
       };
+
+      env.GNUPGHOME = "$XDG_CONFIG_HOME/gpg";
     };
   };
 }

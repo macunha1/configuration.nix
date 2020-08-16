@@ -22,7 +22,7 @@ with lib; {
       alias.t = "tmux";
 
       env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
-      env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_DATA_HOME/tmux/plugins";
+      env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_CONFIG_HOME/tmux/plugins";
 
       # Following path from https://github.com/tmux-plugins/tpm
       home.xdg.configFile."tmux/tmux.conf" = {
