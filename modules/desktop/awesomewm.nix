@@ -1,8 +1,6 @@
 { config, options, lib, pkgs, ... }:
 
 with lib; {
-  imports = [ ./common.nix ];
-
   options.modules.desktop = {
     awesomewm.enable = mkOption {
       type = types.bool;

@@ -34,10 +34,9 @@ with lib;
       ];
 
       env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ];
+      alias.e = "emacs";
     };
 
-    fonts.fonts = [
-      pkgs.emacs-all-the-icons-fonts
-    ];
+    fonts.fonts = [ pkgs.emacs-all-the-icons-fonts ];
   };
 }

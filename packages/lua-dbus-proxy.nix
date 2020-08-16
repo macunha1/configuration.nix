@@ -6,7 +6,7 @@
 # Heavily copied from the author's overlay
 # Ref: https://github.com/stefano-m/nix-stefano-m-nix-overlays/blob/master/lua/dbus_proxy/default.nix
 
-{ pkgs, lgi, buildLuaPackage, fetchFromGitHub }:
+{ lua, lgi, buildLuaPackage, fetchFromGitHub }:
 
 let
   pname = "dbus_proxy";
@@ -33,7 +33,7 @@ in buildLuaPackage rec {
   buildPhase = ":";
 
   installPhase = ''
-    mkdir -p "$out/share/lua/${pkgs.luajit.luaversion}"
-    cp -r src/${pname} "$out/share/lua/${pkgs.luajit.luaversion}/"
+    mkdir -p "$out/share/lua/${lua.luaversion}"
+    cp -r src/${pname} "$out/share/lua/${lua.luaversion}/"
   '';
 }

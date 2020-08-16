@@ -1,0 +1,56 @@
+# modules/networking/vagrant.nix --- https://www.vagrantup.com/
+#
+# Before Docker was a thing Vagrant was there creating ephemeral envs.
+#
+# Vagrant enables users to create and configure lightweight, reproducible, and
+# portable development environments.
+
+{ config, options, lib, pkgs, ... }:
+with lib; {
+  options.modules.networking.vagrant = {
+    enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
+    home = mkOption {
+      type = types.path;
+      default = "/opt/vagrant";
+    };
+
+    provider = mkOption {
+      type = types.str;
+      default = "virtualbox";
+    };
+
+    vCpus = mkOption {
+      type = types.int;
+      default = 2;
+    };
+
+    ramInGB = mkOption {
+      type = types.int;
+      default = 4;
+    };
+  };
+
+  config = mkIf config.modules.networking.vagrant.enable {
+    my = {
+      packages = with pkgs; [ vagrant ];
+
+      env.VAGRANT_CPU_CORE = (toString config.modules.networking.vagrant.vCpus);
+      env.VAGRANT_RAM_GB = (toString config.modules.networking.vagrant.ramInGB);
+      env.VAGRANT_HOME = config.modules.networking.vagrant.home;
+      env.VAGRANT_PROVIDER = config.modules.networking.vagrant.provider;
+
+      home.xdg.dataFile."vagrant" = {
+        source = pkgs.fetchFromGitHub {
+          owner = "macunha1";
+          repo = "vagrantfiles";
+          rev = "7e4c495536950281782f07b04e6e7dacd20134da";
+          sha256 = "1rbp8cnpl8h6mrrgk5jd2q72rv57dszqn8vpc8mcfrrbw8ghxcbn";
+        };
+      };
+    };
+  };
+}

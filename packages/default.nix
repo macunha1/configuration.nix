@@ -7,7 +7,7 @@
           "https://github.com/xzfc/cached-nix-shell/archive/master.tar.gz")
           { });
         luaDbusProxy = (callPackage ./lua-dbus-proxy.nix {
-          inherit (pkgs.luaPackages) lgi buildLuaPackage;
+          inherit (pkgs.luaPackages) lua lgi buildLuaPackage;
         });
       };
 
