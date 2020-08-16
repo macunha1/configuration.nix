@@ -12,7 +12,7 @@
       };
 
       # Bleeding edge all the things
-      unstable = import <nixos-unstable> { inherit config; };
+      unstable = import <nixpkgs-unstable> { inherit config; };
     })
 
   # emacsGit

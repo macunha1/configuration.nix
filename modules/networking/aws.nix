@@ -24,6 +24,7 @@ with lib; {
 
         env.AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
         env.AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
+        env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
       };
     })
 
