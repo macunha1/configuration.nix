@@ -4,8 +4,7 @@
 # Built on top of a prototype to manage VMs at Amazon.
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.networking.aws = {
     enable = mkOption {
       type = types.bool;
@@ -20,8 +19,13 @@ with lib;
 
   config = mkMerge [
     (mkIf config.modules.networking.aws.enable {
-      my.packages = with pkgs; [ awscli ];
-    })  
+      my = {
+        packages = with pkgs; [ awscli ];
+
+        env.AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
+        env.AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
+      };
+    })
 
     (mkIf config.modules.networking.aws.iamAuthenticator.enable {
       my.packages = with pkgs; [ aws-iam-authenticator ];

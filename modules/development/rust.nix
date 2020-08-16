@@ -1,29 +1,31 @@
 # modules/development/rust.nix --- https://rust-lang.org
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.development.rust = {
     enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
+    includeBinToPath = mkOption {
       type = types.bool;
       default = false;
     };
   };
 
   config = mkIf config.modules.development.rust.enable {
-    my = {
-      packages = with pkgs; [
-        rustup
-      ];
+    my = mkMerge [
+      {
+        packages = with pkgs; [ rustup ];
 
-      # XDG variables aren't loading in time
-      # env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
-      # env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
-      # env.PATH = [ "$CARGO_HOME/bin" ];
+        env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
+        env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
+      }
 
-      alias.rs  = "rustc";
-      alias.rsp = "rustup";
-      alias.ca  = "cargo";
-    };
+      (mkIf config.modules.development.rust.includeBinToPath {
+        env.PATH = [ "$CARGO_HOME/bin" ];
+      })
+    ];
   };
 }

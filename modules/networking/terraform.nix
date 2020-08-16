@@ -4,8 +4,7 @@
 # No matter if you're running a Data Lake, Serverless Web app or embedded system,
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.networking.terraform = {
     enable = mkOption {
       type = types.bool;
@@ -15,12 +14,15 @@ with lib;
 
   config = mkIf config.modules.networking.terraform.enable {
     # Use tfenv to manage multiple versions of TF
-    my.home.xdg.dataHome."tfenv" = {
-      source = builtins.fetchGit {
-        url = "https://github.com/tfutils/tfenv";
+    my.home.xdg.dataFile."tfenv" = {
+      source = pkgs.fetchFromGitHub {
+        owner = "tfutils";
+        repo = "tfenv";
+        rev = "v2.0.0";
+        sha256 = "0ljx567ykbbdd7974953b9vbyjcf214m189bh2yn1sypaqyynvv6";
       };
     };
 
-    # TODO: Manage symlinks to ${HOME}/.local/bin
+    my.env.PATH = [ "$XDG_DATA_HOME/tfenv/bin" ];
   };
 }

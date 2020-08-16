@@ -22,7 +22,7 @@ device: username: # parameters
   # Add overlays. Available through pkgs.*
   nixpkgs.overlays = import ./packages;
 
-  # Internationalisation
+  # Internatiodpandwlaiadisation
   i18n.defaultLocale = "en_US.UTF-8";
 
   # Bare minimum packages, shared between installations
@@ -64,6 +64,14 @@ device: username: # parameters
     extraGroups = [
       "wheel" # Enable ‘sudo’ for the user.
     ];
+  };
+
+  my.home.xdg.enable = true;
+
+  environment.variables = {
+    XDG_CACHE_HOME = config.my.home.xdg.cacheHome;
+    XDG_CONFIG_HOME = config.my.home.xdg.configHome;
+    XDG_DATA_HOME = config.my.home.xdg.dataHome;
   };
 
   security.sudo = {

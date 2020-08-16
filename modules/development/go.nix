@@ -1,25 +1,31 @@
 # modules/development/go.nix --- https://golang.org
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.development.go = {
     enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
+    includeBinToPath = mkOption {
       type = types.bool;
       default = false;
     };
   };
 
   config = mkIf config.modules.development.go.enable {
-    my = {
-      packages = with pkgs; [
-        libcap
-        go
-      ];
+    my = mkMerge [
+      {
+        packages = with pkgs; [ libcap go ];
 
-      # XDG variables aren't loading in time
-      # env.GOPATH = "$XDG_DATA_HOME/go";
-      # env.PATH = [ "$GOPATH/bin" ];
-    };
+        # XDG variables aren't loading in time
+        env.GOPATH = "$XDG_DATA_HOME/go";
+      }
+
+      (mkIf config.modules.development.go.includeBinToPath {
+        env.PATH = [ "$GOPATH/bin" ];
+      })
+    ];
   };
 }
