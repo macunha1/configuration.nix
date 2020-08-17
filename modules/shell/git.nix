@@ -41,21 +41,21 @@ with lib; {
         "gcm!" = "gcm && ggpull"; # Checkout and sync master
 
         gcmd = concatStringsSep " && " [
-          "CURRENT_BRANCH=$(git_current_branch)"
+          "'CURRENT_BRANCH=$(git_current_branch)'"
           "gcm!"
-          "gbd $CURRENT_BRANCH"
+          "gbd '$CURRENT_BRANCH'"
         ];
 
         gcmD = concatStringsSep " && " [
-          "CURRENT_BRANCH=$(git_current_branch)"
+          "'CURRENT_BRANCH=$(git_current_branch)'"
           "gcm!"
-          "gbD $CURRENT_BRANCH"
+          "'gbD $CURRENT_BRANCH'"
         ];
 
         "gstc!" = "gsta && gstc"; # Clear local changes
         gl = "git log";
 
-        "ggpush!" = "gpf! origin $(git_current_branch)";
+        "ggpush!" = "gpf! origin '$(git_current_branch)'";
         "gg!" = "gaa && gc! && ggpush!"; # Amend commit and force push
       };
     };

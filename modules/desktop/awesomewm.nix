@@ -15,20 +15,10 @@ with lib; {
 
   config = mkIf config.modules.desktop.awesomewm.enable {
     my = {
-      packages = with pkgs; [
-        i3lock # screenlock.sh uses i3lock
-
-        my.luaDbusProxy
-
-        # TODO: Wrapper
-        # (writeScriptBin "awesome" ''
-        #   #!${stdenv.shell}
-        #   exec ${pkgs.awesome}/bin/awesome \
-        #     --search ${my.luaDbusProxy}/share/lua/${pkgs.lua.luaversion} \
-        #     >>${config.my.home.xdg.dataHome}/stdout.log \
-        #     2>>${config.my.home.xdg.dataHome}/stderr.log
-        # '')
-      ];
+      packages = with pkgs;
+        [
+          i3lock # screenlock.sh uses i3lock
+        ];
 
       home = {
         services.screen-locker = {
@@ -48,21 +38,26 @@ with lib; {
       };
     };
 
-    # Unfortunatelly, LuaJIT is crashing with naughty.notify
-    # nixpkgs.overlays = [
-    #   (self: super:
-    #     with super; {
-    #       awesome =
-    #         super.awesome.override { luaPackages = super.luajitPackages; };
-    #     })
-    # ];
+    nixpkgs.overlays = [
+      (self: super:
+        with super; {
+          awesome = super.awesome.override {
+            # luaPackages = super.luajitPackages;
+            gtk3Support = true;
+          };
+        })
+    ];
 
     services = {
       compton.enable = config.modules.desktop.comptom.enable;
       xserver = {
         enable = true;
 
-        windowManager.awesome.enable = true;
+        windowManager.awesome = {
+          enable = true;
+          luaModules = [ pkgs.my.luaDbusProxy ];
+        };
+
         displayManager.startx.enable = true;
         desktopManager.xterm.enable = false;
       };

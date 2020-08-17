@@ -50,4 +50,4 @@ for CLI_TOOLS in kubectl minikube helm; do
 done
 
 eval "$(starship init zsh)"
-eval "$(keychain -q --eval || ssh-agent)" >/dev/null
+eval "$(keychain --dir "${XDG_CONFIG_HOME}/keychain" -q --eval || ssh-agent)" >/dev/null

@@ -39,8 +39,6 @@
     };
 
     networking = {
-      terraform.enable = true;
-
       kubernetes = {
         enable = true;
         helm.enable = true;
