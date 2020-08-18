@@ -38,10 +38,12 @@ with lib; {
     my = {
       packages = with pkgs; [ vagrant ];
 
+      # Unofficial variables, they're supported through macunha1/Vagrantfiles
       env.VAGRANT_CPU_CORE = (toString config.modules.networking.vagrant.vCpus);
       env.VAGRANT_RAM_GB = (toString config.modules.networking.vagrant.ramInGB);
-      env.VAGRANT_HOME = config.modules.networking.vagrant.home;
       env.VAGRANT_PROVIDER = config.modules.networking.vagrant.provider;
+
+      env.VAGRANT_HOME = config.modules.networking.vagrant.home;
 
       home.xdg.dataFile."vagrant" = {
         source = pkgs.fetchFromGitHub {

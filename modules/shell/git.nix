@@ -26,37 +26,35 @@ with lib; {
 
           [rebase]
             autosquash = true
-
-          [github]
-            user = macunha1
-
-          [gitlab]
-            user = macunha
         '';
       };
 
       alias = {
-        # Hard reset master and sync
-        "grhh!" = "gf && grhh origin/$(current_branch) && ggpull";
+        gl = "git log";
+
+        "grhh!" = concatStringsSep " && " [
+          "gf" # git fetch
+          "grhh origin/\\$(current_branch)"
+          "ggpull"
+        ]; # Hard reset and sync
+
         "gcm!" = "gcm && ggpull"; # Checkout and sync master
 
         gcmd = concatStringsSep " && " [
-          "'CURRENT_BRANCH=$(git_current_branch)'"
+          "CURRENT_BRANCH=\\$(git_current_branch)"
           "gcm!"
-          "gbd '$CURRENT_BRANCH'"
-        ];
+          "gbd \\\${CURRENT_BRANCH}"
+        ]; # Checkout, sync master and kindly delete branch
 
         gcmD = concatStringsSep " && " [
-          "'CURRENT_BRANCH=$(git_current_branch)'"
+          "CURRENT_BRANCH=\\$(git_current_branch)"
           "gcm!"
-          "'gbD $CURRENT_BRANCH'"
-        ];
+          "gbD \\\${CURRENT_BRANCH}"
+        ]; # Checkout, sync master and delete branch
 
-        "gstc!" = "gsta && gstc"; # Clear local changes
-        gl = "git log";
-
-        "ggpush!" = "gpf! origin '$(git_current_branch)'";
-        "gg!" = "gaa && gc! && ggpush!"; # Amend commit and force push
+        "gstc!" = "gaa && gsta && gstc"; # Clear local changes
+        "ggpush!" = "gpf! origin \\$(git_current_branch)"; # ggpush + force
+        "gg!" = "gaa && gc! && ggpush!"; # Add all, amend and force push
       };
     };
   };

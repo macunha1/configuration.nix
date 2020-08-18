@@ -22,8 +22,8 @@ with lib; {
         source = pkgs.fetchFromGitHub {
           owner = "macunha1";
           repo = "definitely-not-vimrc";
-          rev = "39aee6df68b6870efcfc12db92744ee0414fe3d0";
-          sha256 = "0392jn933xrja5vzraf20rpjv0vkpgghh3589j1jlh8lkvkmjcp6";
+          rev = "cd2c9881aa497bdc7dc3549186a2b8013db84abf";
+          sha256 = "1zan3f8ksj86nrkdjjd14r4dx3hakl3j82f17fs2rg3nx03k02mb";
         };
 
         recursive = true; # doesn't race against vim/bundle/vundle

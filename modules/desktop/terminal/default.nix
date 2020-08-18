@@ -1,11 +1,15 @@
 { config, options, lib, pkgs, ... }:
-with lib;
-{
-  imports = [
-    ./alacritty.nix
-  ];
+with lib; {
+  imports = [ ./alacritty.nix ];
 
-  config = {
-    my.env.TERMINAL = config.modules.editors.default;
+  options.modules.desktop.terminal = {
+    default = mkOption {
+      type = with types; nullOr str;
+      default = null;
+    };
+  };
+
+  config = mkIf (config.modules.desktop.terminal.default != null) {
+    my.env.TERMINAL = config.modules.desktop.terminal.default;
   };
 }

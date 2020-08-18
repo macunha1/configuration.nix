@@ -56,7 +56,7 @@ with lib; {
 
         home.xdg.configFile."zsh" = {
           source = <config/zsh>;
-          # Write it recursively to not overwritte other modules
+          # Write it recursively to not overwrie other modules
           recursive = true;
         };
 

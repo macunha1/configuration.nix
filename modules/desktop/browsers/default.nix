@@ -1,9 +1,6 @@
 { config, lib, pkgs, ... }:
-with lib;
-{
-  imports = [
-    ./chromium.nix
-  ];
+with lib; {
+  imports = [ ./chromium.nix ];
 
   options.modules.desktop.browsers = {
     default = mkOption {
@@ -12,7 +9,7 @@ with lib;
     };
   };
 
-  # config = mkIf (config.modules.desktop.browsers.default != null) {
-  #   my.env.BROWSER = config.modules.desktop.browsers.default;
-  # };
+  config = mkIf (config.modules.desktop.browsers.default != null) {
+    my.env.BROWSER = config.modules.desktop.browsers.default;
+  };
 }

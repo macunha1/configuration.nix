@@ -13,19 +13,30 @@ with lib; {
   };
 
   config = mkIf config.modules.networking.terraform.enable {
-    # Use tfenv to manage multiple versions of TF
-    # TODO: Create a writable tfenv/versions dir
-    my.home.xdg.dataFile."tfenv" = {
-      source = pkgs.fetchFromGitHub {
-        owner = "tfutils";
-        repo = "tfenv";
-        rev = "v2.0.0";
-        sha256 = "0ljx567ykbbdd7974953b9vbyjcf214m189bh2yn1sypaqyynvv6";
-      };
+    my = {
+      # NOTE: Won't work properly, tfenv needs to write in the same path
+      # Plus, it follows links (conflicting with NixOS read-only files)
+      #
+      # home.xdg.dataFile."tfenv" = {
+      #   source = pkgs.fetchFromGitHub {
+      #     owner = "tfutils";
+      #     repo = "tfenv";
+      #     rev = "v2.0.0";
+      #     sha256 = "0ljx567ykbbdd7974953b9vbyjcf214m189bh2yn1sypaqyynvv6";
+      #   };
 
-      recursive = true;
+      #   recursive = true;
+      # };
+
+      home.xdg.configFile."terraform/rc.hcl".text = ''
+        plugin_cache_dir = "$XDG_CACHE_HOME/terraform/plugins"
+
+        disable_checkpoint           = true
+        disable_checkpoint_signature = true
+      '';
+
+      env.TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
+      env.PATH = [ "$XDG_DATA_HOME/tfenv/bin" ];
     };
-
-    my.env.PATH = [ "$XDG_DATA_HOME/tfenv/bin" ];
   };
 }

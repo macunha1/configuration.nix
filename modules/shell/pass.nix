@@ -1,6 +1,5 @@
 { config, options, pkgs, lib, ... }:
-with lib;
-{
+with lib; {
   options.modules.shell.pass = {
     enable = mkOption {
       type = types.bool;
@@ -11,16 +10,17 @@ with lib;
   config = mkIf config.modules.shell.pass.enable {
     my = {
       packages = with pkgs; [
-        (pass.withExtensions (exts: [
-          exts.pass-otp
-          # exts.pass-genphrase
-        ]))
+        (pass.withExtensions (exts:
+          [
+            exts.pass-otp
+            # exts.pass-genphrase
+          ]))
 
         expect # handles passwords from storage
-        pwgen  # generates randomized passwords
+        pwgen # generates randomized passwords
       ];
 
-      env.PASSWORD_STORE_DIR = "$HOME/.config/pass";
+      env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
     };
   };
 }
