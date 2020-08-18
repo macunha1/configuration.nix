@@ -8,6 +8,16 @@
 + **Launcher:** rofi
 + **Browser:** chromium
 
+> Know thyself
+>
+> Know thy environment
+>
+> A thousand configurations
+>
+> A thousand wins
+>
+> - Sun Tzsh, The Art of Code
+
 ## Quick start
 
 ```sh

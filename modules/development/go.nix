@@ -8,6 +8,11 @@ with lib; {
       default = false;
     };
 
+    path = mkOption {
+      type = types.path;
+      default = "$XDG_DATA_HOME/go";
+    };
+
     includeBinToPath = mkOption {
       type = types.bool;
       default = false;
@@ -19,8 +24,7 @@ with lib; {
       {
         packages = with pkgs; [ libcap go ];
 
-        # XDG variables aren't loading in time
-        env.GOPATH = "$XDG_DATA_HOME/go";
+        env.GOPATH = config.modules.development.go.path;
       }
 
       (mkIf config.modules.development.go.includeBinToPath {

@@ -4,7 +4,11 @@
   modules = {
     desktop = {
       awesomewm.enable = true;
-      terminal.alacritty.enable = true;
+
+      terminal = {
+        default = "alacritty";
+        alacritty.enable = true;
+      };
 
       applications = {
         calibre.enable = true;
@@ -57,6 +61,7 @@
       };
 
       gcp.enable = true;
+      terraform.enable = true;
     };
 
     shell = {
@@ -74,10 +79,9 @@
       docker = {
         enable = true;
         nvidia.enable = true;
+
+        storagePath = "/data/1/var/lib/docker";
       };
     };
   };
-
-  time.timeZone = "Europe/Berlin";
-  my.user.extraGroups = [ "networkmanager" ];
 }
