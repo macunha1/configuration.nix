@@ -1,5 +1,7 @@
-# For quick stuff, Vim suits better, open, type, :wq, done.
-# Usually this is configured as EDITOR and used also for git commits.
+# modules/editors/vim.nix --- https://www.vim.org/
+#
+# For quick edits and writes, Vim suits better (due to its fast load time):
+#   open, type, ESC, ESC, ESC, ZZ or :wq, done.
 
 { config, options, lib, pkgs, ... }:
 with lib; {
@@ -22,22 +24,23 @@ with lib; {
         source = pkgs.fetchFromGitHub {
           owner = "macunha1";
           repo = "definitely-not-vimrc";
-          rev = "cd2c9881aa497bdc7dc3549186a2b8013db84abf";
-          sha256 = "1zan3f8ksj86nrkdjjd14r4dx3hakl3j82f17fs2rg3nx03k02mb";
+
+          rev = "4045927224d49837cdc8dc292740b5a06b18ed0f";
+          sha256 = "1d01f95l1abl9rg38malkrmag798rcpsh50nw45dhvgdvn177fin";
         };
 
-        recursive = true; # doesn't race against vim/bundle/vundle
+        recursive = true; # doesn't race against vim/plugins/dein.vim
       };
 
-      home.xdg.configFile."vim/bundle/vundle" = {
+      home.xdg.configFile."vim/plugins/dein.vim" = {
         source = pkgs.fetchFromGitHub {
-          owner = "VundleVim";
-          repo = "Vundle.vim";
-          rev = "v0.10.2";
-          sha256 = "1nqb8iss7s9p0d65xlmd5wgf5qzwr6przq36605ff1knypazz86v";
+          owner = "Shougo";
+          repo = "dein.vim";
+          rev = "21a5c41f0289e98b8086279e62f046b2402dac7c";
+          sha256 = "0kcln63kiivc0gyb82hc7ihgf9h2maj7y9ixn83z5sfk0yilmpxb";
         };
 
-        recursive = true; # doesn't lock vim/bundle, plugins path
+        recursive = true; # doesn't lock vim/plugins path
       };
     };
   };
