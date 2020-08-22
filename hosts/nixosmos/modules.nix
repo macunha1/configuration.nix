@@ -31,10 +31,15 @@
 
     development = {
       cc.enable = true;
-      python.enable = true;
-      lua.enable = true;
       java.enable = true;
+      node.enable = true;
+      python.enable = true;
       rust.enable = true;
+
+      go = {
+        enable = true;
+        path = "/data/1/opt/go";
+      };
     };
 
     media = {
