@@ -15,10 +15,19 @@ with lib; {
 
   config = mkIf config.modules.desktop.awesomewm.enable {
     my = {
-      packages = with pkgs;
-        [
-          i3lock # screenlock.sh uses i3lock
-        ];
+      packages = with pkgs; [
+        i3lock # screenlock.sh uses i3lock
+
+        # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
+        # i.e. Implements the equivalent of
+        #      luaModules = [ pkgs.my.luaDbusProxy ]; # in a non-DM world
+        (writeScriptBin "awm" ''
+          #!${stdenv.shell}
+          exec ${awesome}/bin/awesome \
+               --search "${my.luaDbusProxy.out}/share/lua/${luajit.luaversion}" \
+               "$@"
+        '')
+      ];
 
       home = {
         services.screen-locker = {
@@ -42,7 +51,7 @@ with lib; {
       (self: super:
         with super; {
           awesome = super.awesome.override {
-            # luaPackages = super.luajitPackages;
+            luaPackages = super.luajitPackages;
             gtk3Support = true;
           };
         })
@@ -50,6 +59,7 @@ with lib; {
 
     services = {
       compton.enable = config.modules.desktop.comptom.enable;
+
       xserver = {
         enable = true;
 
@@ -58,7 +68,7 @@ with lib; {
           luaModules = [ pkgs.my.luaDbusProxy ];
         };
 
-        displayManager.startx.enable = true;
+        displayManager.lightdm.enable = true;
         desktopManager.xterm.enable = false;
       };
     };
