@@ -21,6 +21,7 @@ with lib; {
 
         env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
         env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
+        env.CARGO_TARGET_DIR = "$CARGO_HOME/target";
       }
 
       (mkIf config.modules.development.rust.includeBinToPath {

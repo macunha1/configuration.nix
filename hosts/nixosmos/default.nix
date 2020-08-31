@@ -35,9 +35,7 @@
   # GPU and Graphics
   nixpkgs.config = {
     packageOverrides = pkgs: {
-      vaapiIntel = pkgs.vaapiIntel.override {
-        enableHybridCodec = true;
-      };
+      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
     };
 
     allowUnfree = true; # necessary evil
@@ -56,9 +54,9 @@
   };
 
   my.home.xdg = {
+    cacheHome = "/home/${config.my.username}/.cache";
     configHome = "/home/${config.my.username}/.config";
-    cacheHome  = "/home/${config.my.username}/.cache";
-    dataHome   = "/home/${config.my.username}/.local/share";
+    dataHome = "/home/${config.my.username}/.local/share";
   };
 
   time.timeZone = "Europe/Berlin";

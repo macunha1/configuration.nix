@@ -13,7 +13,7 @@ FLAGS         := -I "config=$$(pwd)/config" \
 all: channels
 	@sudo nixos-rebuild $(FLAGS) $(COMMAND)
 
-install: channels update config move_to_home
+install: channels update config
 	@sudo nixos-install --root "$(PREFIX)" $(FLAGS)
 
 upgrade: update switch
@@ -24,17 +24,8 @@ update: channels
 switch:
 	@sudo nixos-rebuild $(FLAGS) switch
 
-build:
-	@sudo nixos-rebuild $(FLAGS) build
-
-boot:
-	@sudo nixos-rebuild $(FLAGS) boot
-
 rollback:
 	@sudo nixos-rebuild $(FLAGS) --rollback $(COMMAND)
-
-dry:
-	@sudo nixos-rebuild $(FLAGS) dry-build
 
 gc:
 	@nix-collect-garbage -d
@@ -43,16 +34,14 @@ vm:
 	@sudo nixos-rebuild $(FLAGS) build-vm
 
 clean:
-	@rm -f result
-
+	@unlink result
 
 # Parts
 config: $(NIXOS_PREFIX)/configuration.nix
-move_to_home: $(HOME)/.dotfiles
 
 channels:
 	@sudo nix-channel --add "https://nixos.org/channels/nixos-${NIXOS_VERSION}" nixos
-	@sudo nix-channel --add "https://github.com/rycee/home-manager/archive/release-${NIXOS_VERSION}.tar.gz" home-manager
+	@sudo nix-channel --add "https://github.com/rycee/home-manager/archive/master.tar.gz" home-manager
 	@sudo nix-channel --add "https://nixos.org/channels/nixpkgs-unstable" nixpkgs-unstable
 
 $(NIXOS_PREFIX)/configuration.nix:

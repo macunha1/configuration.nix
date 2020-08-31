@@ -43,13 +43,23 @@
     };
 
     media = {
-      spotify.enable = true;
+      spotify = {
+        enable = true;
+        daemon.enable = true;
+      };
+
       mpv.enable = true;
     };
 
     networking = {
       kubernetes = {
         enable = true;
+
+        minikube = {
+          enable = true;
+          home = "/data/1/opt/minikube";
+        };
+
         helm.enable = true;
         kops.enable = true;
       };
