@@ -1,6 +1,5 @@
 { config, options, lib, pkgs, ... }:
 with lib; {
-  # TODO: Include Spicetify CLI for Official Spotify client theme configuration
   options.modules.media.spotify = {
     enable = mkOption {
       type = types.bool;
@@ -11,6 +10,19 @@ with lib; {
       enable = mkOption {
         type = types.bool;
         default = false;
+      };
+
+      settings = mkOption {
+        type = types.attrsOf (types.attrsOf types.str);
+        default = { };
+        example = literalExample ''
+          {
+            global = {
+              username = "janedoe";
+              password = "secret";
+            };
+          }
+        '';
       };
     };
   };
@@ -23,12 +35,7 @@ with lib; {
         enable = config.modules.media.spotify.daemon.enable;
 
         package = (pkgs.unstable.spotifyd.override { withMpris = true; });
-        settings = {
-          global = {
-            username = "22l46w473dznfqimcwcetx4sa";
-            password_cmd = "pass show spotify/macunha";
-          };
-        };
+        settings = config.modules.media.spotify.daemon.settings;
       };
     };
 

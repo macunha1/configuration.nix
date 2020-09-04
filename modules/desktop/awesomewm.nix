@@ -24,7 +24,7 @@ with lib; {
         (writeScriptBin "awm" ''
           #!${stdenv.shell}
           exec ${awesome}/bin/awesome \
-               --search "${my.luaDbusProxy.out}/share/lua/${luajit.luaversion}" \
+               --search "${my.luaDbusProxy.out}/share/lua/${lua.luaversion}" \
                "$@"
         '')
       ];
@@ -35,15 +35,17 @@ with lib; {
           lockCmd = "screenlock.sh";
         };
 
-        # TODO: Include AwesomeWM repository clone inside config
-        # Once fetchGit with fetchTree reaches a stable version release.
-        # Ref: https://github.com/NixOS/nix/pull/3166
-        # xdg.configFile."awesome" = {
-        #   source = builtins.fetchGit {
-        #     url = "ssh://git@gitlab.com/macunha/awesome-configuration.git";
-        #     submodules = true;
-        #   };
-        # };
+        xdg.configFile."awesome" = {
+          source = pkgs.fetchFromGitHub {
+            owner = "macunha1";
+            repo = "awesomewm-configuration";
+
+            rev = "5d18258a60e1891d8595a5fdac5d215a49067b1c";
+            sha256 = "17zzdxwq1y9pshgb14krm6ajvc2bwgbjhayvam7612521a4ygdri";
+
+            fetchSubmodules = true;
+          };
+        };
       };
     };
 
@@ -51,7 +53,7 @@ with lib; {
       (self: super:
         with super; {
           awesome = super.awesome.override {
-            luaPackages = super.luajitPackages;
+            # luaPackages = super.luajitPackages;
             gtk3Support = true;
           };
         })

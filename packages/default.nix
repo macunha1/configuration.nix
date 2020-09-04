@@ -10,7 +10,7 @@
 
         luaDbusProxy = with pkgs;
           (callPackage ./lua-dbus-proxy.nix {
-            inherit (luajitPackages) lua lgi buildLuaPackage;
+            inherit (luaPackages) lua lgi buildLuaPackage;
           });
       };
 
