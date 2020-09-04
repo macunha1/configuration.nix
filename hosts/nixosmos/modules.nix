@@ -45,7 +45,16 @@
     media = {
       spotify = {
         enable = true;
-        daemon.enable = true;
+        daemon = {
+          enable = true;
+
+          settings = {
+            global = {
+              username = "22l46w473dznfqimcwcetx4sa";
+              password_cmd = "pass show spotify/macunha";
+            };
+          };
+        };
       };
 
       mpv.enable = true;
