@@ -16,12 +16,12 @@ let
     url = "https://github.com/UltimateHackingKeyboard/agent/releases/download/v${version}/UHK.Agent-${version}-linux-x86_64.AppImage";
     sha256 = {
       "1.2.12" = "1gr3q37ldixcqbwpxchhldlfjf7wcygxvnv6ff9nl7l8gxm732l6";
-      "1.3.0" =  "09k09yn0iyivc9hf283cxrcrcyswgg2jslc85k4dwvp1pc6bpp07";
-      "1.3.1" =  "0inps9q6f6cmlnl3knmfm2mmgqb5frl4ghxplbzvas7kmrd2wg4k";
-      "1.3.2" =  "1y2n2kkkkqsqxw7rsya7qxh8m5nh0n93axcssi54srp3h7040w3h";
-      "1.4.0" =  "1y6gy3zlj0pkvydby7ibm7hx83lmc3vs2m0bfww5dq1114j99dy5";
-      "1.4.5" =  "1nimb8ab7p478p8xpa5lkdddwr1g59cp9jly167fc47gqq8zs7kl";
-      "1.5.0" =  "1kwp133ipxd5al9jf0v40grpnpyiqvz95yydv9rylagxllcvr2s4";
+      "1.3.0"  = "09k09yn0iyivc9hf283cxrcrcyswgg2jslc85k4dwvp1pc6bpp07";
+      "1.3.1"  = "0inps9q6f6cmlnl3knmfm2mmgqb5frl4ghxplbzvas7kmrd2wg4k";
+      "1.3.2"  = "1y2n2kkkkqsqxw7rsya7qxh8m5nh0n93axcssi54srp3h7040w3h";
+      "1.4.0"  = "1y6gy3zlj0pkvydby7ibm7hx83lmc3vs2m0bfww5dq1114j99dy5";
+      "1.4.5"  = "1nimb8ab7p478p8xpa5lkdddwr1g59cp9jly167fc47gqq8zs7kl";
+      "1.5.0"  = "1kwp133ipxd5al9jf0v40grpnpyiqvz95yydv9rylagxllcvr2s4";
     }."${version}";
   };
 
@@ -30,7 +30,7 @@ let
     desktopName = "UHK Agent";
     genericName = "Keyboard configuration";
     comment = "Agent is the configuration application of the Ultimate Hacking Keyboard";
-    icon = "uhk-keyboard";
+    icon = "uhk-agent";
     terminal = "false";
     exec = pname;
     categories = "Utility;";
@@ -48,7 +48,7 @@ let
 
 in pkgs.appimageTools.wrapType2 rec {
   inherit name src;
-  
+
   # Uncomment in case debugging is necessary {{
   # runScript = pkgs.writeScript "run" ''
   #   #!${pkgs.stdenv.shell}
@@ -78,7 +78,7 @@ in pkgs.appimageTools.wrapType2 rec {
     at-spi2-atk
     at-spi2-core
   ];
-  
+
   extraInstallCommands = ''
     ln -s "$out/bin/${name}" "$out/bin/uhk-agent"
     mkdir -p $out/etc/udev/rules.d
@@ -112,7 +112,7 @@ in pkgs.appimageTools.wrapType2 rec {
     description = ''
       Agent is the configuration application of the Ultimate Hacking Keyboard
     '';
-    
+
     longDescription = ''
       The Ultimate Hacking Keyboard is a split mechanical keyboard which utilizes
       Cherry MX-style switches. It's also a fully programmable keyboard which
