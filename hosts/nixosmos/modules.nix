@@ -14,7 +14,11 @@
         calibre.enable = true;
         uhkAgent.enable = true;
         redshift.enable = true;
-        rofi.enable = true;
+
+        rofi = {
+          enable = true;
+          theme = "yin-yang";
+        };
       };
 
       browsers = {
@@ -31,10 +35,14 @@
 
     development = {
       cc.enable = true;
-      java.enable = true;
       node.enable = true;
       python.enable = true;
       rust.enable = true;
+
+      java = {
+        enable = true;
+        gradle.enable = true;
+      };
 
       go = {
         enable = true;
