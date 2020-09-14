@@ -101,7 +101,7 @@ colors:
   # Default colors
   primary:
     background: "#000000"
-    foreground: "#FBF1C7"
+    foreground: "#FFFFFF"
 
     # (Optional) Bright and Dim foreground colors
     #
@@ -114,7 +114,7 @@ colors:
 
   # Colors the cursor will use if `custom_cursor_colors` is true
   cursor:
-    text: "#FBF1C7"
+    text: "#FFFFFF"
     cursor: "#F9F5D7"
 
   # Normal colors
@@ -136,7 +136,7 @@ colors:
     blue:    "#00FCF8"
     magenta: "#FC71FF"
     cyan:    "#4DEEDD"
-    white:   "#FBF1C7"
+    white:   "#FFFFFF"
 
 # Visual Bell
 #

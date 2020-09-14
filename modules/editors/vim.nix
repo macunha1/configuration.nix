@@ -25,8 +25,8 @@ with lib; {
           owner = "macunha1";
           repo = "definitely-not-vimrc";
 
-          rev = "4045927224d49837cdc8dc292740b5a06b18ed0f";
-          sha256 = "1d01f95l1abl9rg38malkrmag798rcpsh50nw45dhvgdvn177fin";
+          rev = "2fae56a962aa2213609b6c27d4d775e1473f005c";
+          sha256 = "0j15w7q2imlsqvgpmik8fg3f4l7z1gr565ijg941kcxb9bqv9ix7";
         };
 
         recursive = true; # doesn't race against vim/plugins/dein.vim

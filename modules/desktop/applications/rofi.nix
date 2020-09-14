@@ -9,6 +9,11 @@ with lib; {
       type = types.bool;
       default = false;
     };
+
+    theme = mkOption {
+      type = types.str;
+      default = "retrowave";
+    };
   };
 
   config = mkIf config.modules.desktop.applications.rofi.enable {
@@ -16,6 +21,17 @@ with lib; {
       packages = [
         pkgs.rofi # TUI all the things
       ];
+
+      home.xdg.configFile."rofi/config.rasi" = {
+        text = ''
+          configuration {
+              modi: "window,drun,combi";
+              theme: "${config.modules.desktop.applications.rofi.theme}";
+              font: "Source Code Pro 10";
+              combi-modi: "window,drun";
+          }
+        '';
+      };
 
       home.xdg.configFile."rofi" = {
         source = <config/rofi>;
