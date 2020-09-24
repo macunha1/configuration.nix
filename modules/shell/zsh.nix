@@ -105,6 +105,7 @@ with lib; {
         # Oh-my-zsh
         env.ZSH = "$XDG_CONFIG_HOME/oh-my-zsh";
         env.ZSH_CUSTOM = "$XDG_CONFIG_HOME/oh-my-zsh/custom";
+        env.DISABLE_AUTO_UPDATE = "true"; # as Nix makes the repo path read-only
 
         zsh.env = ''
           export ZSH="${config.my.env.ZSH}"
@@ -118,8 +119,8 @@ with lib; {
           source = pkgs.fetchFromGitHub {
             owner = "ohmyzsh";
             repo = "ohmyzsh";
-            rev = "079e7bb5e0a79171f3356d55d3f6302a82645a39";
-            sha256 = "10fpq57alk117991wwbprcmv69f27hbpp7a3gb70mzyjmfiflgk3";
+            rev = "93c837fec8e9fe61509b9dff9e909e84f7ebe32d";
+            sha256 = "1ww50c1xf64z1m0sy30xaf2adr87cqr5yyv9jrqr227j97vrwj04";
           };
 
           recursive = true;
