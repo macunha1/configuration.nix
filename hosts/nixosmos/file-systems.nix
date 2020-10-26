@@ -26,10 +26,7 @@
     };
 
     # Cold data disk, mostly used for back-ups
-    "/data/0" = {
-      device = "/dev/disk/by-uuid/29b921c1-b46a-44ff-b8da-212b813dad1d";
-      fsType = "ext4";
-    };
+    # "/data/0" = { };
 
     # Hot data disk for cache, vm images, mirrors, etc
     "/data/1" = {

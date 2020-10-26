@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./asdf.nix
     ./direnv.nix
     ./fzf.nix
     ./git.nix
