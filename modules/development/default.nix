@@ -1,7 +1,6 @@
 # modules/development --- root config for development modules
 
-{ pkgs, ... }:
-{
+{ pkgs, ... }: {
   imports = [
     ./cc.nix
     ./go.nix
@@ -9,9 +8,10 @@
     ./lua.nix
     ./node.nix
     ./python.nix
+    ./ruby.nix
     ./rust.nix
   ];
 
-  options = {};
-  config = {};
+  options = { };
+  config = { };
 }

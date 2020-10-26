@@ -31,12 +31,12 @@ with lib; {
     my = {
       packages = with pkgs; [ pkgs.unstable.spotify ];
 
-      home.services.spotifyd = {
-        enable = config.modules.media.spotify.daemon.enable;
+      # home.services.spotifyd = {
+      #   enable = config.modules.media.spotify.daemon.enable;
 
-        package = (pkgs.unstable.spotifyd.override { withMpris = true; });
-        settings = config.modules.media.spotify.daemon.settings;
-      };
+      #   package = (pkgs.unstable.spotifyd.override { withMpris = true; });
+      #   settings = config.modules.media.spotify.daemon.settings;
+      # };
     };
 
     # Allows to control player over DBus

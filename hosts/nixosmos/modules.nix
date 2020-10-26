@@ -38,6 +38,7 @@
       node.enable = true;
       python.enable = true;
       rust.enable = true;
+      ruby.enable = true;
 
       java = {
         enable = true;
@@ -103,6 +104,7 @@
       pass.enable = true;
       gnupg.enable = true;
       direnv.enable = true;
+      asdf.enable = true;
     };
 
     services = {

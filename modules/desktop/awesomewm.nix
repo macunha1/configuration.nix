@@ -40,8 +40,8 @@ with lib; {
             owner = "macunha1";
             repo = "awesomewm-configuration";
 
-            rev = "d5eb1e76b55b92b27084401ece56723eeff9bcc8";
-            sha256 = "0s4cissygjp4gn0sk23wr5q590qmlp05lka7ifpg6f0pdrvzh3k0";
+            rev = "7d69519f36876422b18f4995eed20c43e6d270f4";
+            sha256 = "1b9jcfzrdb11z4myjcv2s7j8yyrn9kxid1kn1syc6cz7zqxksshx";
 
             fetchSubmodules = true;
           };
