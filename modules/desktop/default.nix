@@ -2,9 +2,10 @@
 
 {
   imports = [
-    ./awesomewm.nix
     ./applications
+    ./awesomewm.nix
     ./browsers
+    ./gaming
     ./terminal
   ];
 

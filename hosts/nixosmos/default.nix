@@ -16,7 +16,12 @@
     package = pkgs.pulseaudioFull;
   };
 
-  environment.systemPackages = with pkgs; [ pavucontrol ];
+  environment.systemPackages = with pkgs; [
+    pavucontrol
+    patchelf
+    nix-prefetch-git
+    nix-prefetch
+  ];
 
   # Bluetooth (especially for audio)
   hardware.bluetooth.enable = true;

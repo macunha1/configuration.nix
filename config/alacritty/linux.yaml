@@ -120,7 +120,7 @@ colors:
   # Normal colors
   normal:
     black:   "#000000"
-    red:     "#F84672"
+    red:     "#F6019D"
     green:   "#4DEEDD" # "#00FCF8"
     yellow:  "#00FCF8" # "#F7EA38"
     blue:    "#00AAF9"
@@ -130,7 +130,7 @@ colors:
 
   bright:
     black:   "#666666"
-    red:     "#F84672"
+    red:     "#F6019D"
     green:   "#00FFBB"
     yellow:  "#00FFBB" # "#F7FC71"
     blue:    "#00FCF8"
