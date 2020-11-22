@@ -2,7 +2,9 @@
 
 { pkgs, ... }: {
   imports = [
+    ./android.nix
     ./cc.nix
+    ./flutter.nix
     ./go.nix
     ./java.nix
     ./lua.nix

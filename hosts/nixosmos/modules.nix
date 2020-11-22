@@ -25,6 +25,14 @@
         default = "chromium";
         chromium.enable = true;
       };
+
+      gaming = {
+        lutris.enable = true;
+        steam = {
+          enable = true;
+          hardware.enable = true;
+        };
+      };
     };
 
     editors = {
@@ -48,6 +56,17 @@
       go = {
         enable = true;
         path = "/data/1/opt/go";
+      };
+
+      android = {
+        enable = true;
+        path = "/data/1/opt/android";
+        includeBinToPath = true;
+      };
+
+      flutter = {
+        enable = true;
+        path = "/data/1/opt/flutter";
       };
     };
 
