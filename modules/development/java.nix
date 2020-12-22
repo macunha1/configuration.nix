@@ -26,16 +26,15 @@ with lib; {
   };
 
   config = mkIf config.modules.development.java.enable {
-    my = mkMerge [
-      { packages = with pkgs; [ openjdk ]; }
+    my = mkIf config.modules.development.java.gradle.enable {
+      packages = with pkgs; [ gradle ];
 
-      (mkIf config.modules.development.java.gradle.enable {
-        packages = with pkgs; [ gradle ];
+      env.GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
+    };
 
-        env.GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
-      })
-    ];
-
-    programs.java.enable = true;
+    programs.java = {
+      enable = true;
+      package = pkgs.unstable.openjdk14;
+    };
   };
 }

@@ -53,6 +53,8 @@ with lib; {
           rev = "7e4c495536950281782f07b04e6e7dacd20134da";
           sha256 = "1rbp8cnpl8h6mrrgk5jd2q72rv57dszqn8vpc8mcfrrbw8ghxcbn";
         };
+
+        recursive = true; # allows to have writable .vagrant dirs inside
       };
     };
   };

@@ -21,7 +21,7 @@ with lib; {
 
   config = mkIf config.modules.development.flutter.enable {
     my = {
-      packages = with pkgs; [ unstable.flutterPackages.stable dart ];
+      packages = with pkgs; [ unstable.flutterPackages.dev unstable.dart ];
 
       env.FLUTTER_ROOT = config.modules.development.flutter.path;
       env.DART_SDK_PATH =
