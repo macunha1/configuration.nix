@@ -10,31 +10,38 @@ with lib; {
   };
 
   config = mkIf config.modules.editors.emacs.enable {
-    my = {
-      packages = with pkgs; [
-        emacsUnstable
-        (ripgrep.override { withPCRE2 = true; })
+    user.packages = with pkgs; [
+      emacsUnstable
+      (ripgrep.override { withPCRE2 = true; })
 
-        gnutls # TLS connectivity
-        zstd   # undo-fu-session/undo-tree compression
-        fd     # speed-up projectile indexing
+      gnutls # TLS connectivity
+      zstd # undo-fu-session/undo-tree compression
+      fd # speed-up projectile indexing
 
-        ## Module dependencies
-        # :checkers spell
-        aspell
-        aspellDicts.en
-        aspellDicts.en-computers # English Computer Jargon dict
-        aspellDicts.en-science   # English Scientic Jargon dict
+      ## Module dependencies
+      # :checkers spell
+      (aspellWithDicts (ds: with ds; [ en en-computers en-science ]))
 
-        languagetool # :checkers grammar
+      languagetool # :checkers grammar
+      editorconfig-core-c # :tools editorconfig
+      sqlite # :tools lookup & :lang org +roam
 
-        editorconfig-core-c # :tools editorconfig
-        direnv # :tools direnv -> extends lorri
-      ];
+      # TODO: Pending programming languages with conditional below
+      # ccls # :lang cc
+      # nodePackages.javascript-typescript-langserver # :lang javascript
+      # :lang latex & :lang org (latex previews)
+      # texlive.combined.scheme-medium
+      # :lang rust
+      # rustfmt
+      # unstable.rust-analyzer
 
-      env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ];
-      alias.e = "emacs";
-    };
+      editorconfig-core-c # :tools editorconfig
+      direnv # :tools direnv -> extends lorri
+    ];
+
+    env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ];
+
+    environment.shellAliases = { e = "emacs"; };
 
     fonts.fonts = [ pkgs.emacs-all-the-icons-fonts ];
   };

@@ -2,6 +2,15 @@
 
 {
   modules = {
+    hardware = {
+      audio.enable = true;
+      bluetooth.enable = true;
+      video = {
+        enable = true;
+        nvidia.enable = true;
+      };
+    };
+
     desktop = {
       awesomewm.enable = true;
 
@@ -126,7 +135,7 @@
       asdf.enable = true;
     };
 
-    services = {
+    virtualization = {
       kvm2.enable = true;
 
       docker = {

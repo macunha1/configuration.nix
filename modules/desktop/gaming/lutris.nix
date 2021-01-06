@@ -9,6 +9,6 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.gaming.lutris.enable {
-    my.packages = with pkgs; [ vulkan-tools vulkan-headers lutris ];
+    user.packages = with pkgs; [ vulkan-tools vulkan-headers lutris ];
   };
 }

@@ -10,9 +10,9 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.browsers.chromium.enable {
-    my.packages = with pkgs; [ chromium ];
+    user.packages = with pkgs; [ chromium ];
 
     # TODO: Include portable and reusable Chromium configuration
-    # my.home.home.file = { };
+    # home.home.file = { };
   };
 }

@@ -17,19 +17,17 @@ with lib; {
     };
   };
 
-  config = mkMerge [
-    (mkIf config.modules.networking.aws.enable {
-      my = {
-        packages = with pkgs; [ awscli ];
+  config = mkIf config.modules.networking.aws.enable (mkMerge [
+    {
+      user.packages = with pkgs; [ awscli ];
 
-        env.AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
-        env.AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
-        env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
-      };
-    })
+      env.AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
+      env.AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
+      env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
+    }
 
     (mkIf config.modules.networking.aws.iamAuthenticator.enable {
-      my.packages = with pkgs; [ aws-iam-authenticator ];
+      user.packages = with pkgs; [ aws-iam-authenticator ];
     })
-  ];
+  ]);
 }

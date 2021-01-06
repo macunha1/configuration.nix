@@ -13,10 +13,8 @@ with lib; {
   };
 
   config = mkIf config.modules.networking.gcp.enable {
-    my = {
-      packages = with pkgs; [ google-cloud-sdk ];
+    user.packages = with pkgs; [ google-cloud-sdk ];
 
-      env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
-    };
+    env.BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config";
   };
 }

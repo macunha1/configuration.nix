@@ -28,16 +28,14 @@ with lib; {
   };
 
   config = mkIf config.modules.media.spotify.enable {
-    my = {
-      packages = with pkgs; [ pkgs.unstable.spotify ];
+    user.packages = with pkgs; [ pkgs.unstable.spotify ];
 
-      # home.services.spotifyd = {
-      #   enable = config.modules.media.spotify.daemon.enable;
+    # home.services.spotifyd = {
+    #   enable = config.modules.media.spotify.daemon.enable;
 
-      #   package = (pkgs.unstable.spotifyd.override { withMpris = true; });
-      #   settings = config.modules.media.spotify.daemon.settings;
-      # };
-    };
+    #   package = (pkgs.unstable.spotifyd.override { withMpris = true; });
+    #   settings = config.modules.media.spotify.daemon.settings;
+    # };
 
     # Allows to control player over DBus
     services.dbus.socketActivated = true;

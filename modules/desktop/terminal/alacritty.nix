@@ -8,31 +8,29 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.desktop.terminal.alacritty.enable {
-    my = mkMerge [
-      {
-        packages = with pkgs;
-          [
-            alacritty # GPU-accelerated terminal
-          ];
-      }
+  config = mkIf config.modules.desktop.terminal.alacritty.enable (mkMerge [
+    {
+      packages = with pkgs;
+        [
+          alacritty # GPU-accelerated terminal
+        ];
+    }
 
-      (mkIf config.modules.shell.zsh.enable {
-        # workaround for TERM=alacritty issues with Vim and Tmux
-        zsh.rc = ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
-      })
+    (mkIf config.modules.shell.zsh.enable {
+      # workaround for TERM=alacritty issues with Vim and Tmux
+      zsh.rc = ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
+    })
 
-      (mkIf pkgs.stdenv.isDarwin {
-        home.xdg.configFile."alacritty/alacritty.yml" = {
-          source = <config/alacritty/macos.yaml>;
-        };
-      })
+    (mkIf pkgs.stdenv.isDarwin {
+      home.configFile."alacritty/alacritty.yml" = {
+        source = <config/alacritty/macos.yaml>;
+      };
+    })
 
-      (mkIf pkgs.stdenv.isLinux {
-        home.xdg.configFile."alacritty/alacritty.yml" = {
-          source = <config/alacritty/linux.yaml>;
-        };
-      })
-    ];
-  };
+    (mkIf pkgs.stdenv.isLinux {
+      home.configFile."alacritty/alacritty.yml" = {
+        source = <config/alacritty/linux.yaml>;
+      };
+    })
+  ]);
 }

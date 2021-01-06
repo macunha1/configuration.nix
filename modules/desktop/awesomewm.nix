@@ -2,6 +2,11 @@
 
 with lib; {
   options.modules.desktop = {
+    enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
     awesomewm.enable = mkOption {
       type = types.bool;
       default = false;
@@ -13,10 +18,33 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.desktop.awesomewm.enable {
-    my = {
-      packages = with pkgs; [
-        i3lock # screenlock.sh uses i3lock
+  config = mkIf config.modules.desktop.enable (mkMerge [
+    {
+      services = {
+        compton.enable = config.modules.desktop.comptom.enable;
+
+        xserver = {
+          enable = true;
+
+          displayManager.lightdm.enable = true;
+          desktopManager.xterm.enable =
+            mkDefault (config.modules.desktop.terminal.default == "xterm");
+        };
+      };
+    }
+
+    (mkIf config.modules.desktop.awesomewm.enable {
+      services = {
+        xserver = {
+          windowManager.awesome = {
+            enable = true;
+            luaModules = [ pkgs.my.luaDbusProxy ];
+          };
+        };
+      };
+
+      user.packages = with pkgs; [
+        i3lock # screenlock.sh requires i3lock
 
         # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
         # i.e. Implements the equivalent of
@@ -35,7 +63,7 @@ with lib; {
           lockCmd = "screenlock.sh";
         };
 
-        xdg.configFile."awesome" = {
+        configFile."awesome" = {
           source = pkgs.fetchFromGitHub {
             owner = "macunha1";
             repo = "awesomewm-configuration";
@@ -47,32 +75,16 @@ with lib; {
           };
         };
       };
-    };
 
-    nixpkgs.overlays = [
-      (self: super:
-        with super; {
-          awesome = super.awesome.override {
-            # luaPackages = super.luajitPackages;
-            gtk3Support = true;
-          };
-        })
-    ];
-
-    services = {
-      compton.enable = config.modules.desktop.comptom.enable;
-
-      xserver = {
-        enable = true;
-
-        windowManager.awesome = {
-          enable = true;
-          luaModules = [ pkgs.my.luaDbusProxy ];
-        };
-
-        displayManager.lightdm.enable = true;
-        desktopManager.xterm.enable = false;
-      };
-    };
-  };
+      nixpkgs.overlays = [
+        (self: super:
+          with super; {
+            awesome = super.awesome.override {
+              # luaPackages = super.luajitPackages;
+              gtk3Support = true;
+            };
+          })
+      ];
+    })
+  ]);
 }

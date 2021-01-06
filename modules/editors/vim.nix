@@ -13,35 +13,33 @@ with lib; {
   };
 
   config = mkIf config.modules.editors.vim.enable {
-    my = {
-      packages = with pkgs; [ editorconfig-core-c vim_configurable ];
+    user.packages = with pkgs; [ editorconfig-core-c vim_configurable ];
 
-      alias.v = "vim";
+    environment.shellAliases = { v = "vim"; };
 
-      env.VIMINIT = ''source "$XDG_CONFIG_HOME/vim/init.vim"'';
+    env.VIMINIT = ''source "$XDG_CONFIG_HOME/vim/init.vim"'';
 
-      home.xdg.configFile."vim" = {
-        source = pkgs.fetchFromGitHub {
-          owner = "macunha1";
-          repo = "definitely-not-vimrc";
+    home.configFile."vim" = {
+      source = pkgs.fetchFromGitHub {
+        owner = "macunha1";
+        repo = "definitely-not-vimrc";
 
-          rev = "2fae56a962aa2213609b6c27d4d775e1473f005c";
-          sha256 = "0j15w7q2imlsqvgpmik8fg3f4l7z1gr565ijg941kcxb9bqv9ix7";
-        };
-
-        recursive = true; # doesn't race against vim/plugins/dein.vim
+        rev = "2fae56a962aa2213609b6c27d4d775e1473f005c";
+        sha256 = "0j15w7q2imlsqvgpmik8fg3f4l7z1gr565ijg941kcxb9bqv9ix7";
       };
 
-      home.xdg.configFile."vim/plugins/dein.vim" = {
-        source = pkgs.fetchFromGitHub {
-          owner = "Shougo";
-          repo = "dein.vim";
-          rev = "21a5c41f0289e98b8086279e62f046b2402dac7c";
-          sha256 = "0kcln63kiivc0gyb82hc7ihgf9h2maj7y9ixn83z5sfk0yilmpxb";
-        };
+      recursive = true; # doesn't race against vim/plugins/dein.vim
+    };
 
-        recursive = true; # doesn't lock vim/plugins path
+    home.configFile."vim/plugins/dein.vim" = {
+      source = pkgs.fetchFromGitHub {
+        owner = "Shougo";
+        repo = "dein.vim";
+        rev = "21a5c41f0289e98b8086279e62f046b2402dac7c";
+        sha256 = "0kcln63kiivc0gyb82hc7ihgf9h2maj7y9ixn83z5sfk0yilmpxb";
       };
+
+      recursive = true; # doesn't lock vim/plugins path
     };
   };
 }

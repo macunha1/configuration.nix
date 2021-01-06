@@ -1,8 +1,7 @@
 # modules/development/cc.nix --- C & C++
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.development.cc = {
     enable = mkOption {
       type = types.bool;
@@ -11,7 +10,7 @@ with lib;
   };
 
   config = mkIf config.modules.development.cc.enable {
-    my.packages = with pkgs; [
+    user.packages = with pkgs; [
       clang
       gcc
       gdb

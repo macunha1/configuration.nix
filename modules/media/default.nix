@@ -1,11 +1,7 @@
 { config, options, lib, pkgs, ... }:
 
-with lib;
-{
-  imports = [
-    ./mpv.nix
-    ./spotify.nix
-  ];
+with lib; {
+  imports = [ ./mpv.nix ./spotify.nix ];
 
   options.modules.media = {
     enable = mkOption {
@@ -15,8 +11,9 @@ with lib;
   };
 
   config = mkIf config.modules.media.enable {
-    my.packages = with pkgs; [
-      playerctl # One controller to rule them all
-    ];
+    user.packages = with pkgs;
+      [
+        playerctl # One controller to rule them all
+      ];
   };
 }

@@ -8,19 +8,13 @@ with lib; {
   };
 
   config = mkIf config.modules.shell.pass.enable {
-    my = {
-      packages = with pkgs; [
-        (pass.withExtensions (exts:
-          [
-            exts.pass-otp
-            # exts.pass-genphrase
-          ]))
+    user.packages = with pkgs; [
+      (pass.withExtensions (exts: [ exts.pass-otp ]))
 
-        expect # handles passwords from storage
-        pwgen # generates randomized passwords
-      ];
+      expect # handles passwords from storage
+      pwgen # generates randomized passwords
+    ];
 
-      env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
-    };
+    env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
   };
 }

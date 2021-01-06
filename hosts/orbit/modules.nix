@@ -2,6 +2,12 @@
 
 {
   modules = {
+    hardware = {
+      audio.enable = true;
+      bluetooth.enable = true;
+      video.enable = true;
+    };
+
     desktop = {
       awesomewm.enable = true;
 

@@ -1,6 +1,6 @@
 { config, options, pkgs, lib, ... }:
 with lib; {
-  options.modules.services.docker = {
+  options.modules.virtualization.docker = {
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -22,25 +22,24 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.services.docker.enable {
-    my = {
+  config = mkIf config.modules.virtualization.docker.enable {
+    user = {
       packages = with pkgs; [ docker docker-compose buildah ];
-
-      env.MACHINE_STORAGE_PATH = config.modules.services.docker.storagePath;
-      env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
-
-      user.extraGroups = [ "docker" ];
+      extraGroups = [ "docker" ];
     };
+
+    env.MACHINE_STORAGE_PATH = config.modules.virtualization.docker.storagePath;
+    env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
 
     virtualisation = {
       docker = {
         enable = true;
         autoPrune.enable = true;
 
-        extraOptions = "-g ${config.modules.services.docker.storagePath}";
+        extraOptions = "-g ${config.modules.virtualization.docker.storagePath}";
         package = pkgs.unstable.docker;
-        enableNvidia = config.modules.services.docker.nvidia.enable;
-        enableOnBoot = config.modules.services.docker.onBoot.enable;
+        enableNvidia = config.modules.virtualization.docker.nvidia.enable;
+        enableOnBoot = config.modules.virtualization.docker.onBoot.enable;
       };
     };
   };

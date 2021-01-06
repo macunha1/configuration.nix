@@ -1,12 +1,13 @@
 # configuration.nix -> NixOS config as code
 
-+ **Operating System:** NixOS
-+ **Shell:** zsh + antigen
-+ **DM:** none (former ly)
-+ **WM:** awesomewm
-+ **Terminal:** alacritty
-+ **Launcher:** rofi
-+ **Browser:** chromium
+|              |               |
+|--------------+---------------|
+| **Shell**    | ZSH + Antigen |
+| **DM**       | LightDM       |
+| **WM**       | AwesomeWM     |
+| **Terminal** | Alacritty     |
+| **Launcher** | Rofi          |
+| **Browser**  | Chromium      |
 
 > Know thyself
 >
@@ -31,24 +32,15 @@ Which is equivalent to:
 ```sh
 USER=${USER:-macunha1}
 HOST=${HOST:-cosmos}
-NIXOS_VERSION=20.03
+NIXOS_VERSION=20.09
 DOTFILES=/home/$USER/.dotfiles
 
 git clone https://github.com/macunha1/.dotfiles /etc/dotfiles
 ln -s /etc/dotfiles $DOTFILES
 chown -R $USER:users $DOTFILES
 
-# make channels
-nix-channel --add "https://nixos.org/channels/nixos-${NIXOS_VERSION}" nixos
-nix-channel --add "https://github.com/rycee/home-manager/archive/release-${NIXOS_VERSION}.tar.gz" home-manager
-nix-channel --add "https://nixos.org/channels/nixpkgs-unstable" nixpkgs-unstable
-
-# make /etc/nixos/configuration.nix
-nixos-generate-config --root /mnt
-echo "import /etc/dotfiles \"$$HOST\" \"$$USER\"" >/mnt/etc/nixos/configuration.nix
-
 # make install
-nixos-install --root /mnt -I "my=/etc/dotfiles"
+nixos-install --root /mnt --flake /mnt/etc/dotfiles
 ```
 
 ### Management
