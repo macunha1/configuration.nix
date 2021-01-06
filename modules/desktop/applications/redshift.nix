@@ -38,7 +38,7 @@ with lib; {
   config = mkIf config.modules.desktop.applications.redshift.enable {
     user.packages = with pkgs; [ redshift ];
 
-    home.services.redshift = {
+    home-manager.users.${config.user.name}.services.redshift = {
       enable = true;
       latitude = config.modules.desktop.applications.redshift.latitude;
       longitude = config.modules.desktop.applications.redshift.longitude;

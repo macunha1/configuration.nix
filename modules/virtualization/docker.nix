@@ -17,7 +17,7 @@ with lib; {
     };
 
     storagePath = mkOption {
-      type = types.path;
+      type = with types; (either str path);
       default = "/var/lib/docker";
     };
   };

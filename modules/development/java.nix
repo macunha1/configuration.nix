@@ -26,17 +26,17 @@ with lib; {
   };
 
   config = mkIf config.modules.development.java.enable (mkMerge [
+    {
+      programs.java = {
+        enable = true;
+        package = pkgs.unstable.openjdk;
+      };
+    }
+
     (mkIf config.modules.development.java.gradle.enable {
       user.packages = with pkgs; [ gradle ];
 
       env.GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
     })
-
-    {
-      programs.java = {
-        enable = true;
-        package = pkgs.unstable.openjdk14;
-      };
-    }
   ]);
 }

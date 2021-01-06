@@ -1,7 +1,6 @@
 { config, options, lib, pkgs, ... }:
-with lib; {
-  imports = [ ./alacritty.nix ];
 
+with lib; {
   options.modules.desktop.terminal = {
     default = mkOption {
       type = with types; nullOr str;

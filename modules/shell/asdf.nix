@@ -20,7 +20,7 @@ with lib; {
     env.ASDF_DATA_DIR = "$XDG_CACHE_HOME/asdf";
 
     # Bash autocompletion + initialization
-    zsh.rc = mkIf config.modules.shell.zsh.enable ''
+    modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''
       source "$XDG_DATA_HOME/asdf/asdf.sh"
       source "$XDG_DATA_HOME/asdf/completions/asdf.bash"
     '';

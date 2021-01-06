@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 with lib; {
-  imports = [ ./chromium.nix ];
-
   options.modules.desktop.browsers = {
     default = mkOption {
       type = with types; nullOr str;

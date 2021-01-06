@@ -1,6 +1,7 @@
 { config, options, pkgs, lib, ... }:
 
-with lib; {
+with lib;
+with lib.my; {
   options.modules.shell.tmux = {
     enable = mkOption {
       type = types.bool;
@@ -24,7 +25,9 @@ with lib; {
     env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_CONFIG_HOME/tmux/plugins";
 
     # Following path from https://github.com/tmux-plugins/tpm
-    home.configFile."tmux/tmux.conf" = { source = <config/tmux/tmux.conf>; };
+    home.configFile."tmux/tmux.conf" = {
+      source = "${configDir}/tmux/tmux.conf";
+    };
 
     home.configFile."tmux/plugins/tpm" = {
       source = pkgs.fetchFromGitHub {

@@ -9,7 +9,7 @@ with lib; {
   };
 
   config = mkIf config.modules.shell.gnupg.enable {
-    home.services.gpg-agent = {
+    home-manager.users.${config.user.name}.services.gpg-agent = {
       enable = true;
       # Would be nice, but doesn't respect the XDG config
       # pinentryFlavor = "curses";

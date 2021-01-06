@@ -47,6 +47,7 @@ with lib.my; {
       isNormalUser = true;
       name = let name = builtins.getEnv "USER";
       in if elem name [ "" "root" ] then "macunha1" else name;
+      # Mainly for Git config and GNU PG
       uid = 1000;
     };
 

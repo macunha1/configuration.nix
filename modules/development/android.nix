@@ -4,7 +4,7 @@
 
 with lib;
 let
-  androidPackages = pkgs.unstable.androidenv.composeAndroidPackages {
+  androidPackages = pkgs.androidenv.composeAndroidPackages {
     platformVersions = [ "29" ];
     platformToolsVersion = "29.0.6";
     buildToolsVersions = [ "29.0.3" ];
@@ -21,7 +21,7 @@ in {
     };
 
     path = mkOption {
-      type = types.path;
+      type = with types; (either str path);
       default = "$XDG_DATA_HOME/android";
     };
 
@@ -33,12 +33,10 @@ in {
 
   config = mkIf config.modules.development.android.enable (mkMerge [
     {
-      # NOTE: Adb installs pkgs.androidenv.androidPkgs_9_0.platform-tools
-      programs.adb.enable = true;
-
-      # error: You MUST accept the Android SDK License Agreement
-      # https://developer.android.com/studio/terms
-      nixpkgs.config.android_sdk.accept_license = true;
+      # Copied from the programs.adb to extend its capability with a custom pkg
+      # Ref: github.com/NixOS/nixpkgs/blob/master/nixos/modules/programs/adb.nix
+      services.udev.packages = [ pkgs.android-udev-rules ];
+      users.groups.adbusers = { }; # forces group creation
 
       user = {
         extraGroups = [ "adbusers" ];

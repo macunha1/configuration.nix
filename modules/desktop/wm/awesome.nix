@@ -38,7 +38,7 @@ with lib; {
         xserver = {
           windowManager.awesome = {
             enable = true;
-            luaModules = [ pkgs.my.luaDbusProxy ];
+            luaModules = [ pkgs.my.lua-dbus-proxy ];
           };
         };
       };
@@ -48,31 +48,29 @@ with lib; {
 
         # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
         # i.e. Implements the equivalent of
-        #      luaModules = [ pkgs.my.luaDbusProxy ]; # in a non-DM world
+        #      luaModules = [ pkgs.my.lua-dbus-proxy ]; # in a non-DM world
         (writeScriptBin "awm" ''
           #!${stdenv.shell}
           exec ${awesome}/bin/awesome \
-               --search "${my.luaDbusProxy.out}/share/lua/${lua.luaversion}" \
+               --search "${my.lua-dbus-proxy.out}/share/lua/${lua.luaversion}" \
                "$@"
         '')
       ];
 
-      home = {
-        services.screen-locker = {
-          inactiveInterval = 10;
-          lockCmd = "screenlock.sh";
-        };
+      home-manager.users.${config.user.name}.services.screen-locker = {
+        inactiveInterval = 10;
+        lockCmd = "screenlock.sh";
+      };
 
-        configFile."awesome" = {
-          source = pkgs.fetchFromGitHub {
-            owner = "macunha1";
-            repo = "awesomewm-configuration";
+      home.configFile."awesome" = {
+        source = pkgs.fetchFromGitHub {
+          owner = "macunha1";
+          repo = "awesomewm-configuration";
 
-            rev = "7d69519f36876422b18f4995eed20c43e6d270f4";
-            sha256 = "1b9jcfzrdb11z4myjcv2s7j8yyrn9kxid1kn1syc6cz7zqxksshx";
+          rev = "7d69519f36876422b18f4995eed20c43e6d270f4";
+          sha256 = "1b9jcfzrdb11z4myjcv2s7j8yyrn9kxid1kn1syc6cz7zqxksshx";
 
-            fetchSubmodules = true;
-          };
+          fetchSubmodules = true;
         };
       };
 

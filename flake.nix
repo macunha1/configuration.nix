@@ -30,7 +30,15 @@
       mkPkgs = pkgs: extraOverlays:
         import pkgs {
           inherit system;
-          config.allowUnfree = true; # forgive me Stallman senpai
+          config.allowUnfree = true; # necessary evil
+
+          # error: You MUST accept the Android SDK License Agreement.
+          # https://developer.android.com/studio/terms
+          #
+          # Therefore, if you do enable the Android module you're agreeing with
+          # the terms
+          config.android_sdk.accept_license = true;
+
           overlays = extraOverlays ++ (attrValues self.overlays);
         };
       pkgs = mkPkgs nixpkgs [ self.overlay ];

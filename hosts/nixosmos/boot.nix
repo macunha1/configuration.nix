@@ -4,24 +4,20 @@
 
 {
   boot.initrd = {
-    availableKernelModules = [
-      "xhci_pci"
-      "ahci"
-      "usbhid"
-      "usb_storage"
-      "sd_mod"
-    ];
+    availableKernelModules =
+      [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
 
     kernelModules = [ ];
   };
+
+  # Use the latest kernel
+  boot.kernelPackages = pkgs.linuxPackages_5_9;
 
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   boot.loader = {
-    efi = {
-      canTouchEfiVariables = false;
-    };
+    efi = { canTouchEfiVariables = false; };
 
     grub = {
       enable = true;

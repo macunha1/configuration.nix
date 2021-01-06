@@ -8,13 +8,9 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.hardware.audio {
+  config = mkIf config.modules.hardware.audio.enable {
     sound.enable = true;
-
-    hardware.pulseaudio = {
-      enable = true;
-      package = pkgs.pulseaudioFull;
-    };
+    hardware.pulseaudio.enable = true;
 
     user.extraGroups = [ "audio" ];
   };

@@ -1,8 +1,8 @@
 USER := macunha1
 HOST := cosmos
 
-DOTFILES      := $(HOME)/.config/nixos/dotfiles
-COMMAND       := test
+DOTFILES := $(HOME)/.config/nixos/dotfiles
+COMMAND  := test
 
 all:
 	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
@@ -15,12 +15,12 @@ update:
 	@nix flake update --recreate-lock-file
 
 switch:
-	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" switch
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch
 
 upgrade: update switch
 
 rollback:
-	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback switch
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
 
 gc:
 	@nix-collect-garbage -d

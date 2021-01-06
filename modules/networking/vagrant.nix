@@ -14,7 +14,7 @@ with lib; {
     };
 
     home = mkOption {
-      type = types.path;
+      type = with types; (either str path);
       default = "/opt/vagrant";
     };
 
