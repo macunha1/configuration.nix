@@ -13,6 +13,7 @@ with lib; {
       default = "$XDG_DATA_HOME/flutter";
     };
 
+    # TODO: Install downloaded tools to bin (+patchelf)
     includeBinToPath = mkOption {
       type = types.bool;
       default = false;
@@ -20,12 +21,10 @@ with lib; {
   };
 
   config = mkIf config.modules.development.flutter.enable {
-    my = {
-      packages = with pkgs; [ unstable.flutterPackages.dev unstable.dart ];
+    user.packages = with pkgs; [ unstable.flutterPackages.dev unstable.dart ];
 
-      env.FLUTTER_ROOT = config.modules.development.flutter.path;
-      env.DART_SDK_PATH =
-        "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
-    };
+    env.FLUTTER_ROOT = config.modules.development.flutter.path;
+    env.DART_SDK_PATH =
+      "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
   };
 }

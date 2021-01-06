@@ -13,13 +13,11 @@ with lib; {
   };
 
   config = mkIf config.modules.development.ruby.enable {
-    my = {
-      packages = with pkgs; [ ruby_2_7.devEnv libxml2 libxslt ];
+    user.packages = with pkgs; [ ruby_2_7.devEnv libxml2 libxslt ];
 
-      env.BUNDLE_USER_HOME = "$XDG_CONFIG_HOME/bundle";
-      env.BUNDLE_USER_CONFIG = "$XDG_CONFIG_HOME/bundle/config";
-      env.BUNDLE_USER_CACHE = "$XDG_CACHE_HOME/bundle/cache";
-      env.BUNDLE_USER_PLUGIN = "$XDG_CACHE_HOME/bundle/plugin";
-    };
+    env.BUNDLE_USER_HOME = "$XDG_CONFIG_HOME/bundle";
+    env.BUNDLE_USER_CONFIG = "$XDG_CONFIG_HOME/bundle/config";
+    env.BUNDLE_USER_CACHE = "$XDG_CACHE_HOME/bundle/cache";
+    env.BUNDLE_USER_PLUGIN = "$XDG_CACHE_HOME/bundle/plugin";
   };
 }

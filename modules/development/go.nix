@@ -19,17 +19,14 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.development.go.enable {
-    my = mkMerge [
-      {
-        packages = with pkgs; [ libcap go ];
+  config = mkIf config.modules.development.go.enable (mkMerge [
+    {
+      user.packages = with pkgs; [ libcap go ];
+      env.GOPATH = config.modules.development.go.path;
+    }
 
-        env.GOPATH = config.modules.development.go.path;
-      }
-
-      (mkIf config.modules.development.go.includeBinToPath {
-        env.PATH = [ "$GOPATH/bin" ];
-      })
-    ];
-  };
+    (mkIf config.modules.development.go.includeBinToPath {
+      env.PATH = [ "$GOPATH/bin" ];
+    })
+  ]);
 }

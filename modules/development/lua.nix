@@ -18,12 +18,20 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.development.lua.enable {
-    my = mkMerge [
-      { packages = with pkgs; [ lua luajit luarocks ]; }
-      (mkIf config.modules.development.lua.includeBinToPath {
-        zsh.rc = ''eval "$(luarocks path --bin)"'';
-      })
-    ];
-  };
+  config = mkIf config.modules.development.lua.enable (mkMerge [
+    {
+      user.packages = with pkgs; [
+        # Interpreters
+        lua
+        luajit
+
+        # Dependency/package management
+        luarocks
+      ];
+    }
+
+    (mkIf config.modules.development.lua.includeBinToPath {
+      zsh.rc = ''eval "$(luarocks path --bin)"'';
+    })
+  ]);
 }

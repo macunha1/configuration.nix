@@ -1,63 +1,45 @@
 USER := macunha1
 HOST := cosmos
-HOME := /home/$(USER)
 
-NIXOS_VERSION := 20.03
-NIXOS_PREFIX  := $(PREFIX)/etc/nixos
+NIXOS_VERSION := 20.09
+DOTFILES      := $(HOME)/.config/nixos/dotfiles
 COMMAND       := test
-FLAGS         := -I "config=$$(pwd)/config" \
-				 -I "modules=$$(pwd)/modules" \
-				 -I "bin=$$(pwd)/bin" \
-				 $(FLAGS)
 
-all: channels
-	@sudo nixos-rebuild $(FLAGS) $(COMMAND)
+all:
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
 
 install: channels update config
-	@sudo nixos-install --root "$(PREFIX)" $(FLAGS)
+	@USER=$(USER) nixos-install --root "$(PREFIX)/" --flake \
+        "$(DOTFILES)#$(HOST)"
+
+update:
+	@nix flake update --recreate-lock-file "$(DOTFILES)#$(HOST)"
+
+switch:
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" switch
 
 upgrade: update switch
 
-update: channels
-	@sudo nix-channel --update
-
-switch:
-	@sudo nixos-rebuild $(FLAGS) switch
-
 rollback:
-	@sudo nixos-rebuild $(FLAGS) --rollback $(COMMAND)
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback switch
 
 gc:
 	@nix-collect-garbage -d
 
 vm:
-	@sudo nixos-rebuild $(FLAGS) build-vm
+	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" vm
 
 clean:
 	@unlink result
 
 # Parts
-config: $(NIXOS_PREFIX)/configuration.nix
-
-channels:
-	@sudo nix-channel --add "https://nixos.org/channels/nixos-${NIXOS_VERSION}" nixos
-	@sudo nix-channel --add "https://github.com/nix-community/home-manager/archive/release-${NIXOS_VERSION}.tar.gz" home-manager
-	@sudo nix-channel --add "https://nixos.org/channels/nixpkgs-unstable" nixpkgs-unstable
-
-$(NIXOS_PREFIX)/configuration.nix:
-	@sudo nixos-generate-config --root "$(PREFIX)"
-	@echo "import /etc/dotfiles \"$${HOST:-$$(hostname)}\" \"$$USER\"" | sudo tee "$(NIXOS_PREFIX)/configuration.nix"
-
-$(HOME)/.dotfiles:
-	@mkdir -p $(HOME)
-	@[ -e $(HOME)/.dotfiles ] || sudo mv /etc/dotfiles $(HOME)/.dotfiles
-	@[ -e /etc/dotfiles ] || sudo ln -s $(HOME)/.dotfiles /etc/dotfiles
-	@chown $(USER):users $(HOME) $(HOME)/.dotfiles
+config: $(DOTFILES)
 
 # Convenience aliases
 i: install
 s: switch
 up: upgrade
+u: update
 
 
 .PHONY: config

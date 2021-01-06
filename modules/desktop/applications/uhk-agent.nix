@@ -1,8 +1,7 @@
 # modules/applications/uhk-agent.nix --- https://ultimatehackingkeyboard.com/
 
 { config, options, lib, pkgs, ... }:
-with lib;
-{
+with lib; {
   options.modules.desktop.applications.uhkAgent = {
     enable = mkOption {
       type = types.bool;
@@ -17,9 +16,7 @@ with lib;
   };
 
   config = mkIf config.modules.desktop.applications.uhkAgent.enable {
-    my.packages = with pkgs; [
-      my.uhkAgent
-    ];
+    user.packages = with pkgs; [ my.uhkAgent ];
 
     services.udev.packages = with pkgs; [ my.uhkAgent ];
   };

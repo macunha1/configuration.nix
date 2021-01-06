@@ -31,17 +31,17 @@ in {
     };
   };
 
-  config = mkIf config.modules.development.android.enable {
-    # NOTE: Adb installs pkgs.androidenv.androidPkgs_9_0.platform-tools
-    programs.adb.enable = true;
+  config = mkIf config.modules.development.android.enable (mkMerge [
+    {
+      # NOTE: Adb installs pkgs.androidenv.androidPkgs_9_0.platform-tools
+      programs.adb.enable = true;
 
-    # error: You MUST accept the Android SDK License Agreement
-    # https://developer.android.com/studio/terms
-    nixpkgs.config.android_sdk.accept_license = true;
+      # error: You MUST accept the Android SDK License Agreement
+      # https://developer.android.com/studio/terms
+      nixpkgs.config.android_sdk.accept_license = true;
 
-    my = mkMerge [
-      {
-        user.extraGroups = [ "adbusers" ];
+      user = {
+        extraGroups = [ "adbusers" ];
         packages = with pkgs; [
           androidPackages.androidsdk
 
@@ -51,16 +51,16 @@ in {
             exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
           '')
         ];
+      };
 
-        env.ANDROID_SDK_ROOT = "${config.modules.development.android.path}/sdk";
-        env.ANDROID_AVD_HOME = "${config.modules.development.android.path}/avd";
-        env.ANDROID_EMULATOR_HOME =
-          "${config.modules.development.android.path}/emulator";
-      }
+      env.ANDROID_SDK_ROOT = "${config.modules.development.android.path}/sdk";
+      env.ANDROID_AVD_HOME = "${config.modules.development.android.path}/avd";
+      env.ANDROID_EMULATOR_HOME =
+        "${config.modules.development.android.path}/emulator";
+    }
 
-      (mkIf config.modules.development.android.includeBinToPath {
-        env.PATH = [ "$ANDROID_SDK_ROOT/tools/bin" ];
-      })
-    ];
-  };
+    (mkIf config.modules.development.android.includeBinToPath {
+      env.PATH = [ "$ANDROID_SDK_ROOT/tools/bin" ];
+    })
+  ]);
 }

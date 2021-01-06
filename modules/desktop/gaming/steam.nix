@@ -19,8 +19,6 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.gaming.steam.enable {
-    # I avoid programs.steam.enable because it installs another steam binary,
-    # which the xdesktop package invokes, instead of my steam shims below.
     hardware = {
       opengl = {
         enable = true;
@@ -33,7 +31,7 @@ with lib; {
         config.modules.desktop.gaming.steam.hardware.enable;
     };
 
-    my.packages = with pkgs; [
+    user.packages = with pkgs; [
       steam
       steam-run-native
 

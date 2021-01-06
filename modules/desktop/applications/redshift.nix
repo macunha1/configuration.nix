@@ -36,19 +36,16 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.applications.redshift.enable {
-    my = {
-      packages = with pkgs; [ redshift ];
+    user.packages = with pkgs; [ redshift ];
 
-      home.services.redshift = {
-        enable = true;
-        latitude = config.modules.desktop.applications.redshift.latitude;
-        longitude = config.modules.desktop.applications.redshift.longitude;
+    home.services.redshift = {
+      enable = true;
+      latitude = config.modules.desktop.applications.redshift.latitude;
+      longitude = config.modules.desktop.applications.redshift.longitude;
 
-        temperature = {
-          day = config.modules.desktop.applications.redshift.temperature.day;
-          night =
-            config.modules.desktop.applications.redshift.temperature.night;
-        };
+      temperature = {
+        day = config.modules.desktop.applications.redshift.temperature.day;
+        night = config.modules.desktop.applications.redshift.temperature.night;
       };
     };
   };

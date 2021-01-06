@@ -1,4 +1,8 @@
 { config, options, pkgs, lib, ... }:
+
+# calibre.nix -- https://calibre-ebook.com/download
+# Calibre open source e-books manager
+
 with lib; {
   options.modules.desktop.applications.calibre = {
     enable = mkOption {
@@ -8,8 +12,6 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.applications.calibre.enable {
-    my.packages = [
-      pkgs.calibre # ebooks manager
-    ];
+    user.packages = [ pkgs.calibre ];
   };
 }

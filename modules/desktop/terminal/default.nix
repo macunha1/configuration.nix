@@ -10,6 +10,6 @@ with lib; {
   };
 
   config = mkIf (config.modules.desktop.terminal.default != null) {
-    my.env.TERMINAL = config.modules.desktop.terminal.default;
+    env.TERMINAL = config.modules.desktop.terminal.default;
   };
 }

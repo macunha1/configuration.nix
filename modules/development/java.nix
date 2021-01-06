@@ -25,16 +25,18 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.development.java.enable {
-    my = mkIf config.modules.development.java.gradle.enable {
-      packages = with pkgs; [ gradle ];
+  config = mkIf config.modules.development.java.enable (mkMerge [
+    (mkIf config.modules.development.java.gradle.enable {
+      user.packages = with pkgs; [ gradle ];
 
       env.GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
-    };
+    })
 
-    programs.java = {
-      enable = true;
-      package = pkgs.unstable.openjdk14;
-    };
-  };
+    {
+      programs.java = {
+        enable = true;
+        package = pkgs.unstable.openjdk14;
+      };
+    }
+  ]);
 }
