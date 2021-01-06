@@ -1,19 +1,18 @@
 USER := macunha1
 HOST := cosmos
 
-NIXOS_VERSION := 20.09
 DOTFILES      := $(HOME)/.config/nixos/dotfiles
 COMMAND       := test
 
 all:
 	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
 
-install: channels update config
+install: update
 	@USER=$(USER) nixos-install --root "$(PREFIX)/" --flake \
         "$(DOTFILES)#$(HOST)"
 
 update:
-	@nix flake update --recreate-lock-file "$(DOTFILES)#$(HOST)"
+	@nix flake update --recreate-lock-file
 
 switch:
 	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" switch
@@ -33,7 +32,7 @@ clean:
 	@unlink result
 
 # Parts
-config: $(DOTFILES)
+# config: $(DOTFILES)
 
 # Convenience aliases
 i: install
