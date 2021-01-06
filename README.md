@@ -1,4 +1,6 @@
-# configuration.nix -> NixOS config as code
+<center>
+
+<h1>configuration.nix -> NixOS config as code</h1>
 
 |              |               |
 |--------------+---------------|
@@ -19,28 +21,16 @@
 >
 > - Sun Tzsh, The Art of Code
 
+</center>
+
 ## Quick start
 
-```sh
-# Assumes your partitions are set up and root is mounted on /mnt
-git clone https://github.com/macunha1/configuration.nix /etc/dotfiles
-make -C /etc/dotfiles install
-```
-
-Which is equivalent to:
+# TODO
 
 ```sh
-USER=${USER:-macunha1}
-HOST=${HOST:-cosmos}
-NIXOS_VERSION=20.09
-DOTFILES=/home/$USER/.dotfiles
-
-git clone https://github.com/macunha1/.dotfiles /etc/dotfiles
-ln -s /etc/dotfiles $DOTFILES
-chown -R $USER:users $DOTFILES
-
-# make install
-nixos-install --root /mnt --flake /mnt/etc/dotfiles
+git clone https://github.com/macunha1/configuration.nix ${HOME}/.config/nixos/dotfiles
+cd $_
+make install
 ```
 
 ### Management
@@ -54,4 +44,6 @@ nixos-install --root /mnt --flake /mnt/etc/dotfiles
 
 ### Credits
 
-Initial configuration was heavily based on [hlissner/dotfiles](https://github.com/hlissner/dotfiles).
+Heavily based and inspired on the incredible work from
+[hlissner](https://github.com/hlissner) at
+[hlissner/dotfiles](https://github.com/hlissner/dotfiles).

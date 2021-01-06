@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
 
 {
-  imports = [ ./applications ./awesomewm.nix ./browsers ./gaming ./terminal ];
-
   user.packages = with pkgs; [
     pcmanfm # lightweight file manager
     xfce.xfce4panel # system trail
