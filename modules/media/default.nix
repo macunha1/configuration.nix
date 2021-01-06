@@ -1,8 +1,6 @@
 { config, options, lib, pkgs, ... }:
 
 with lib; {
-  imports = [ ./mpv.nix ./spotify.nix ];
-
   options.modules.media = {
     enable = mkOption {
       type = types.bool;

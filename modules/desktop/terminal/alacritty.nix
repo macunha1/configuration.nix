@@ -1,6 +1,10 @@
-{ config, lib, pkgs, ... }:
+# desktop/terminal/alacritty.nix -- https://github.com/alacritty/alacritty
+# The GPU-accelerated terminal
 
-with lib; {
+{ options, config, lib, pkgs, ... }:
+
+with lib;
+with lib.my; {
   options.modules.desktop.terminal.alacritty = {
     enable = mkOption {
       type = types.bool;
@@ -10,26 +14,22 @@ with lib; {
 
   config = mkIf config.modules.desktop.terminal.alacritty.enable (mkMerge [
     {
-      packages = with pkgs;
-        [
-          alacritty # GPU-accelerated terminal
-        ];
-    }
+      user.packages = with pkgs; [ alacritty ];
 
-    (mkIf config.modules.shell.zsh.enable {
       # workaround for TERM=alacritty issues with Vim and Tmux
-      zsh.rc = ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
-    })
+      modules.shell.zsh.init =
+        ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
+    }
 
     (mkIf pkgs.stdenv.isDarwin {
       home.configFile."alacritty/alacritty.yml" = {
-        source = <config/alacritty/macos.yaml>;
+        source = "${configDir}/alacritty/macos.yaml";
       };
     })
 
     (mkIf pkgs.stdenv.isLinux {
       home.configFile."alacritty/alacritty.yml" = {
-        source = <config/alacritty/linux.yaml>;
+        source = "${configDir}/alacritty/linux.yaml";
       };
     })
   ]);

@@ -1,4 +1,5 @@
-{ config, options, pkgs, lib, ... }:
+{ config, options, lib, pkgs, ... }:
+
 with lib; {
   options.modules.shell.fzf = {
     enable = mkOption {
@@ -31,7 +32,7 @@ with lib; {
     ];
 
     # Autocompletion for ZSH
-    zsh.rc = mkIf config.modules.shell.zsh.enable ''
+    modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''
       source "$XDG_DATA_HOME/fzf/shell/completion.zsh"
       source "$XDG_DATA_HOME/fzf/shell/key-bindings.zsh"
     '';

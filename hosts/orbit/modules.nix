@@ -81,6 +81,11 @@
     };
 
     shell = {
+      git.user = {
+        name = "macunha1";
+        email = "matheuz.a@gmail.com";
+      };
+
       zsh.enable = true;
       fzf.enable = true;
       tmux.enable = true;

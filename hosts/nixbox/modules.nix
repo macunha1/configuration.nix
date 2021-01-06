@@ -64,18 +64,18 @@
 
       go = {
         enable = true;
-        path = "/data/1/opt/go";
+        path = "/opt/go";
       };
 
       android = {
         enable = true;
-        path = "/data/1/opt/android";
+        path = "/opt/android";
         includeBinToPath = true;
       };
 
       flutter = {
         enable = true;
-        path = "/data/1/opt/flutter";
+        path = "/opt/flutter";
       };
     };
 
@@ -103,7 +103,7 @@
 
         minikube = {
           enable = true;
-          home = "/data/1/opt/minikube";
+          home = "/opt/minikube";
         };
 
         helm.enable = true;
@@ -112,7 +112,7 @@
 
       vagrant = {
         enable = true;
-        home = "/data/1/opt/vagrant";
+        home = "/opt/vagrant";
         provider = "libvirt";
       };
 
@@ -126,6 +126,11 @@
     };
 
     shell = {
+      git.user = {
+        name = "macunha1";
+        email = "matheuz.a@gmail.com";
+      };
+
       zsh.enable = true;
       fzf.enable = true;
       tmux.enable = true;
@@ -142,7 +147,7 @@
         enable = true;
         nvidia.enable = true;
 
-        storagePath = "/data/1/var/lib/docker";
+        storagePath = "/var/lib/docker";
       };
     };
   };

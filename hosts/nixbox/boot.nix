@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
   boot.initrd = {
@@ -7,6 +7,9 @@
 
     kernelModules = [ ];
   };
+
+  # Use the latest kernel
+  boot.kernelPackages = pkgs.linuxPackages_5_9;
 
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];

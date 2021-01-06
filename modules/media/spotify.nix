@@ -37,7 +37,8 @@ with lib; {
     #   settings = config.modules.media.spotify.daemon.settings;
     # };
 
-    # Allows to control player over DBus
-    services.dbus.socketActivated = true;
+    # no longer necessary: the user D-Bus session is always socket activated
+    # with home-manager as of this writing.
+    # services.dbus.socketActivated = true;
   };
 }

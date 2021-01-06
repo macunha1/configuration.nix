@@ -25,8 +25,7 @@ with lib; {
         driSupport32Bit = true;
         extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
       };
-      # Ideally: hardware.pulseaudio.support32Bit = config.hardware.pulseaudio.enable;
-      pulseaudio.support32Bit = true;
+      pulseaudio.support32Bit = config.modules.hardware.audio.enable;
       steam-hardware.enable =
         config.modules.desktop.gaming.steam.hardware.enable;
     };

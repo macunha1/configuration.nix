@@ -16,8 +16,8 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.applications.uhkAgent.enable {
-    user.packages = with pkgs; [ my.uhkAgent ];
+    user.packages = with pkgs; [ my.uhk-agent ];
 
-    services.udev.packages = with pkgs; [ my.uhkAgent ];
+    services.udev.packages = with pkgs; [ my.uhk-agent ];
   };
 }

@@ -19,7 +19,7 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.hardware.video (mkMerge [
+  config = mkIf config.modules.hardware.video.enable (mkMerge [
     {
       hardware.opengl = {
         enable = true;
@@ -29,8 +29,6 @@ with lib; {
     }
 
     (mkIf config.modules.hardware.video.nvidia.enable {
-      nixpkgs.config.allowUnfree = true; # necessary evil
-
       services.xserver.videoDrivers = [ "nvidia" ];
       environment.systemPackages = with pkgs;
         [

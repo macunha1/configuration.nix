@@ -3,7 +3,8 @@
 # A window switcher, Application launcher and dmenu replacement
 
 { config, options, lib, pkgs, ... }:
-with lib; {
+with lib;
+with lib.my; {
   options.modules.desktop.applications.rofi = {
     enable = mkOption {
       type = types.bool;
@@ -33,7 +34,7 @@ with lib; {
     };
 
     home.configFile."rofi" = {
-      source = <config/rofi>;
+      source = "${configDir}/rofi";
       # Write it recursively to not overwritte other modules
       recursive = true;
     };

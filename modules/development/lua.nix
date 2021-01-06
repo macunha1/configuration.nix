@@ -31,7 +31,7 @@ with lib; {
     }
 
     (mkIf config.modules.development.lua.includeBinToPath {
-      zsh.rc = ''eval "$(luarocks path --bin)"'';
+      modules.shell.zsh.init = ''eval "$(luarocks path --bin)"'';
     })
   ]);
 }

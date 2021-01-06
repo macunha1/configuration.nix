@@ -10,7 +10,7 @@ with lib; {
 
   config = mkIf config.modules.shell.direnv.enable {
     user.packages = [ pkgs.direnv ];
-    zsh.rc = ''eval "$(direnv hook zsh)"'';
+    modules.shell.zsh.init = ''eval "$(direnv hook zsh)"'';
 
     services.lorri.enable = true;
   };

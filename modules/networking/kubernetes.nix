@@ -4,7 +4,8 @@
 # Well ... Most probably, you already know Kubernetes.
 
 { config, options, lib, pkgs, ... }:
-with lib; {
+with lib;
+with lib.my; {
   options.modules.networking.kubernetes = {
     enable = mkOption {
       type = types.bool;
@@ -18,7 +19,7 @@ with lib; {
       };
 
       home = mkOption {
-        type = types.path;
+        type = with types; (either str path);
         default = "$XDG_DATA_HOME/minikube";
       };
     };
@@ -53,7 +54,7 @@ with lib; {
     }
 
     (mkIf config.modules.networking.kubernetes.minikube.enable {
-      packages = with pkgs; [ minikube ];
+      user.packages = with pkgs; [ minikube ];
 
       env.MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
     })
@@ -68,7 +69,7 @@ with lib; {
 
     (mkIf config.modules.shell.zsh.ohMyZsh.enable {
       home.configFile."oh-my-zsh/custom/plugins/kubectl" = {
-        source = <config/kubectl/zsh>;
+        source = "${configDir}/kubectl/zsh";
         recursive = true;
       };
     })

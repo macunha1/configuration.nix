@@ -1,6 +1,9 @@
-# Doom Emacs configuration, with Evil activated, after all Vim <3
+# modules/editors/emacs.nix -- https://www.gnu.org/software/emacs/
+#
+# Emacs + Doom configuration, with Evil activated, after all Vim <3
 
-{ config, options, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
+
 with lib; {
   options.modules.editors.emacs = {
     enable = mkOption {
@@ -10,11 +13,19 @@ with lib; {
   };
 
   config = mkIf config.modules.editors.emacs.enable {
+    nixpkgs.overlays = [ inputs.emacs-overlay.overlay ];
+
     user.packages = with pkgs; [
-      emacsUnstable
+      # Emacs native compilation dependencies
+      binutils # native-comp needs 'as', provided by this
+      emacsPgtkGcc # 28 + pgtk (Pure GTK3) + native-comp
+
       (ripgrep.override { withPCRE2 = true; })
 
-      gnutls # TLS connectivity
+      (mkIf (config.programs.gnupg.agent.enable)
+        pinentry_emacs) # in-emacs gnupg prompts
+
+      gnutls # TLS connectivity (Emacs as a browser accessing HTTPS pages)
       zstd # undo-fu-session/undo-tree compression
       fd # speed-up projectile indexing
 

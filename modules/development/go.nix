@@ -9,7 +9,7 @@ with lib; {
     };
 
     path = mkOption {
-      type = types.path;
+      type = with types; (either str path);
       default = "$XDG_DATA_HOME/go";
     };
 

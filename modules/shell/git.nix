@@ -6,6 +6,20 @@ with lib; {
       type = types.bool;
       default = true;
     };
+
+    user = {
+      name = mkOption {
+        type = types.str;
+        default = "";
+        description = "git/config user.name to configure for commits";
+      };
+
+      email = mkOption {
+        type = types.str;
+        default = "";
+        description = "git/config user.email to configure for commits";
+      };
+    };
   };
 
   config = mkIf config.modules.shell.git.enable {
@@ -14,8 +28,8 @@ with lib; {
     home.configFile = {
       "git/config".text = ''
         [user]
-          name = ${config.my.name}
-          email = ${config.my.email}
+          name = ${config.modules.shell.git.user.name}
+          email = ${config.modules.shell.git.user.email}
 
         [pull]
           rebase = true
