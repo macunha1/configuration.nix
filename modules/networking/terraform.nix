@@ -1,7 +1,11 @@
-# modules/networking/terraform.nix --- https://www.terraform.io/
+# networking/terraform.nix -- https://www.terraform.io/
 #
 # From the Chaos that is a Systems Engineer life, Terraform is the only constant.
-# No matter if you're running a Data Lake, Serverless Web app or embedded system,
+#
+# No matter if you're running a Data Lake, Serverless Web app or embedded
+# system. On top of that at this point in time it doesn't even matter if you're
+# using cloud, as you might as well order a Domino's pizza using Terraform.
+# Ref: https://github.com/ndmckinley/terraform-provider-dominos
 
 { config, options, lib, pkgs, ... }:
 with lib; {

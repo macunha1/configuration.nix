@@ -1,3 +1,10 @@
+# shell/fzf.nix -- https://github.com/junegunn/fzf
+#
+# Fuzzy Find ALL THE THINGS!
+#
+# Relative search for terminal. Hit Ctrl+R type something close to what you
+# think it is and VOI'LÁ!
+
 { config, options, lib, pkgs, ... }:
 
 with lib; {

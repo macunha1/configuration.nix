@@ -1,3 +1,5 @@
+# desktop/terminal -- default configuration among installations
+
 { config, options, lib, pkgs, ... }:
 
 with lib; {

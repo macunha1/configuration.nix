@@ -1,4 +1,4 @@
-# modules/development/node.nix --- https://nodejs.org/en/
+# development/node.nix -- https://nodejs.org/en/
 
 { config, options, lib, pkgs, ... }:
 with lib; {

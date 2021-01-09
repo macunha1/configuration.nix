@@ -1,4 +1,4 @@
-# modules/applications/redshift.nix --- http://jonls.dk/redshift/
+# applications/redshift.nix -- http://jonls.dk/redshift/
 #
 # Redshift adjusts screen color according to sun's position given a lat/long of
 # an Earth location for the observer. If you're from the future and live in

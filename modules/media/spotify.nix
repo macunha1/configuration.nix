@@ -1,3 +1,10 @@
+# media/spotify.nix -- https://www.spotify.com/
+#
+# Official Spotify media player implemented in Electron that works just as
+# shitty as expected. Apart from the official Spotify media player, Spotify
+# daemon is also installed that could be extended with Spotify TUI
+# Ref: https://github.com/Spotifyd/spotifyd
+
 { config, options, lib, pkgs, ... }:
 with lib; {
   options.modules.media.spotify = {

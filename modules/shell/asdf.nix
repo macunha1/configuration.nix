@@ -1,4 +1,15 @@
+# shell/asdf.nix -- https://github.com/asdf-vm/asdf
+#
+# "One version manager to rule them all,
+#  One version manager to find them,
+#  One version manager to install them all
+#  and in the terminal bind them."
+#
+# Helps enormously when managing many fleets of servers where some tools are
+# diverging such as Kops, Terraform and even JQ.
+
 { config, options, pkgs, lib, ... }:
+
 with lib; {
   options.modules.shell.asdf = {
     enable = mkOption {

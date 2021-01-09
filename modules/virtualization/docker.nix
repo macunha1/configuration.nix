@@ -1,3 +1,15 @@
+# virtualization/docker.nix -- https://www.docker.com/
+#
+# Docker container engine, the kick start towards popularization of Linux
+# Containers for developers. Docker Inc. did a great job democratizing access to
+# Linux Containers and then donating "Docker v2 spec" to the Linux Foundation as
+# the OCI.
+# Ref: https://opencontainers.org/
+#
+# In a near future this module might be deprecated to give space for an
+# implementation using alternative tools, such as runc
+# Ref: https://github.com/opencontainers/runc
+
 { config, options, pkgs, lib, ... }:
 with lib; {
   options.modules.virtualization.docker = {

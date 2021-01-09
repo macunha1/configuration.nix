@@ -1,3 +1,11 @@
+# shell/tmux.nix -- https://github.com/tmux/tmux
+#
+# Tmux, Vim and ZSH are the combo of productivity. You don't think you even need
+# Tmux until you learn to use it and then there's no turnback.
+#
+# Tmux multi panel, background sessions that you detach and attach and the
+# multiplexer are god sends.
+
 { config, options, pkgs, lib, ... }:
 
 with lib;

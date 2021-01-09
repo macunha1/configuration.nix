@@ -1,3 +1,7 @@
+# shell/git.nix -- https://git-scm.com/
+#
+# A god-send in terms of software version control.
+
 { config, lib, pkgs, ... }:
 
 with lib; {

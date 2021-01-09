@@ -1,31 +1,31 @@
-<center>
+<h1 align="center">configuration.nix -> NixOS config as code</h1>
 
-<h1>configuration.nix -> NixOS config as code</h1>
+<table align="center">
+<tr>
 
-|              |               |
-|--------------+---------------|
-| **Shell**    | ZSH + Antigen |
-| **DM**       | LightDM       |
-| **WM**       | AwesomeWM     |
-| **Terminal** | Alacritty     |
-| **Launcher** | Rofi          |
-| **Browser**  | Chromium      |
+<td>
+<b>Shell:</b> ZSH + Antigen<br>
+<b>DM:</b> LightDM<br>
+<b>WM:</b> AwesomeWM<br>
+<b>Terminal:</b> Alacritty<br>
+<b>Launcher:</b> Rofi<br>
+<b>Browser:</b> Chromium
+</td>
 
-> Know thyself
->
-> Know thy environment
->
-> A thousand configurations
->
-> A thousand wins
->
-> - Sun Tzsh, The Art of Code
+<td>
+<i>Know thyself,</i><br>
+<i>Know thy environment.</i><br>
 
-</center>
+<i>A thousand configurations,</i><br>
+<i>A thousand wins</i>
+<br><br>
+<b> - Sun Tzsh, The Art of Code</b>
+</td>
 
-## Quick start
+</tr>
+</table>
 
-# TODO
+## Quick start: Installing
 
 ```sh
 git clone https://github.com/macunha1/configuration.nix ${HOME}/.config/nixos/dotfiles
@@ -35,12 +35,8 @@ make install
 
 ### Management
 
-+ `make` = `nixos-rebuild test`
-+ `make switch` = `nixos-rebuild switch`
-+ `make upgrade` = `nix-channel --update && nixos-rebuild switch`
-+ `make install` = `nixos-generate-config --root $PREFIX && nixos-install --root
-  $PREFIX`
-+ `make gc` = `nix-collect-garbage -d` (use sudo to clear system profile)
++ `make` = `nixos-rebuild --flake configuration.nix#${HOST} test`
++ `make switch` = `nixos-rebuild --flake configuration.nix#${HOST} switch`
 
 ### Credits
 

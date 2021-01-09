@@ -1,7 +1,11 @@
-# modules/networking/aws.nix --- https://aws.amazon.com/
+# modules/networking/aws.nix -- https://aws.amazon.com/
 #
 # Amazon Web Services, biggest Cloud player (ATM of this writing).
-# Built on top of a prototype to manage VMs at Amazon.
+# Built on top of a prototype (EC2) developed to manage VMs at Amazon, AWS is
+# the child of Amazon's fail-fast approach to business. Works great doesn't it?
+#
+# You can see the reflection of this fail-fast approach in the APIs. Consistency
+# is unexistent.
 
 { config, options, lib, pkgs, ... }:
 with lib; {

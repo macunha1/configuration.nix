@@ -1,4 +1,4 @@
-# modules/development/cc.nix --- C & C++
+# development/cc.nix -- http://gcc.gnu.org/
 
 { config, options, lib, pkgs, ... }:
 with lib; {

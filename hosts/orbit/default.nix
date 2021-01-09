@@ -19,13 +19,7 @@
     package = pkgs.pulseaudioFull;
   };
 
-  environment.systemPackages = with pkgs; [
-    raspberrypi-tools
-    pavucontrol
-    patchelf
-    nix-prefetch-git
-    nix-prefetch
-  ];
+  environment.systemPackages = with pkgs; [ raspberrypi-tools ];
 
   services.xserver = {
     layout = "us";

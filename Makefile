@@ -15,7 +15,7 @@ update:
 	@nix flake update --recreate-lock-file
 
 switch:
-	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch
+	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch
 
 upgrade: update switch
 

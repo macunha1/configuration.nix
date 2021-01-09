@@ -1,3 +1,9 @@
+# shell/gnupg.nix -- https://gnupg.org/
+#
+# GNU Privacy Guard. The free (you know, GNU free is not about the price)
+# implementation of OpenPGP standard for encrypting and signing data and
+# communication estabilishing reliable and safe channels.
+
 { config, options, lib, pkgs, ... }:
 
 with lib; {

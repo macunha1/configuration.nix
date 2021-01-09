@@ -1,53 +1,17 @@
-prompt_order = [
-    "time",
-    "username",
-    "hostname",
-    "directory",
-    "git_branch",
-    "git_commit",
-    "git_state",
-    "git_status",
-    "hg_branch",
-    # Programming language related
-    "package",
-    "crystal",
-    "dotnet",
-    "elixir",
-    "elm",
-    "erlang",
-    "golang",
-    "java",
-    "julia",
-    "nim",
-    "nodejs",
-    "ocaml",
-    "php",
-    "purescript",
-    "python",
-    "ruby",
-    "rust",
-    "terraform",
-    "zig",
-    "nix_shell",
-    "conda",
-    # OS specific and cloud
-    "memory_usage",
-    "kubernetes",
-    "docker_context",
-    "aws",
-    "env_var",
-    "custom",
-    "cmd_duration",
-    # Display on new line
-    "line_break",
-    "battery",
-    "jobs",
-    "character",
-]
+prompt_order = """
+    $time $username $hostname $directory\
+    $git_branch $git_commit $git_state $git_status $hg_branch $package\
+    $crystal $dotnet $elixir $elm $erlang $golang $java $julia $nim\
+    $nodejs $ocaml $php $purescript $python $ruby $rust $terraform $zig\
+    $nix_shell $conda\
+    $memory_usage $kubernetes $docker_context\
+    $aws $env_var $custom $cmd_duration $line_break\
+    $battery $jobs $character\
+"""
 
 [character]
-symbol = "➜"
-style_success = "cyan"
+success_symbol = "[➜](cyan)"
+error_symbol = "[➜](red)"
 
 [kubernetes]
 symbol = "⛵ "
@@ -57,13 +21,17 @@ disabled = true
 style = "lightgreen"
 symbol = "🅰  "
 
-[terraform]
+[gcloud]
 disabled = true
+
+[terraform]
+format = "on [$version]($style)"
 
 [time]
 disabled = false
-format = "[ ◷ %T ]"
+time_format = "%T"
 style = "bold 10"
+format = "[ ◷ [$time]($style) ]"
 
 [username]
 style_user = "bold cyan"

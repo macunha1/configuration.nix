@@ -1,4 +1,4 @@
-# modules/development/python.nix --- https://godotengine.org/
+# development/python.nix -- https://godotengine.org/
 #
 # Python was the main igniter for using NixOS, the mess with minor versions
 # updates breaking system dependencies, packages and creating a dependency hell

@@ -1,6 +1,7 @@
-# modules/shell/zsh.nix --- https://www.zsh.org
+# shell/zsh.nix -- https://www.zsh.org
 #
-# ZSH, Oh my dear and loved ZSH.
+# ZSH, Oh my dear and loved ZSH. There are simply no words that would make
+# justice to how good you are.
 
 { config, options, pkgs, lib, ... }:
 with lib;
@@ -151,8 +152,8 @@ with lib.my; {
       env.DISABLE_AUTO_UPDATE = "true"; # as Nix makes the repo path read-only
 
       modules.shell.zsh.env = ''
-        export ZSH = "$XDG_CONFIG_HOME/oh-my-zsh";
-        export ZSH_CUSTOM = "$XDG_CONFIG_HOME/oh-my-zsh/custom";
+        export ZSH="$XDG_CONFIG_HOME/oh-my-zsh";
+        export ZSH_CUSTOM="$XDG_CONFIG_HOME/oh-my-zsh/custom";
 
         export DISABLE_UPDATE_PROMPT="true"
         export COMPLETION_WAITING_DOTS="true"

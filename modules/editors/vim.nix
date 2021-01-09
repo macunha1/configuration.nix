@@ -1,4 +1,4 @@
-# modules/editors/vim.nix --- https://www.vim.org/
+# editors/vim.nix -- https://www.vim.org/
 #
 # For quick edits and writes, Vim suits better (due to its fast load time):
 #   open, type, ESC, ESC, ESC, ZZ or :wq, done.

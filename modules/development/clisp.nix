@@ -1,4 +1,4 @@
-# modules/devevelopment/clisp.nix --- https://lisp-lang.org/
+# development/clisp.nix -- https://lisp-lang.org/
 #
 # The language in which the gods wrote the Universe.
 # Ref: https://www.gnu.org/fun/jokes/eternal-flame.en.html

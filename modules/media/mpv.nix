@@ -1,3 +1,7 @@
+# media/mpv.nix -- https://mpv.io/
+#
+# Minimal and extensible open-source media player
+
 { config, options, lib, pkgs, ... }:
 
 with lib; {

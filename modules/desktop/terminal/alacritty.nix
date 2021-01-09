@@ -1,5 +1,6 @@
 # desktop/terminal/alacritty.nix -- https://github.com/alacritty/alacritty
-# The GPU-accelerated terminal
+#
+# The powerful GPU-accelerated terminal fully written in Rust. Flawless!
 
 { options, config, lib, pkgs, ... }:
 

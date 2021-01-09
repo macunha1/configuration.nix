@@ -12,6 +12,7 @@
     };
 
     desktop = {
+      enable = true;
       awesomewm.enable = true;
 
       terminal = {
@@ -20,7 +21,8 @@
       };
 
       applications = {
-        calibre.enable = true;
+        # ModuleNotFoundError: No module named 'sipbuild'
+        # calibre.enable = true;
         uhkAgent.enable = true;
         redshift.enable = true;
 

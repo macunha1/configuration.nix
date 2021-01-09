@@ -1,6 +1,9 @@
-# modules/applications/rofi.nix --- https://github.com/davatorium/rofi
+# applications/rofi.nix -- https://github.com/davatorium/rofi
 #
 # A window switcher, Application launcher and dmenu replacement
+# Rofi could even be described as a TUI framework. Creates minimal and
+# performatic UI for commonly used Linux tools, fitting perfectly with a Window
+# manager setup.
 
 { config, options, lib, pkgs, ... }:
 with lib;
