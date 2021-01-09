@@ -1,4 +1,4 @@
-# modules/networking/kubernetes.nix --- https://kubernetes.io/
+# modules/networking/kubernetes.nix -- https://kubernetes.io/
 #
 # Production-grade, de-facto Container Orchestration.
 # Well ... Most probably, you already know Kubernetes.

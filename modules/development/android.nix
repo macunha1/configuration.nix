@@ -1,17 +1,18 @@
-# modules/development/android.nix --- https://www.android.com/
+# development/android.nix -- https://www.android.com/
 
 { config, options, lib, pkgs, ... }:
 
 with lib;
 let
   androidPackages = pkgs.androidenv.composeAndroidPackages {
-    platformVersions = [ "29" ];
-    platformToolsVersion = "29.0.6";
-    buildToolsVersions = [ "29.0.3" ];
+    platformVersions = [ "28" "29" "30" ];
+    platformToolsVersion = "30.0.5";
+    toolsVersion = "26.1.1";
+    buildToolsVersions = [ "30.0.3" ];
     abiVersions = [ "x86" "x86_64" ];
 
     includeEmulator = true;
-    emulatorVersion = "30.0.3";
+    emulatorVersion = "30.3.4";
   };
 in {
   options.modules.development.android = {

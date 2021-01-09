@@ -1,4 +1,4 @@
-# modules/development/lua.nix --- https://www.lua.org/
+# development/lua.nix -- https://www.lua.org/
 #
 # Lua is Moon in Portuguese, the natural satellite of Earth. Acting as the
 # perfect satellite language for system's programming languages.

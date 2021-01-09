@@ -1,4 +1,4 @@
-# modules/development/java.nix --- https://www.java.com/en/
+# development/java.nix -- https://www.java.com/en/
 #
 # Java ooh Java, why you have to be so ugly and nice at the same time?
 # You are the perfect mid-term between performance and productivity.

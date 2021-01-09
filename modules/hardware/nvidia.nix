@@ -1,8 +1,11 @@
-{ options, config, lib, pkgs, ... }:
+# hardware/nvidia.nix -- https://www.nvidia.com/en-us/
+#
+# NVIDIA GPU and Graphics module, a must have even if you don't play on Linux.
+#
+# NVIDIA is a relevant resource to code using CUDA, or train deep learning
+# models significantly faster than on CPU.
 
-# Hardware: GPU and Graphics module
-# Even if you don't play on Linux NVIDIA is a relevant resource to code using CUDA,
-# or train deep learning models significantly faster than on CPU.
+{ options, config, lib, pkgs, ... }:
 
 with lib; {
   options.modules.hardware.video = {

@@ -1,4 +1,4 @@
-{ modulesPath, ... }:
+{ lib, modulesPath, ... }:
 
 {
   imports = [
@@ -11,4 +11,6 @@
   ];
 
   time.timeZone = "Etc/UTC";
+  nix.maxJobs = lib.mkDefault 4;
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }

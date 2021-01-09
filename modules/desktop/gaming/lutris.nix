@@ -1,3 +1,8 @@
+# desktop/gaming/lutris.nix -- https://lutris.net/
+#
+# Take your Wine configurations to the next level using community settings
+# adjusted for each game, including rating and validated shared settings.
+
 { options, config, lib, pkgs, ... }:
 
 with lib; {

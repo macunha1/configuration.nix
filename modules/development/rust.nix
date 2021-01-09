@@ -1,4 +1,7 @@
-# modules/development/rust.nix --- https://rust-lang.org
+# development/rust.nix -- https://rust-lang.org
+#
+# Next generation of C/C++ performatic system's programming language.
+# Rust, oh Rust, the world is not ready for you yet.
 
 { config, options, lib, pkgs, ... }:
 with lib; {

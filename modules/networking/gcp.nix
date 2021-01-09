@@ -1,7 +1,8 @@
-# modules/networking/gcp.nix --- https://cloud.google.com/
+# modules/networking/gcp.nix -- https://cloud.google.com/
 #
 # Google Cloud Platform, next big thing in Cloud computing
-# After all, everybody wants to be Google (look at Kubernetes).
+# After all, everybody wants to be Google (look at Kubernetes raising
+# popularity). Let's see how it goes
 
 { config, options, lib, pkgs, ... }:
 with lib; {

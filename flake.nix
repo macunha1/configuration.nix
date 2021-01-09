@@ -1,18 +1,24 @@
-# flake.nix --- the heart of my dotfiles
+# flake.nix -- Starting point for the snowball
 #
-# Welcome to ground zero. Where the whole flake gets set up and all its modules
-# are loaded.
+# Further reading on Nix Flakes:
+# Ref: https://nixos.wiki/wiki/Flakes
+# Ref: https://github.com/nrdxp/nixflk#resources
+#
+# Implementation references:
+#  + https://github.com/hlissner/dotfiles
+#  + https://github.com/nrdxp/nixflk
 
 {
-  description = "A grossly incandescent nixos config.";
+  description = "Pile many flakes and you can have a beautiful snowman.";
 
   inputs = {
     # Core dependencies.
-    # Two inputs so I can track them separately at different rates.
+    # Track two channels (even though they're similar here) to allow granular
+    # configurations based on each use case. Change as you wish.
     nixpkgs.url = "nixpkgs/master";
     nixpkgs-unstable.url = "nixpkgs/master";
 
-    home-manager.url = "github:rycee/home-manager/master";
+    home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # Extras
@@ -25,6 +31,8 @@
       inherit (lib) attrValues;
       inherit (lib.my) mapModules mapModulesRec mapHosts;
 
+      # Good luck trying to use Darwin or Windows. Modules are referring NixOS
+      # configurations that made this transition hard.
       system = "x86_64-linux";
 
       mkPkgs = pkgs: extraOverlays:
@@ -41,10 +49,13 @@
 
           overlays = extraOverlays ++ (attrValues self.overlays);
         };
+
       pkgs = mkPkgs nixpkgs [ self.overlay ];
       uPkgs = mkPkgs nixpkgs-unstable [ ];
 
       lib = nixpkgs.lib.extend (self: super: {
+        # Use nice convenient functions developed by @hlissner
+        # Ref: https://github.com/hlissner/dotfiles/tree/804011f53826c226cbf7e0acd8002087a223051d/lib
         my = import ./lib {
           inherit pkgs inputs;
           lib = self;

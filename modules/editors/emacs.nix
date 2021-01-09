@@ -1,4 +1,4 @@
-# modules/editors/emacs.nix -- https://www.gnu.org/software/emacs/
+# editors/emacs.nix -- https://www.gnu.org/software/emacs/
 #
 # Emacs + Doom configuration, with Evil activated, after all Vim <3
 

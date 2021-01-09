@@ -1,4 +1,9 @@
-# modules/browser/chromium.nix --- https://www.chromium.org/
+# modules/browser/chromium.nix -- https://www.chromium.org/
+#
+# Open-source project that Google acquired to create Google Chrome, although it
+# requires as much RAM as the commercial version Chromium provides a fast engine
+# and GPU processing capabilities which are IMHO big selling points in
+# comparison to Firefox.
 
 { config, options, lib, pkgs, ... }:
 with lib; {

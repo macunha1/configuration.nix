@@ -1,6 +1,7 @@
-# modules/networking/vagrant.nix --- https://www.vagrantup.com/
+# modules/networking/vagrant.nix -- https://www.vagrantup.com/
 #
-# Before Docker was a thing Vagrant was there creating ephemeral envs.
+# Before Docker was a thing Vagrant was there creating ephemeral envs, HashiCorp
+# always had amazing tools for "DevOps".
 #
 # Vagrant enables users to create and configure lightweight, reproducible, and
 # portable development environments.

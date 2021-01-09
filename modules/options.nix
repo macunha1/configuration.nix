@@ -1,3 +1,5 @@
+# options.nix -- parameters and convience setup
+
 { config, options, lib, home-manager, ... }:
 
 with lib;
@@ -56,14 +58,8 @@ with lib.my; {
     home-manager = {
       useUserPackages = true;
 
-      # I only need a subset of home-manager's capabilities. That is, access to
-      # its home.file, home.xdg.configFile and home.xdg.dataFile so I can deploy
-      # files easily to my $HOME, but 'home-manager.users.john-doe.home.file.*'
-      # is much too long and harder to maintain, so I've made aliases in:
-      #
-      #   home.file        ->  home-manager.users.john-doe.home.file
-      #   home.configFile  ->  home-manager.users.john-doe.home.xdg.configFile
-      #   home.dataFile    ->  home-manager.users.john-doe.home.xdg.dataFile
+      # Creating convenience aliases for home-manager, as only a subset of
+      # capabilities is accessed and configured in this repository.
       users.${config.user.name} = {
         home = {
           file = mkAliasDefinitions options.home.file;

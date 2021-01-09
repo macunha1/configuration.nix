@@ -1,3 +1,9 @@
+# desktop/gaming/steam.nix -- https://store.steampowered.com/
+#
+# Steam is constantly raising the bar in terms of Linux gaming. This module
+# enables Steam + 32-bit libs and configures the Steam client with custom (XDG
+# base dir spec) path
+
 { options, config, lib, pkgs, ... }:
 
 with lib; {

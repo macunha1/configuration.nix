@@ -1,3 +1,9 @@
+# hardware/bluetooth.nix
+#
+# Enables bluetooth support for Linux mainly for extending audio support with
+# bluetooth headsets/headphones. Therefore, most of the configurations here are
+# focused into enabling audio-related features.
+
 { options, config, lib, pkgs, ... }:
 
 with lib; {

@@ -1,4 +1,6 @@
-# modules/development/go.nix --- https://golang.org
+# development/go.nix -- https://golang.org
+#
+# The de-facto cloud system's programming language.
 
 { config, options, lib, pkgs, ... }:
 with lib; {

@@ -1,3 +1,5 @@
+# desktop/browsers -- default configuration among installations
+
 { config, lib, pkgs, ... }:
 with lib; {
   options.modules.desktop.browsers = {

@@ -1,4 +1,4 @@
-# modules/development/ruby.nix --- https://www.ruby-lang.org/en/
+# development/ruby.nix -- https://www.ruby-lang.org/en/
 #
 # > rails new tech-startup
 # > rails g scaffold everything

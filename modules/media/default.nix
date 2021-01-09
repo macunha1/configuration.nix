@@ -1,3 +1,5 @@
+# media -- default media players config among installations
+
 { config, options, lib, pkgs, ... }:
 
 with lib; {

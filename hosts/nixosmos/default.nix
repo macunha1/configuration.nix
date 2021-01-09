@@ -10,13 +10,6 @@
     ./modules.nix
   ];
 
-  environment.systemPackages = with pkgs; [
-    pavucontrol
-    patchelf
-    nix-prefetch-git
-    nix-prefetch
-  ];
-
   # GPU and Graphics
   nixpkgs.config = {
     packageOverrides = pkgs: {
