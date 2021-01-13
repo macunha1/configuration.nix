@@ -17,7 +17,15 @@ with lib; {
       xserver = {
         enable = true;
 
-        displayManager.lightdm.enable = true;
+        displayManager.lightdm = {
+          enable = true;
+
+          greeters.mini = {
+            enable = true;
+            user = config.user.name;
+          };
+        };
+
         desktopManager.xterm.enable =
           mkDefault (config.modules.desktop.terminal.default == "xterm");
       };

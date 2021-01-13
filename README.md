@@ -30,7 +30,7 @@
 ```sh
 git clone https://github.com/macunha1/configuration.nix ${HOME}/.config/nixos/dotfiles
 cd $_
-make install
+make HOST=pick-your-poison install
 ```
 
 ### Management

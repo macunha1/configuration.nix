@@ -4,13 +4,13 @@
 {
   fileSystems = {
     "/boot" = {
-      device = "/dev/disk/by-uuid/E751-DAB7";
+      device = "/dev/disk/by-uuid/2AD3-7C9D";
       fsType = "vfat";
     };
 
     "/" = {
-      device = "/dev/disk/by-uuid/755daa8c-58c5-4569-823c-be0b284eb26d";
-      fsType = "ext4";
+      device = "/dev/disk/by-uuid/68b0839d-c6b1-44bc-949c-4401fa380b95";
+      fsType = "xfs";
     };
 
     # Home for users, allows sharing between OS and specific encryption

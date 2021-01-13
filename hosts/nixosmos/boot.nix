@@ -16,15 +16,9 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  # Use the systemd-boot EFI boot loader.
   boot.loader = {
-    efi = { canTouchEfiVariables = false; };
-
-    grub = {
-      enable = true;
-      efiSupport = true;
-      version = 2;
-      device = "nodev";
-      useOSProber = true;
-    };
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
   };
 }
