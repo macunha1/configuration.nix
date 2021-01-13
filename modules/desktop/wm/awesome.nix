@@ -23,6 +23,7 @@ with lib; {
     services = {
       compton.enable = config.modules.desktop.compton.enable;
       xserver = {
+        displayManager.defaultSession = "none+awesome";
         windowManager.awesome = {
           enable = true;
           luaModules = [ pkgs.my.lua-dbus-proxy ];

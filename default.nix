@@ -40,9 +40,6 @@ with inputs; {
     useSandbox = true;
   };
 
-  system.configurationRevision = mkIf (self ? rev) self.rev;
-  system.stateVersion = "21.03";
-
   ## Global defaults
   # Enables 'nix flake check' for hosts when there's no fileSystem config.
   fileSystems."/".device = mkDefault "/dev/disk/by-label/nixos";
@@ -67,4 +64,11 @@ with inputs; {
     gnumake
     unzip
   ];
+
+  # This value determines the NixOS release with which your system is going to
+  # be compatible, in order to avoid breaking some software such as database
+  # servers. You should change this only after NixOS release notes say you
+  # should.
+  system.configurationRevision = mkIf (self ? rev) self.rev;
+  system.stateVersion = "21.03"; # Did you read the comment?
 }

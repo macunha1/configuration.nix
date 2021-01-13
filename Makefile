@@ -1,7 +1,7 @@
 USER := macunha1
 HOST := cosmos
 
-DOTFILES := $(HOME)/.config/nixos/dotfiles
+DOTFILES := $(PWD)
 COMMAND  := test
 
 all:
@@ -31,8 +31,6 @@ vm:
 clean:
 	@unlink result
 
-# Parts
-# config: $(DOTFILES)
 
 # Convenience aliases
 i: install

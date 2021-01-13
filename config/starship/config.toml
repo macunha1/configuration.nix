@@ -58,6 +58,7 @@ symbol = "🅰  "
 disabled = true
 
 [terraform]
+disabled = true # too slow
 format = "on [$version]($style)"
 
 [time]
