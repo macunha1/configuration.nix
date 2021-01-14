@@ -5,7 +5,7 @@ DOTFILES := $(HOME)/.config/nixos/dotfiles
 COMMAND  := test
 
 all:
-	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
+	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
 
 install: update
 	@USER=$(USER) nixos-install --root "$(PREFIX)/" --flake \

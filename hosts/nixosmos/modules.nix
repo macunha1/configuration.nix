@@ -21,8 +21,7 @@
       };
 
       applications = {
-        # ModuleNotFoundError: No module named 'sipbuild'
-        # calibre.enable = true;
+        calibre.enable = true;
         uhkAgent.enable = true;
         redshift.enable = true;
 

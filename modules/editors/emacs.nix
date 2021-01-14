@@ -18,7 +18,10 @@ with lib; {
     user.packages = with pkgs; [
       # Emacs native compilation dependencies
       binutils # native-comp needs 'as', provided by this
-      emacsPgtkGcc # 28 + pgtk (Pure GTK3) + native-comp
+      # TODO: Change once the issue related to when is fixed
+      # Ref: https://www.reddit.com/r/emacs/comments/kqb9s9/cannot_recompile_packagess_error_wrong_number_of/
+      # emacsPgtkGcc # 28 + pgtk (Pure GTK3) + native-comp
+      emacs
 
       (ripgrep.override { withPCRE2 = true; })
 
