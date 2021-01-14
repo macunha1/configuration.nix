@@ -44,13 +44,18 @@ with lib.my; {
 
   config = {
     user = {
-      description = "The primary user account";
-      extraGroups = [ "wheel" ];
+      description = "Default user account";
+      extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
       isNormalUser = true;
       name = let name = builtins.getEnv "USER";
       in if elem name [ "" "root" ] then "macunha1" else name;
       # Mainly for Git config and GNU PG
       uid = 1000;
+    };
+
+    security.sudo = {
+      enable = true;
+      wheelNeedsPassword = false; # YOLO
     };
 
     # Install user packages to /etc/profiles instead. Necessary for

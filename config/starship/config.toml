@@ -1,12 +1,45 @@
-prompt_order = """
-    $time $username $hostname $directory\
-    $git_branch $git_commit $git_state $git_status $hg_branch $package\
-    $crystal $dotnet $elixir $elm $erlang $golang $java $julia $nim\
-    $nodejs $ocaml $php $purescript $python $ruby $rust $terraform $zig\
-    $nix_shell $conda\
-    $memory_usage $kubernetes $docker_context\
-    $aws $env_var $custom $cmd_duration $line_break\
-    $battery $jobs $character\
+format = """
+$time\
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+$hg_branch\
+$package\
+$crystal\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$golang\
+$java\
+$julia\
+$nim\
+$nodejs\
+$ocaml\
+$php\
+$purescript\
+$python\
+$ruby\
+$rust\
+$terraform\
+$zig\
+$nix_shell\
+$conda\
+$memory_usage\
+$kubernetes\
+$docker_context\
+$aws\
+$env_var\
+$custom\
+$cmd_duration\
+$line_break\
+$battery\
+$jobs\
+$character\
 """
 
 [character]
@@ -31,7 +64,7 @@ format = "on [$version]($style)"
 disabled = false
 time_format = "%T"
 style = "bold 10"
-format = "[ ◷ [$time]($style) ]"
+format = "[\\[ ◷ $time \\]]($style) "
 
 [username]
 style_user = "bold cyan"
