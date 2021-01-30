@@ -18,10 +18,11 @@ with lib; {
     user.packages = with pkgs; [
       # Emacs native compilation dependencies
       binutils # native-comp needs 'as', provided by this
-      # TODO: Change once the issue related to when is fixed
-      # Ref: https://www.reddit.com/r/emacs/comments/kqb9s9/cannot_recompile_packagess_error_wrong_number_of/
-      # emacsPgtkGcc # 28 + pgtk (Pure GTK3) + native-comp
-      emacs
+
+      # Emacs 28 with Native Compilation and Pure GTK3 (pgtk)
+      # As of this writing, requires the following snippet to work with Doom
+      # Ref: https://bit.ly/3iZdz0T
+      emacsPgtkGcc
 
       (ripgrep.override { withPCRE2 = true; })
 
