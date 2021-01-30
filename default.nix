@@ -63,6 +63,7 @@ with inputs; {
     vim
     gnumake
     unzip
+    inetutils # telnet, hostname, ping and etc
   ];
 
   # This value determines the NixOS release with which your system is going to

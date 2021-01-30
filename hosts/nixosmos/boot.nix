@@ -11,7 +11,7 @@
   };
 
   # Use the latest kernel
-  boot.kernelPackages = pkgs.linuxPackages_5_9;
+  boot.kernelPackages = pkgs.linuxPackages_5_10;
 
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];

@@ -8,8 +8,12 @@ all:
 	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast $(COMMAND)
 
 install: update
-	@USER=$(USER) nixos-install --root "$(PREFIX)/" --flake \
-        "$(DOTFILES)#$(HOST)"
+	nix-shell -p nixUnstable \
+		--command "USER=$(USER) nix build \
+		$(DOTFILES)#nixosConfigurations.$(HOST).config.system.build.toplevel \
+		--store '$(PREFIX)/' --impure"
+
+	@USER=$(USER) nixos-install --root "$(PREFIX)/" --system ./result
 
 update:
 	@nix flake update --recreate-lock-file
@@ -20,7 +24,7 @@ switch:
 upgrade: update switch
 
 rollback:
-	@nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
+	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
 
 gc:
 	@nix-collect-garbage -d
