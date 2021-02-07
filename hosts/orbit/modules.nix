@@ -9,6 +9,7 @@
     };
 
     desktop = {
+      enable = true;
       awesomewm.enable = true;
 
       terminal = {
@@ -38,19 +39,14 @@
     };
 
     development = {
-      cc.enable = true;
       python.enable = true;
       rust.enable = true;
-
-      go = {
-        enable = true;
-        path = "/data/1/opt/go";
-      };
+      go.enable = true;
     };
 
     media = {
       spotify = {
-        enable = true;
+        enable = false;
         daemon = {
           enable = true;
 
@@ -76,7 +72,7 @@
         iamAuthenticator.enable = true;
       };
 
-      gcp.enable = true;
+      gcp.enable = false; # Unsupported for AArch64
       terraform.enable = true;
     };
 

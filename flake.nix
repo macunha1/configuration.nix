@@ -33,7 +33,7 @@
 
       # Good luck trying to use Darwin or Windows. Modules are referring NixOS
       # configurations that made this transition hard.
-      system = "x86_64-linux";
+      system = "aarch64-linux";
 
       mkPkgs = pkgs: extraOverlays:
         import pkgs {

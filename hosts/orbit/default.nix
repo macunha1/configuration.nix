@@ -13,13 +13,7 @@
   # Required for the Wireless firmware
   hardware.enableRedistributableFirmware = true;
 
-  # Audio & Media control
-  hardware.pulseaudio = {
-    enable = true;
-    package = pkgs.pulseaudioFull;
-  };
-
-  environment.systemPackages = with pkgs; [ raspberrypi-tools ];
+  environment.systemPackages = with pkgs; [ libraspberrypi ];
 
   services.xserver = {
     layout = "us";

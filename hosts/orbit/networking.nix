@@ -8,8 +8,8 @@
   networking.useDHCP = false; # DEPRECATED: therefore, explicitly set to false
   networking.interfaces = {
     # Per-interface useDHCP is the new black
-    enp0s31f6.useDHCP = true;
-    wlp4s0.useDHCP = true;
+    eth0.useDHCP = true;
+    wlan0.useDHCP = true;
   };
 
   # Configure network proxy if necessary

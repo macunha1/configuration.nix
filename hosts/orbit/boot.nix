@@ -4,23 +4,21 @@
 
 {
   boot.initrd = {
-    availableKernelModules =
-      [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
-
+    availableKernelModules = [ "usbhid" "usb_storage" "sr_mod" ];
     kernelModules = [ ];
   };
 
+  boot.kernelModules = [ ];
+  boot.extraModulePackages = [ ];
+
   boot.kernelParams = [ "console=ttyAMA0,115200" "console=tty1" ];
-  boot.kernelPackages = pkgs.linuxPackages_rpi4;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.cleanTmpDir = true;
   boot.loader = {
-    raspberryPi = {
-      enable = true;
-      version = 4;
-      uboot.enable = true;
-    };
-
+    # Use the extlinux boot loader. (NixOS wants to enable GRUB by default)
     grub.enable = false;
+    # Enables the generation of /boot/extlinux/extlinux.conf
+    generic-extlinux-compatible.enable = true;
   };
 }
