@@ -54,7 +54,7 @@ with lib.my; {
     }
 
     (mkIf config.modules.networking.kubernetes.minikube.enable {
-      user.packages = with pkgs; [ minikube ];
+      user.packages = with pkgs; [ minikube docker-machine-kvm2 ];
 
       env.MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
     })

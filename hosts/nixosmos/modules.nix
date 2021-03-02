@@ -35,14 +35,6 @@
         default = "chromium";
         chromium.enable = true;
       };
-
-      gaming = {
-        lutris.enable = true;
-        steam = {
-          enable = true;
-          hardware.enable = true;
-        };
-      };
     };
 
     editors = {
