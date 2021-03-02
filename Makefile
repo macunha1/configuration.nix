@@ -18,6 +18,9 @@ install: update
 update:
 	@nix flake update --recreate-lock-file
 
+build:
+	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast build
+
 switch:
 	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch
 

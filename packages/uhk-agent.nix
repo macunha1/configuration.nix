@@ -110,7 +110,7 @@ in pkgs.appimageTools.wrapType2 rec {
     export APPIMAGE=''${APPIMAGE-""} # Kill a seemingly useless error message
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = ''
       Agent is the configuration application of the Ultimate Hacking Keyboard
     '';
