@@ -64,6 +64,7 @@ with inputs; {
     gnumake
     unzip
     inetutils # telnet, hostname, ping and etc
+    bind # nslookup, dig
   ];
 
   # This value determines the NixOS release with which your system is going to

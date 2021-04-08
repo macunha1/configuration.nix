@@ -6,14 +6,14 @@
 { config, options, lib, pkgs, ... }:
 
 with lib; {
-  options.modules.deveopment.clisp = {
+  options.modules.development.clisp = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
     };
   };
 
-  config = mkIf config.modules.deveopment.clisp.enable {
+  config = mkIf config.modules.development.clisp.enable {
     user.packages = with pkgs; [ sbcl lispPackages.quicklisp ];
   };
 }

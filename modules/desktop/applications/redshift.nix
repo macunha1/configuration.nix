@@ -33,6 +33,30 @@ with lib; {
         default = 2897;
       };
     };
+
+    brightness = {
+      day = mkOption {
+        type = types.float;
+        default = 1.0;
+      };
+
+      night = mkOption {
+        type = types.float;
+        default = 0.75;
+      };
+    };
+
+    gamma = {
+      day = mkOption {
+        type = types.float;
+        default = 1.0;
+      };
+
+      night = mkOption {
+        type = types.float;
+        default = 0.8;
+      };
+    };
   };
 
   config = mkIf config.modules.desktop.applications.redshift.enable {
@@ -46,6 +70,23 @@ with lib; {
       temperature = {
         day = config.modules.desktop.applications.redshift.temperature.day;
         night = config.modules.desktop.applications.redshift.temperature.night;
+      };
+
+      settings = {
+        redshift = {
+          # Brightness for day and night. Available on version >=1.8
+          brightness-day =
+            config.modules.desktop.applications.redshift.brightness.day;
+
+          brightness-night =
+            config.modules.desktop.applications.redshift.brightness.night;
+
+          # Gamma (for all colors, or each channel) for day and night
+          gamma-day = config.modules.desktop.applications.redshift.gamma.day;
+
+          gamma-night =
+            config.modules.desktop.applications.redshift.gamma.night;
+        };
       };
     };
   };
