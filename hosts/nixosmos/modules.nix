@@ -44,11 +44,12 @@
     };
 
     development = {
-      cc.enable = true;
       node.enable = true;
       python.enable = true;
+
+      cc.enable = true;
+      elixir.enable = true;
       rust.enable = true;
-      ruby.enable = true;
 
       java = {
         enable = true;
