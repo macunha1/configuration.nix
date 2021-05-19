@@ -136,6 +136,7 @@
 
     virtualization = {
       kvm2.enable = true;
+      oci.enable = true;
 
       docker = {
         enable = true;

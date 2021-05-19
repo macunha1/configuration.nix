@@ -16,7 +16,7 @@ install: update
 	@USER=$(USER) nixos-install --root "$(PREFIX)/" --system ./result
 
 update:
-	@nix flake update --recreate-lock-file
+	@nix flake update
 
 build:
 	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast build
@@ -30,6 +30,7 @@ rollback:
 	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
 
 gc:
+	@sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +1
 	@nix-collect-garbage -d
 
 vm:

@@ -36,7 +36,7 @@ with lib; {
 
   config = mkIf config.modules.virtualization.docker.enable {
     user = {
-      packages = with pkgs; [ docker docker-compose buildah ];
+      packages = with pkgs; [ docker ];
       extraGroups = [ "docker" ];
     };
 
