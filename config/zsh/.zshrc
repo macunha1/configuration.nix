@@ -36,9 +36,12 @@ command -v pbcopy >/dev/null && {
 alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
 alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
 
-bindkey \^U backward-kill-line
-# Ctrl+K changed, avoid conflicts with Tmux Vim navigation
-bindkey \^Y kill-line
+# Bind keys for "Kill line" i.e.: remove everything before or after the cursor.
+bindkey \^U backward-kill-line # before
+# Ctrl+K is the original kill-line on Bash/Zsh, it was changed to avoid
+# conflicts with Tmux Vim navigation keybindings. The key Y was selected because
+# it stays close to the above U (on a QWERTY keyboard)
+bindkey \^Y kill-line # after
 
 autoload -U +X bashcompinit && bashcompinit
 
