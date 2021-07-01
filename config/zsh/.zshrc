@@ -47,9 +47,9 @@ autoload -U +X bashcompinit && bashcompinit
 
 source "${HOME}/.config/zsh/init.zsh"
 
-for CLI_TOOLS in kubectl minikube helm; do
-    command -v "/usr/local/bin/${CLI_TOOLS}" >/dev/null && \
-        source <("/usr/local/bin/${CLI_TOOLS}" completion zsh)
+for CLI_TOOL in kubectl minikube helm; do
+    CLI_BIN_PATH=$(which ${CLI_TOOL}) && \
+        source <("${CLI_BIN_PATH}" completion zsh)
 done
 
 eval "$(starship init zsh)"
