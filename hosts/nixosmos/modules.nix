@@ -22,8 +22,9 @@
 
       applications = {
         calibre.enable = true;
-        uhkAgent.enable = true;
         redshift.enable = true;
+        zsa.enable = true;
+        uhkAgent.enable = true;
 
         rofi = {
           enable = true;
@@ -33,7 +34,7 @@
 
       browsers = {
         default = "chromium";
-        chromium.enable = true;
+        chromium.enable = false;
       };
     };
 
@@ -62,13 +63,13 @@
       };
 
       android = {
-        enable = true;
+        enable = false;
         path = "/data/1/opt/android";
         includeBinToPath = true;
       };
 
       flutter = {
-        enable = true;
+        enable = false;
         path = "/data/1/opt/flutter";
       };
     };
@@ -95,13 +96,7 @@
       kubernetes = {
         enable = true;
 
-        minikube = {
-          enable = true;
-          home = "/data/1/opt/minikube";
-        };
-
         helm.enable = true;
-        kops.enable = true;
       };
 
       vagrant = {
@@ -121,8 +116,9 @@
 
     shell = {
       git.user = {
-        name = "macunha1";
-        email = "matheuz.a@gmail.com";
+        name = "Matheus Cunha";
+        email = "stdin@macunha.me";
+        gpgSigningKeyId = "D2E3640881D72B1C90BAD6E4F59CEBBC43F67CE2";
       };
 
       zsh.enable = true;

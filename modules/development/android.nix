@@ -6,7 +6,7 @@ with lib;
 let
   androidPackages = pkgs.androidenv.composeAndroidPackages {
     platformVersions = [ "28" "29" "30" ];
-    platformToolsVersion = "31.0.2";
+    platformToolsVersion = "31.0.3";
     toolsVersion = "26.1.1";
     buildToolsVersions = [ "30.0.3" ];
     abiVersions = [ "x86" "x86_64" ];

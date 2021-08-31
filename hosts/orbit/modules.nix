@@ -82,8 +82,9 @@
 
     shell = {
       git.user = {
-        name = "macunha1";
-        email = "matheuz.a@gmail.com";
+        name = "Matheus Cunha";
+        email = "stdin@macunha.me";
+        gpgSigningKeyId = "D2E3640881D72B1C90BAD6E4F59CEBBC43F67CE2";
       };
 
       zsh.enable = true;

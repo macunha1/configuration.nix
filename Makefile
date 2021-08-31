@@ -1,6 +1,7 @@
 USER := macunha1
 HOST := cosmos
 
+TMPDIR := /tmp
 DOTFILES := $(PWD)
 COMMAND  := test
 
@@ -19,15 +20,16 @@ update:
 	@nix flake update
 
 build:
-	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast build
+	TMPDIR=$(TMPDIR) nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast build
 
 switch:
-	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch
+	TMPDIR=$(TMPDIR) sudo -E bash \
+		-c  'nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --fast switch'
 
 upgrade: update switch
 
 rollback:
-	@sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
+	sudo nixos-rebuild --flake "$(DOTFILES)#$(HOST)" --rollback --fast switch
 
 gc:
 	@sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +1

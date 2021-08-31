@@ -60,7 +60,9 @@ with lib.my; {
     })
 
     (mkIf config.modules.networking.kubernetes.helm.enable {
-      user.packages = with pkgs; [ helm ];
+      user.packages = with pkgs; [ unstable.kubernetes-helm ];
+
+      env.HELM_PLUGIN_DIR = "$XDG_DATA_HOME/helm";
     })
 
     (mkIf config.modules.networking.kubernetes.kops.enable {

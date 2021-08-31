@@ -13,12 +13,12 @@ with lib; {
   };
 
   config = mkIf config.modules.media.mpv.enable {
-    user.packages = with pkgs; [
-      mpv # video player
-      (mpv-with-scripts.override {
-        # Adds support for DBus and controls over playerctl
-        scripts = [ mpvScripts.mpris ];
-      })
-    ];
+    user.packages = with pkgs;
+      [
+        (mpv-with-scripts.override {
+          # Adds support for DBus and controls over playerctl
+          scripts = [ mpvScripts.mpris ];
+        })
+      ];
   };
 }

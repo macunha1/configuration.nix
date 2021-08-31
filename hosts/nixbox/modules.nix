@@ -127,8 +127,8 @@
 
     shell = {
       git.user = {
-        name = "macunha1";
-        email = "matheuz.a@gmail.com";
+        name = "Matheus Cunha";
+        email = "stdin@macunha.me";
       };
 
       zsh.enable = true;

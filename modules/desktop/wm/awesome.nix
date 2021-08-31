@@ -53,10 +53,10 @@ with lib; {
     home.configFile."awesome" = {
       source = pkgs.fetchFromGitHub {
         owner = "macunha1";
-        repo = "awesomewm-configuration";
+        repo = "aweswm";
 
-        rev = "7d69519f36876422b18f4995eed20c43e6d270f4";
-        sha256 = "1b9jcfzrdb11z4myjcv2s7j8yyrn9kxid1kn1syc6cz7zqxksshx";
+        rev = "fd9aed4a26aa421544f8059fced2254616584e26";
+        sha256 = "07iwii65s0yzqq3a00df5yyk6wfqh1nljgsw633qr0m87aiq2bry";
 
         fetchSubmodules = true;
       };

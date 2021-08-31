@@ -23,6 +23,12 @@ with lib; {
         default = "";
         description = "git/config user.email to configure for commits";
       };
+
+      gpgSigningKeyId = mkOption {
+        type = types.str;
+        default = "";
+        description = "git/config user.signingkey to sign commits";
+      };
     };
   };
 
@@ -34,6 +40,12 @@ with lib; {
         [user]
           name = ${config.modules.shell.git.user.name}
           email = ${config.modules.shell.git.user.email}
+        ${if config.modules.shell.git.user.gpgSigningKeyId != "" then ''
+            signingkey = ${config.modules.shell.git.user.gpgSigningKeyId}
+
+          [commit]
+            gpgsign = true'' else
+          ""}
 
         [pull]
           rebase = true
