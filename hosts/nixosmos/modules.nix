@@ -7,6 +7,7 @@
       bluetooth.enable = true;
       video = {
         enable = true;
+        support32Bit.enable = true;
         nvidia.enable = true;
       };
     };
@@ -24,7 +25,6 @@
         calibre.enable = true;
         redshift.enable = true;
         zsa.enable = true;
-        uhkAgent.enable = true;
 
         rofi = {
           enable = true;
@@ -34,7 +34,7 @@
 
       browsers = {
         default = "chromium";
-        chromium.enable = false;
+        chromium.enable = true;
       };
     };
 

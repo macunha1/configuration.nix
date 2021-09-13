@@ -10,8 +10,12 @@
 
 let
   pname = "dbus_proxy";
+  version = "0.10.2"; # default version to install
+
+in pkgs.luaPackages.buildLuaPackage rec {
+  inherit pname version;
+
   name = "${pname}-${version}";
-  version = "0.10.1"; # default version to install
 
   src = fetchFromGitHub {
     owner = "stefano-m";
@@ -22,11 +26,9 @@ let
       "0.9.0" = "0s3xl2sbrc494vsh8wqlh5xdmpfl42annm4nmns24ipkqfm3bf2i";
       "0.10.0" = "13qnzhrixv5plnp7hbwp06qq17rsa40z2gpns3f9hgbidpxp08km";
       "0.10.1" = "064xqzc2jvag25s6kq0k5hirpghkfpgyyv1h4f7w5qmvzglxh7kz";
+      "0.10.2" = "0kl8ff1g1kpmslzzf53cbzfl1bmb5cb91w431hbz0z0vdrramh6l";
     }."${version}";
   };
-
-in pkgs.luaPackages.buildLuaPackage rec {
-  inherit name src;
 
   propagatedBuildInputs = [ pkgs.luaPackages.lgi ];
 

@@ -15,6 +15,12 @@ with lib; {
       default = false;
     };
 
+    # Whether or not to enable 32-bit support for libraries
+    support32Bit.enable = mkOption {
+      type = types.bool;
+      default = false;
+    };
+
     # Whether or not to enable NVidia video (graphical) drivers
     nvidia.enable = mkOption {
       type = types.bool;
@@ -27,7 +33,7 @@ with lib; {
       hardware.opengl = {
         enable = true;
         setLdLibraryPath = true;
-        driSupport32Bit = true;
+        driSupport32Bit = config.modules.hardware.video.support32Bit.enable;
       };
     }
 

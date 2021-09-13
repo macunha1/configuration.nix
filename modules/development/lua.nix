@@ -1,8 +1,13 @@
 # development/lua.nix -- https://www.lua.org/
 #
-# Lua is Moon in Portuguese, the natural satellite of Earth. Acting as the
-# perfect satellite language for system's programming languages.
-# Mainly used for AwesomeWM and performance-critical scenarios.
+# Lua stands for "Moon" in Portuguese (surprise! Lua is a Brazilian language)
+# (surprise again in case you thought people speak Spanish in Brazil).
+#
+# Moon is the natural satellite of Earth. Lua acts as the perfect satellite
+# language for systems programming languages (e.g. C/C++).
+#
+# Personally speaking, Lua is mostly used on this setup for AwesomeWM and
+# performance-critical scripting scenarios.
 
 { config, options, lib, pkgs, ... }:
 with lib; {
