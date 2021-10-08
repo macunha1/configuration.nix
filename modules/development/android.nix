@@ -39,17 +39,22 @@ in {
       services.udev.packages = [ pkgs.android-udev-rules ];
       users.groups.adbusers = { }; # forces group creation
 
+      # original implementation
+      programs.adb.enable = true;
+
       user = {
         extraGroups = [ "adbusers" ];
-        packages = with pkgs; [
-          androidPackages.androidsdk
+        # NOTE: Leaving out of the game since it is constantly erroring
+        # error: attribute '30.6.3' missing
+        # packages = with pkgs; [
+        #   androidPackages.androidsdk
 
-          # Creates a executable script ensuring the version, mainly to avoid conflicts
-          (writeScriptBin "amulator" ''
-            #!${stdenv.shell}
-            exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
-          '')
-        ];
+        #   # Creates a executable script ensuring the version, mainly to avoid conflicts
+        #   (writeScriptBin "amulator" ''
+        #     #!${stdenv.shell}
+        #     exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
+        #   '')
+        # ];
       };
 
       env.ANDROID_SDK_ROOT = "${config.modules.development.android.path}/sdk";

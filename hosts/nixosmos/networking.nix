@@ -4,6 +4,14 @@
   networking.hostName = "nixosmos";
   networking.networkmanager.enable = true;
 
+  networking.nameservers = [
+    # CloudFlare DNS
+    "1.1.1.1"
+
+    # Google DNS (fallback)
+    "8.8.8.8"
+  ];
+
   # DHCP
   networking.useDHCP = false; # DEPRECATED: therefore, explicitly set to false
   networking.interfaces = {

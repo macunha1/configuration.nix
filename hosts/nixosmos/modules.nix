@@ -63,7 +63,7 @@
       };
 
       android = {
-        enable = false;
+        enable = true;
         path = "/data/1/opt/android";
         includeBinToPath = true;
       };

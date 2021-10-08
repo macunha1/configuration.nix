@@ -22,7 +22,7 @@ with lib; {
       settings = mkOption {
         type = types.attrsOf (types.attrsOf types.str);
         default = { };
-        example = literalExample ''
+        example = literalExpression ''
           {
             global = {
               username = "janedoe";
