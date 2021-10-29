@@ -15,7 +15,7 @@
     # Core dependencies.
     # Track two channels (even though they're similar here) to allow granular
     # configurations based on each use case. Change as you wish.
-    nixpkgs.url = "nixpkgs/master";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "nixpkgs/master";
 
     home-manager.url = "github:nix-community/home-manager/master";

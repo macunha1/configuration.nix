@@ -12,7 +12,7 @@ let
     abiVersions = [ "x86" "x86_64" ];
 
     includeEmulator = true;
-    emulatorVersion = "30.6.3";
+    emulatorVersion = "30.9.0";
   };
 in {
   options.modules.development.android = {
@@ -39,22 +39,18 @@ in {
       services.udev.packages = [ pkgs.android-udev-rules ];
       users.groups.adbusers = { }; # forces group creation
 
-      # original implementation
-      programs.adb.enable = true;
-
       user = {
         extraGroups = [ "adbusers" ];
-        # NOTE: Leaving out of the game since it is constantly erroring
-        # error: attribute '30.6.3' missing
-        # packages = with pkgs; [
-        #   androidPackages.androidsdk
 
-        #   # Creates a executable script ensuring the version, mainly to avoid conflicts
-        #   (writeScriptBin "amulator" ''
-        #     #!${stdenv.shell}
-        #     exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
-        #   '')
-        # ];
+        packages = with pkgs; [
+          androidPackages.androidsdk
+
+          # Creates a executable script ensuring the version, mainly to avoid conflicts
+          (writeScriptBin "amulator" ''
+            #!${stdenv.shell}
+            exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
+          '')
+        ];
       };
 
       env.ANDROID_SDK_ROOT = "${config.modules.development.android.path}/sdk";
@@ -64,7 +60,7 @@ in {
     }
 
     (mkIf config.modules.development.android.includeBinToPath {
-      env.PATH = [ "$ANDROID_SDK_ROOT/tools/bin" ];
+      env.PATH = [ "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" ];
     })
   ]);
 }
