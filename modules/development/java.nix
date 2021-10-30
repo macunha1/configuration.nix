@@ -29,7 +29,7 @@ with lib; {
     {
       programs.java = {
         enable = true;
-        package = pkgs.unstable.openjdk;
+        package = pkgs.openjdk11;
       };
     }
 

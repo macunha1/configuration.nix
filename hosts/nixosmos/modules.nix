@@ -45,21 +45,25 @@
     };
 
     development = {
-      node.enable = true;
       python.enable = true;
-
       cc.enable = true;
       elixir.enable = true;
-      rust.enable = true;
+      java.enable = true;
 
-      java = {
+      rust = {
         enable = true;
-        gradle.enable = true;
+        languageServer.enable = true;
       };
 
       go = {
         enable = true;
+        languageServer.enable = true;
         path = "/data/1/opt/go";
+      };
+
+      node = {
+        enable = true;
+        languageServer.enable = true;
       };
 
       android = {
@@ -77,6 +81,7 @@
     media = {
       spotify = {
         enable = true;
+
         daemon = {
           enable = true;
 

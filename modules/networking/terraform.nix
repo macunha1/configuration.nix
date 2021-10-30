@@ -1,6 +1,7 @@
 # networking/terraform.nix -- https://www.terraform.io/
 #
-# From the Chaos that is a Systems Engineer life, Terraform is the only constant.
+# From the Chaos that is a Cloud Systems' Engineering life, Terraform is the
+# only constant across configurations and providers.
 #
 # No matter if you're running a Data Lake, Serverless Web app or embedded
 # system. On top of that at this point in time it doesn't even matter if you're
@@ -17,19 +18,14 @@ with lib; {
   };
 
   config = mkIf config.modules.networking.terraform.enable {
-    # NOTE: Won't work properly, tfenv needs to write in the same path
-    # Plus, it follows links (conflicting with NixOS read-only files)
-    #
-    # home.dataFile."tfenv" = {
-    #   source = pkgs.fetchFromGitHub {
-    #     owner = "tfutils";
-    #     repo = "tfenv";
-    #     rev = "v2.0.0";
-    #     sha256 = "0ljx567ykbbdd7974953b9vbyjcf214m189bh2yn1sypaqyynvv6";
-    #   };
 
-    #   recursive = true;
-    # };
+    # NOTE: This module won't install Terraform due to the highly inconsistent
+    # amount of versions available (and in use) on the market. Instead, version
+    # managers with support for Terraform are encouraged, either "tfenv" or
+    # "asdf" with direnv integrated.
+    #
+    # ASDF module (modules/shell/asdf.nix) is enabled on nixosmos/modules.nix
+    # that serves as an implementation example.
 
     home.configFile."terraform/rc.hcl".text = ''
       plugin_cache_dir = "$XDG_CACHE_HOME/terraform/plugins"
@@ -39,6 +35,5 @@ with lib; {
     '';
 
     env.TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
-    env.PATH = [ "$XDG_DATA_HOME/tfenv/bin" ];
   };
 }

@@ -8,6 +8,13 @@ with lib; {
       default = false;
     };
 
+    languageServer = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
+    };
+
     includeBinToPath = mkOption {
       type = types.bool;
       default = false;
@@ -32,6 +39,11 @@ with lib; {
         cache=$XDG_CACHE_HOME/npm/cache
         prefix=$XDG_DATA_HOME/npm
       '';
+    })
+
+    (mkIf config.modules.development.node.languageServer.enable {
+      user.packages = with pkgs;
+        [ nodePackages.javascript-typescript-langserver ];
     })
 
     (mkIf config.modules.development.node.includeBinToPath {

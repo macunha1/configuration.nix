@@ -11,6 +11,18 @@ with lib; {
       default = false;
     };
 
+    path = mkOption {
+      type = with types; (either str path);
+      default = "$XDG_DATA_HOME/rust";
+    };
+
+    languageServer = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
+    };
+
     includeBinToPath = mkOption {
       type = types.bool;
       default = false;
@@ -19,12 +31,16 @@ with lib; {
 
   config = mkIf config.modules.development.rust.enable (mkMerge [
     {
-      user.packages = with pkgs; [ rustup ];
+      user.packages = with pkgs; [ nasm rustup zlib rustfmt ];
 
-      env.RUSTUP_HOME = "$XDG_DATA_HOME/rustup";
-      env.CARGO_HOME = "$XDG_DATA_HOME/cargo";
+      env.RUSTUP_HOME = "${config.modules.development.rust.path}/up";
+      env.CARGO_HOME = "${config.modules.development.rust.path}/cargo";
       env.CARGO_TARGET_DIR = "$CARGO_HOME/target";
     }
+
+    (mkIf config.modules.development.rust.languageServer.enable {
+      user.packages = with pkgs; [ rust-analyzer ];
+    })
 
     (mkIf config.modules.development.rust.includeBinToPath {
       env.PATH = [ "$CARGO_HOME/bin" ];

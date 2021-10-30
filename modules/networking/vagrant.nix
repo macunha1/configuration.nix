@@ -21,7 +21,7 @@ with lib; {
 
     provider = mkOption {
       type = types.str;
-      default = "virtualbox";
+      default = "libvirt";
     };
 
     vCpus = mkOption {
@@ -50,8 +50,9 @@ with lib; {
       source = pkgs.fetchFromGitHub {
         owner = "macunha1";
         repo = "Vagrantfiles";
-        rev = "7e4c495536950281782f07b04e6e7dacd20134da";
-        sha256 = "1rbp8cnpl8h6mrrgk5jd2q72rv57dszqn8vpc8mcfrrbw8ghxcbn";
+
+        rev = "cfcd053a5374ba680a49b3ae8aa6f83c7fb24e2b";
+        sha256 = "1z5j7jcm62zzx29ilaj4ki1fi576r4j8sqz846vqin5qxir38ixh";
       };
 
       recursive = true; # allows to have writable .vagrant dirs inside

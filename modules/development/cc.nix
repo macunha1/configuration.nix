@@ -7,6 +7,13 @@ with lib; {
       type = types.bool;
       default = false;
     };
+
+    languageServer = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
+    };
   };
 
   config = mkIf config.modules.development.cc.enable {
@@ -14,6 +21,10 @@ with lib; {
       clang
       gcc
       gdb
+
+      (mkIf (config.modules.development.cc.languageServer.enable)
+      # C/C++/Objective C Language Server
+        ccls)
 
       cmake
       llvmPackages.libcxx

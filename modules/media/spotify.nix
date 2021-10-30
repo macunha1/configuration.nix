@@ -5,7 +5,7 @@
 # daemon is also installed that could be extended with Spotify TUI
 # Ref: https://github.com/Spotifyd/spotifyd
 
-{ config, options, lib, pkgs, ... }:
+{ config, home-manager, options, lib, pkgs, ... }:
 with lib; {
   options.modules.media.spotify = {
     enable = mkOption {
@@ -22,6 +22,12 @@ with lib; {
       settings = mkOption {
         type = types.attrsOf (types.attrsOf types.str);
         default = { };
+
+        # NOTE: Remember that when using a password manager such as `pass` with
+        # a passphrase protected GPG key the service won't start on its own.
+        # Therefore you need to enter the passphrase through a pinentry and
+        # restart it manually.
+
         example = literalExpression ''
           {
             global = {
@@ -34,18 +40,20 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.media.spotify.enable {
-    user.packages = with pkgs; [ pkgs.unstable.spotify ];
+  config = mkIf config.modules.media.spotify.enable (mkMerge [
+    { user.packages = with pkgs; [ pkgs.spotify ]; }
 
-    # home.services.spotifyd = {
-    #   enable = config.modules.media.spotify.daemon.enable;
+    (mkIf config.modules.media.spotify.daemon.enable {
+      # When using the Daemon, install the Spotify TUI together to work as an
+      # alternative client..
+      user.packages = with pkgs; [ pkgs.spotify-tui ];
 
-    #   package = (pkgs.unstable.spotifyd.override { withMpris = true; });
-    #   settings = config.modules.media.spotify.daemon.settings;
-    # };
+      home-manager.users.${config.user.name}.services.spotifyd = {
+        enable = true;
 
-    # no longer necessary: the user D-Bus session is always socket activated
-    # with home-manager as of this writing.
-    # services.dbus.socketActivated = true;
-  };
+        package = (pkgs.spotifyd.override { withMpris = true; });
+        settings = config.modules.media.spotify.daemon.settings;
+      };
+    })
+  ]);
 }
