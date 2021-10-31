@@ -132,6 +132,7 @@
       pass.enable = true;
       gnupg.enable = true;
       direnv.enable = true;
+      lorri.enable = true;
       asdf.enable = true;
     };
 

@@ -19,7 +19,5 @@ with lib; {
   config = mkIf config.modules.shell.direnv.enable {
     user.packages = [ pkgs.direnv ];
     modules.shell.zsh.init = ''eval "$(direnv hook zsh)"'';
-
-    services.lorri.enable = true;
   };
 }

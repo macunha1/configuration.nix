@@ -22,12 +22,7 @@ with lib; {
       services.dbus.packages = with pkgs; [ blueman ];
 
       # Bluetooth device proxy for media control
-      # home-manager.systemd.${config.user.name}.services.mpris-proxy = {
-      #   Unit.Description = "Mpris proxy";
-      #   Unit.After = [ "network.target" "sound.target" ];
-      #   Service.ExecStart = "${pkgs.bluez}/bin/mpris-proxy";
-      #   Install.WantedBy = [ "default.target" ];
-      # };
+      home-manager.users.${config.user.name}.services.mpris-proxy.enable = true;
 
       hardware.pulseaudio = {
         # Add Bluetooth support to pulseaudio when both are enabled
