@@ -39,6 +39,11 @@ with lib; {
 
     (mkIf config.modules.hardware.video.nvidia.enable {
       services.xserver.videoDrivers = [ "nvidia" ];
+
+      # NVidia TUI Process Manager, similar to htop.
+      # Ref: https://github.com/Syllo/nvtop
+      user.packages = with pkgs; [ nvtop ];
+
       environment.systemPackages = with pkgs;
         [
           # Enforce XDG base dir spec on nvidia settings

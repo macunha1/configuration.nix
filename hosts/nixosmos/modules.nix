@@ -45,10 +45,14 @@
     };
 
     development = {
-      python.enable = true;
       cc.enable = true;
       elixir.enable = true;
       java.enable = true;
+
+      python = {
+        enable = true;
+        languageServer.enable = true;
+      };
 
       rust = {
         enable = true;
@@ -67,7 +71,7 @@
       };
 
       android = {
-        enable = true;
+        enable = false;
         path = "/data/1/opt/android";
         includeBinToPath = true;
       };
