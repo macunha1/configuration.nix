@@ -54,6 +54,11 @@
         languageServer.enable = true;
       };
 
+      lua = {
+        enable = true;
+        languageServer.enable = true;
+      };
+
       rust = {
         enable = true;
         languageServer.enable = true;
@@ -105,6 +110,7 @@
       kubernetes = {
         enable = true;
 
+        minikube.enable = false;
         helm.enable = true;
       };
 
@@ -143,13 +149,6 @@
     virtualization = {
       kvm2.enable = true;
       oci.enable = true;
-
-      docker = {
-        enable = true;
-        nvidia.enable = true;
-
-        storagePath = "/data/1/var/lib/docker";
-      };
     };
   };
 }

@@ -29,6 +29,7 @@ with lib; {
         python39Packages.pip
         pipenv # spin virtual envs like a god
 
+        python39Packages.pytest
         python39Packages.autopep8 # pep8 prettify
         python39Packages.flake8 # code lint
         python39Packages.setuptools # distutils++

@@ -17,6 +17,13 @@ with lib; {
       default = true;
     };
 
+    languageServer = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
+    };
+
     includeBinToPath = mkOption {
       type = types.bool;
       default = false;
@@ -34,6 +41,10 @@ with lib; {
         luarocks
       ];
     }
+
+    (mkIf config.modules.development.lua.languageServer.enable {
+      user.packages = with pkgs; [ luaPackages.lua-lsp ];
+    })
 
     (mkIf config.modules.development.lua.includeBinToPath {
       modules.shell.zsh.init = ''eval "$(luarocks path --bin)"'';
