@@ -51,8 +51,8 @@ with lib; {
         owner = "macunha1";
         repo = "Vagrantfiles";
 
-        rev = "cfcd053a5374ba680a49b3ae8aa6f83c7fb24e2b";
-        sha256 = "1z5j7jcm62zzx29ilaj4ki1fi576r4j8sqz846vqin5qxir38ixh";
+        rev = "16a1c428e4fcb8abc411a5de8e914380b5dee796";
+        sha256 = "1f38nrm49vhlr3l0r8x8pq6sqlv5ym0cg17m4yish3i4lq9xh7xl";
       };
 
       recursive = true; # allows to have writable .vagrant dirs inside
