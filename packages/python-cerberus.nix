@@ -1,7 +1,7 @@
-{ config, lib, pkgs, stdenv, fetchFromGitHub, pytestCheckHook, version ? "1.3.4"
+{ config, lib, pkgs, stdenv, fetchFromGitHub, version ? "1.3.4"
   # NOTE: Hash corresponding to version 0.2.1, if the default version changes it
   # will be necessary to either pass this value or change the default.
-, hash ? "sha256-1DX1FOg04/3AlB9qKdCGuAsupRsoESruYlS9EE7kKnQ=", ... }:
+, hash ? "sha256-0bIbOVSySY2aee3xazFwo6wQId+I0ZfcLOWSi6UZI3w=", ... }:
 
 let pname = "Cerberus";
 in pkgs.python3Packages.buildPythonPackage rec {
@@ -11,7 +11,7 @@ in pkgs.python3Packages.buildPythonPackage rec {
 
   src = pkgs.python3Packages.fetchPypi { inherit version pname hash; };
 
-  checkInputs = [ pytestCheckHook ];
+  checkInputs = [ pkgs.python3Packages.pytestCheckHook ];
 
   preCheck = ''
     export TESTDIR=$(mktemp -d)
@@ -24,6 +24,8 @@ in pkgs.python3Packages.buildPythonPackage rec {
   '';
 
   pythonImportsCheck = [ "cerberus" ];
+
+  propagatedBuildInputs = with pkgs.python3Packages; [ setuptools ];
 
   meta = {
     homepage = "http://python-cerberus.org/";

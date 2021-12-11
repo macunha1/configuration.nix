@@ -16,7 +16,7 @@ let
 
   cerberus = callPackage ./python-cerberus.nix {
     version = "1.3.2";
-    hash = "sha256-1DX1FOg04/3AlB9qKdCGuAsupRsoESruYlS9EE7kKnQ=";
+    hash = "sha256-MC5mlPIG3YXLY/E/1QJbMattOMmcUMbXafj6Cw8plYk=";
   };
 in pkgs.python3Packages.buildPythonPackage rec {
   inherit pname version;
@@ -29,43 +29,28 @@ in pkgs.python3Packages.buildPythonPackage rec {
     hash = "sha256-yCrwmeXAmY1+sWo79l7VpO3Zfjgk+5OM4BvwZKRs4Mo=";
   };
 
-  #   fetchFromGitHub {
-  #   owner = "ansible-community";
-  #   repo = "molecule";
+  nativeBuildInputs = with pkgs.python3Packages; [
+    pkgs.git
 
-  #   rev = version;
-  #   hash = "sha256-R9mSQBU1HN8KxUf/lAyZD28sKN/R0CF1bDARtC6N07Y=";
-  # };
-
-  postPatch = ''
-    substituteInPlace setup.cfg \
-      --replace "; sys_platform==\"linux2\"" ""
-
-    substituteInPlace setup.cfg \
-      --replace "; sys_platform==\"linux\"" ""
-
-    substituteInPlace constraints.txt \
-      --replace "; sys_platform == \"linux\"" ""
-  '';
-
-  nativeBuildInputs = with pkgs; [
-    git
-
-    python3Packages.setuptools
-    python3Packages.setuptools-scm
-    python3Packages.setuptools-scm-git-archive
+    setuptools
+    setuptools-scm
+    setuptools-scm-git-archive
   ];
 
-  buildInputs = with pkgs; [
-    python3Packages.libselinux
-    python3Packages.click-help-colors
-    python3Packages.jinja2
-    python3Packages.pyyaml
-    python3Packages.pluggy
-    python3Packages.paramiko
-    python3Packages.subprocess-tee
-    python3Packages.rich
-    python3Packages.enrich
+  propagatedBuildInputs = with pkgs.python3Packages; [
+    libselinux
+    click
+    click-help-colors
+    jinja2
+    packaging
+    pyyaml
+    pluggy
+    paramiko
+    subprocess-tee
+    rich
+    enrich
+    cookiecutter
+    distro
 
     ansible-compat
     python-selinux
