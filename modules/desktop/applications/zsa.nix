@@ -1,5 +1,8 @@
-# applications/uhk-agent.nix -- https://www.zsa.io/
+# applications/zsa.nix -- https://www.zsa.io/
 #
+# Wally CLI helps flashing the firmware updates generated through ZSA Keyboard
+# configurator. ZSA is the company behind ErgoDox, Moonlander and Planck.
+# Ref: https://configure.zsa.io/
 
 { config, options, lib, pkgs, ... }:
 with lib; {

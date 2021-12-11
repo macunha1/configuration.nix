@@ -126,6 +126,8 @@
       };
 
       gcp.enable = true;
+
+      ansible.enable = true;
       terraform.enable = true;
     };
 
