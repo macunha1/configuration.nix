@@ -24,12 +24,8 @@
       applications = {
         calibre.enable = true;
         redshift.enable = true;
+        rofi.enable = true;
         zsa.enable = true;
-
-        rofi = {
-          enable = true;
-          theme = "yin-yang";
-        };
       };
 
       browsers = {
@@ -76,13 +72,13 @@
       };
 
       android = {
-        enable = false;
+        enable = true;
         path = "/data/1/opt/android";
         includeBinToPath = true;
       };
 
       flutter = {
-        enable = true;
+        enable = false;
         path = "/data/1/opt/flutter";
       };
     };

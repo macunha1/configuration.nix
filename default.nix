@@ -22,6 +22,7 @@ with inputs; {
     # Enable Flake experimental features
     package = pkgs.nixFlakes;
     extraOptions = "experimental-features = nix-command flakes";
+
     nixPath = (mapAttrsToList (n: v: "${n}=${v}") inputs) ++ [
       "nixpkgs-overlays=${dotFilesDir}/overlays"
       "dotfiles=${dotFilesDir}"
@@ -54,7 +55,6 @@ with inputs; {
     # Nix basics
     cached-nix-shell
     patchelf
-    nix-prefetch-git
     nix-prefetch
 
     # Linux basic utils
@@ -72,5 +72,5 @@ with inputs; {
   # servers. You should change this only after NixOS release notes say you
   # should.
   system.configurationRevision = mkIf (self ? rev) self.rev;
-  system.stateVersion = "21.11"; # Did you read the comment?
+  system.stateVersion = "22.05"; # Did you read the comment?
 }

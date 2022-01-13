@@ -21,13 +21,8 @@
 
       applications = {
         calibre.enable = true;
-        uhkAgent.enable = true;
+        rofi.enable = true;
         redshift.enable = true;
-
-        rofi = {
-          enable = true;
-          theme = "yin-yang";
-        };
       };
 
       browsers = {

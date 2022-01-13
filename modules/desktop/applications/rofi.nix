@@ -16,7 +16,7 @@ with lib.my; {
 
     theme = mkOption {
       type = types.str;
-      default = "retrowave";
+      default = "yin-yang";
     };
   };
 
@@ -29,10 +29,11 @@ with lib.my; {
       text = ''
         configuration {
             modi: "window,drun,combi";
-            theme: "${config.modules.desktop.applications.rofi.theme}";
             font: "Source Code Pro 10";
             combi-modi: "window,drun";
         }
+
+        @theme "${config.modules.desktop.applications.rofi.theme}"
       '';
     };
 

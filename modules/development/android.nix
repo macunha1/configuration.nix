@@ -36,7 +36,7 @@ in {
     {
       # Copied from the programs.adb to extend its capability with a custom pkg
       # Ref: github.com/NixOS/nixpkgs/blob/master/nixos/modules/programs/adb.nix
-      services.udev.packages = [ pkgs.android-udev-rules ];
+      services.udev.packages = with pkgs; [ android-udev-rules usbutils ];
       users.groups.adbusers = { }; # forces group creation
 
       user = {

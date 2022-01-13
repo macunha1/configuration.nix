@@ -18,11 +18,7 @@
 
       applications = {
         redshift.enable = true;
-
-        rofi = {
-          enable = true;
-          theme = "yin-yang";
-        };
+        rofi.enable = true;
       };
 
       browsers = {
