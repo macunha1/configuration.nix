@@ -28,17 +28,19 @@ with inputs; {
       "dotfiles=${dotFilesDir}"
     ];
 
-    binaryCaches = [ "https://nix-community.cachix.org" ];
-    binaryCachePublicKeys = [
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-    ];
-
     registry = {
       nixos.flake = nixpkgs;
       nixpkgs.flake = nixpkgs-unstable;
     };
 
-    useSandbox = true;
+    settings = {
+      sandbox = true;
+
+      substituters = [ "https://nix-community.cachix.org" ];
+      trusted-public-keys = [
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      ];
+    };
   };
 
   ## Global defaults

@@ -30,12 +30,12 @@ with lib; {
 
   config = mkIf config.modules.development.go.enable (mkMerge [
     {
-      user.packages = with pkgs; [ libcap go ];
+      user.packages = with pkgs.unstable; [ libcap go ];
       env.GOPATH = config.modules.development.go.path;
     }
 
     (mkIf config.modules.development.go.languageServer.enable {
-      user.packages = with pkgs; [ gopls ];
+      user.packages = with pkgs.unstable; [ gopls ];
     })
 
     (mkIf config.modules.development.go.includeBinToPath {

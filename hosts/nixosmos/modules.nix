@@ -25,7 +25,9 @@
         calibre.enable = true;
         redshift.enable = true;
         rofi.enable = true;
+
         zsa.enable = true;
+        qmk.enable = true;
       };
 
       browsers = {

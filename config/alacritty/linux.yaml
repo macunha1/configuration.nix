@@ -26,6 +26,10 @@ window:
   # Spread additional padding evenly around the terminal content.
   dynamic_padding: false
 
+  # Window opacity as a floating point number from `0.0` to `1.0`.
+  # The value `0.0` is completely transparent and `1.0` is background.
+  opacity: 1.0
+
   # Window decorations
   #
   # Values for `decorations`:
@@ -162,12 +166,6 @@ colors:
 bell:
   animation: EaseOutExpo
   duration: 0
-
-# Background opacity
-#
-# Window opacity as a floating point number from `0.0` to `1.0`.
-# The value `0.0` is completely transparent and `1.0` is opaque.
-background_opacity: 1.0
 
 # Mouse bindings
 #

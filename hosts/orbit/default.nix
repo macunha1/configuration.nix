@@ -30,7 +30,7 @@
   user.extraGroups = [ "networkmanager" ];
 
   nix = {
-    maxJobs = lib.mkDefault 4;
+    settings.max-jobs = lib.mkDefault 4;
 
     # Automatic collect garbage to save disk space (which is very limited)
     gc = {

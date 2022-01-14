@@ -11,6 +11,16 @@
   ];
 
   time.timeZone = "Etc/UTC";
-  nix.maxJobs = lib.mkDefault 4;
+
+  nix = {
+    settings.max-jobs = lib.mkDefault 4;
+
+    # Automatic collect garbage to save disk space (which is very limited)
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 30d";
+    };
+  };
+
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }
