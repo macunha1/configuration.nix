@@ -33,9 +33,9 @@ let
     comment =
       "Agent is the configuration application of the Ultimate Hacking Keyboard";
     icon = "uhk-agent";
-    terminal = "false";
+    terminal = false;
     exec = pname;
-    categories = "Utility;";
+    categories = [ "Utility" ];
   };
 
   xdgDirs = builtins.concatStringsSep ":" [

@@ -6,7 +6,7 @@ let
     ${nixFlakes}/bin/nix --option experimental-features "nix-command flakes" "$@"
   '';
 in mkShell {
-  buildInputs = [ git ];
+  buildInputs = [ git home-manager cachix ];
   shellHook = ''
     export PATH="$(pwd)/bin:${nixBin}/bin:$PATH"
   '';

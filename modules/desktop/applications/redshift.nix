@@ -4,7 +4,7 @@
 # an Earth location for the observer. If you're from the future and live in
 # Mars, I'm sorry, at the time of this writing only Earth is supported.
 
-{ config, options, lib, pkgs, ... }:
+{ config, home-manager, options, lib, pkgs, ... }:
 with lib; {
   options.modules.desktop.applications.redshift = {
     enable = mkOption {

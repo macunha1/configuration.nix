@@ -11,22 +11,53 @@
 {
   description = "Pile many flakes and you can have a beautiful snowman.";
 
+  nixConfig = {
+    extra-experimental-features = "nix-command flakes";
+    extra-substituters =
+      "https://nrdxp.cachix.org https://nix-community.cachix.org";
+    extra-trusted-public-keys =
+      "nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=";
+  };
+
   inputs = {
     # Core dependencies.
     # Track two channels (even though they're similar here) to allow granular
     # configurations based on each use case. Change as you wish.
-    nixpkgs.url = "nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "nixpkgs/master";
+
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
+
+    nixlib.url = "github:nix-community/nixpkgs.lib";
+
+    latest.url = "github:nixos/nixpkgs/nixos-unstable";
+    blank.url = "github:divnix/blank";
+
+    # NixOS Hardware contain hardware-specific configurations (e.g. MacOS Wi-Fi
+    # drivers, proprietary notebook battery Kernel modules, etc) that helps
+    # speeding up the NixOS setup on some machines.
+    #
+    # nixos-hardware.url = "github:nixos/nixos-hardware";
+
+    deploy.url = "github:serokell/deploy-rs";
+    deploy.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     home-manager.url = "github:nix-community/home-manager/master";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager.inputs.nixpkgs.follows = "nixlib";
+
+    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+
+    # flake-compat = {
+    #   url = "github:edolstra/flake-compat";
+    #   flake = false;
+    # };
 
     # Extras
     emacs-overlay.url = "github:nix-community/emacs-overlay";
-    nixos-hardware.url = "github:nixos/nixos-hardware";
   };
 
-  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixlib, home-manager
+    , flake-utils-plus, ... }@inputs:
+
     let
       inherit (lib) attrValues;
       inherit (lib.my) mapModules mapModulesRec mapHosts;
@@ -34,6 +65,8 @@
       # Good luck trying to use Darwin or Windows. Modules are referring NixOS
       # configurations that made this transition hard.
       system = "x86_64-linux";
+
+      tests = import ./tests;
 
       mkPkgs = pkgs: extraOverlays:
         import pkgs {

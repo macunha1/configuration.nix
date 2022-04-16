@@ -8,7 +8,7 @@ with lib; {
   options.modules.editors.emacs = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
     };
   };
 
@@ -19,10 +19,9 @@ with lib; {
       # Emacs native compilation dependencies
       binutils # native-comp needs 'as', provided by this
 
-      # Emacs 28 with Native Compilation and Pure GTK3 (pgtk)
-      # As of this writing, requires the following snippet to work with Doom
-      # Ref: https://bit.ly/3iZdz0T
-      emacsPgtkGcc
+      # Emacs 29 with Native Compilation and Pure GTK3 (pgtk)
+      ((emacsPackagesFor emacsPgtkGcc).emacsWithPackages
+        (epkgs: [ epkgs.vterm ]))
 
       (ripgrep.override { withPCRE2 = true; })
 

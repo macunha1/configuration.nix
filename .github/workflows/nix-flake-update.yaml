@@ -1,0 +1,60 @@
+---
+name: Nix Flake Update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * Sat"
+
+jobs:
+  flake-update:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2.4.0
+
+      - uses: cachix/install-nix-action@v15
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            substituters = https://nrdxp.cachix.org https://nix-community.cachix.org
+            trusted-public-keys = nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: Nix | Flake Update (latest versions to flake.lock)
+        run: make update
+
+      - name: SSH | Load deploy key to SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: |
+            ${{ secrets.GIT_REPO_SSH_KEY }}
+
+      - name: Git | Import GPG key to sign commits
+        id: git_import_gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GH_ACTIONS_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GH_ACTIONS_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Git | Commit & Push Flake updates
+        run: |
+          # Check for changes or exit soon
+          [[ -n $(git status -s) ]] || exit 0
+
+          git config --local user.email "${{ steps.git_import_gpg.outputs.email }}"
+          git config --local user.name "${{ steps.git_import_gpg.outputs.name }}"
+          git config --local user.signingkey "${{ steps.git_import_gpg.outputs.keyid }}"
+          git config --local url.ssh://git@github.com/.insteadOf https://github.com/
+
+          GIT_BRANCH_NAME=autoupdate-$(date +'%Y%m%d')
+          git checkout -b ${GIT_BRANCH_NAME}
+
+          git add -A
+          git commit -S -m "chore(flake): Updating Flake Lock"
+          git push origin ${GIT_BRANCH_NAME}
+
+          # Clean up so next execution won't fail on checkout trying to pull
+          # through SSH
+          rm -f ${GITHUB_WORKSPACE}/.git/config

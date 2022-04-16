@@ -11,14 +11,11 @@
   };
 
   # Use the latest kernel
-  boot.kernelPackages = pkgs.linuxPackages_5_10;
+  boot.kernelPackages = pkgs.linuxPackages_5_16;
 
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader = {
-    systemd-boot.enable = true;
-    efi.canTouchEfiVariables = true;
-  };
+  # Inherit the default boot loader: systemd
+  # boot.loader.systemd-boot.enable = true;
 }

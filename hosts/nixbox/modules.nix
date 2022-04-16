@@ -2,16 +2,8 @@
 
 {
   modules = {
-    hardware = {
-      audio.enable = true;
-      bluetooth.enable = true;
-      video = {
-        enable = true;
-        nvidia.enable = true;
-      };
-    };
-
     desktop = {
+      enable = true;
       awesomewm.enable = true;
 
       terminal = {
@@ -20,94 +12,66 @@
       };
 
       applications = {
-        calibre.enable = true;
-        rofi.enable = true;
         redshift.enable = true;
+        rofi.enable = true;
       };
 
       browsers = {
         default = "chromium";
         chromium.enable = true;
       };
-
-      gaming = {
-        lutris.enable = true;
-        steam = {
-          enable = true;
-          hardware.enable = true;
-        };
-      };
     };
 
     editors = {
       default = "vim";
-      emacs.enable = true;
+
+      # Without caching, building takes the full disk. Temporarily disabling
+      # emacs.enable = true;
+
       vim.enable = true;
     };
 
+    # Get as much development modules ON as possible, protect these ones at all
+    # cost! Search for issues and fix it, keep on dev'in!
     development = {
       cc.enable = true;
-      node.enable = true;
-      python.enable = true;
-      rust.enable = true;
-      ruby.enable = true;
+      elixir.enable = true;
 
-      java = {
+      python = {
         enable = true;
-        gradle.enable = true;
+        languageServer.enable = true;
+      };
+
+      lua = {
+        enable = true;
+        languageServer.enable = true;
+      };
+
+      rust = {
+        enable = true;
+        languageServer.enable = true;
       };
 
       go = {
         enable = true;
-        path = "/opt/go";
+        languageServer.enable = true;
       };
 
-      android = {
+      node = {
         enable = true;
-        path = "/opt/android";
-        includeBinToPath = true;
+        languageServer.enable = true;
       };
-
-      flutter = {
-        enable = true;
-        path = "/opt/flutter";
-      };
-    };
-
-    media = {
-      spotify = {
-        enable = true;
-        daemon = {
-          enable = true;
-
-          settings = {
-            global = {
-              username = "22l46w473dznfqimcwcetx4sa";
-              password_cmd = "pass show spotify/macunha";
-            };
-          };
-        };
-      };
-
-      mpv.enable = true;
     };
 
     networking = {
       kubernetes = {
         enable = true;
-
-        minikube = {
-          enable = true;
-          home = "/opt/minikube";
-        };
-
         helm.enable = true;
         kops.enable = true;
       };
 
       vagrant = {
         enable = true;
-        home = "/opt/vagrant";
         provider = "libvirt";
       };
 
@@ -121,10 +85,7 @@
     };
 
     shell = {
-      git.user = {
-        name = "Matheus Cunha";
-        email = "stdin@macunha.me";
-      };
+      git.user.name = "Matheus Cunha";
 
       zsh.enable = true;
       fzf.enable = true;
@@ -140,7 +101,6 @@
 
       docker = {
         enable = true;
-        nvidia.enable = true;
 
         storagePath = "/var/lib/docker";
       };

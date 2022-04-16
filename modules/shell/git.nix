@@ -14,7 +14,7 @@ with lib; {
     user = {
       name = mkOption {
         type = types.str;
-        default = "";
+        default = config.user.name;
         description = "git/config user.name to configure for commits";
       };
 
@@ -39,9 +39,15 @@ with lib; {
       "git/config".text = ''
         [user]
           name = ${config.modules.shell.git.user.name}
+          useconfigonly = true
+
+        ${if config.modules.shell.git.user.email != "" then ''
           email = ${config.modules.shell.git.user.email}
+        '' else
+          ""}
+
         ${if config.modules.shell.git.user.gpgSigningKeyId != "" then ''
-            signingkey = ${config.modules.shell.git.user.gpgSigningKeyId}
+          signingkey = ${config.modules.shell.git.user.gpgSigningKeyId}
 
           [commit]
             gpgsign = true'' else

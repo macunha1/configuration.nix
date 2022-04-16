@@ -6,7 +6,7 @@ with inputs; {
   imports = [
     # home-manager to manage the dotfiles under $HOME. Mostly using XDG base
     # dir spec for configurations
-    home-manager.nixosModules.home-manager
+    inputs.home-manager.nixosModules.home-manager
   ] ++ (mapModulesRec' (toString ./modules) import);
 
   ## Base Flake configuration
@@ -14,50 +14,59 @@ with inputs; {
 
   environment.variables = {
     DOTFILES = dotFilesDir;
-    # Configure nix and nixpkgs
+
+    # Configure nix and nixpkgs, necessary evil
     NIXPKGS_ALLOW_UNFREE = "1";
   };
 
-  nix = {
+  nix = let
+    filteredInputs = filterAttrs (n: _: n != "self") inputs;
+    nixPathInputs = mapAttrsToList (n: v: "${n}=${v}") filteredInputs;
+    registryInputs = mapAttrs (_: v: { flake = v; }) filteredInputs;
+  in {
     # Enable Flake experimental features
     package = pkgs.nixFlakes;
     extraOptions = "experimental-features = nix-command flakes";
 
-    nixPath = (mapAttrsToList (n: v: "${n}=${v}") inputs) ++ [
+    nixPath = nixPathInputs ++ [
       "nixpkgs-overlays=${dotFilesDir}/overlays"
       "dotfiles=${dotFilesDir}"
     ];
 
-    registry = {
-      nixos.flake = nixpkgs;
-      nixpkgs.flake = nixpkgs-unstable;
-    };
+    registry = registryInputs // { dotfiles.flake = inputs.self; };
 
     settings = {
       sandbox = true;
+      auto-optimise-store = true;
 
-      substituters = [ "https://nix-community.cachix.org" ];
+      substituters =
+        [ "https://nix-community.cachix.org" "https://nrdxp.cachix.org" ];
+
       trusted-public-keys = [
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4="
       ];
     };
   };
 
   ## Global defaults
-  # Enables 'nix flake check' for hosts when there's no fileSystem config.
+  # Enables 'nix flake check' for hosts even if there's no fileSystem config
   fileSystems."/".device = mkDefault "/dev/disk/by-label/nixos";
 
   boot.loader = {
     efi.canTouchEfiVariables = mkDefault true;
-    systemd-boot.configurationLimit = 10;
-    systemd-boot.enable = mkDefault true;
+
+    systemd-boot = {
+      enable = mkDefault true;
+      configurationLimit = mkDefault 10;
+    };
   };
 
   environment.systemPackages = with pkgs; [
     # Nix basics
     cached-nix-shell
     patchelf
-    nix-prefetch
+    # nix-prefetch # Use `nix store prefetch-file` instead
 
     # Linux basic utils
     coreutils

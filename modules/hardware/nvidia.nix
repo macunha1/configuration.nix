@@ -15,16 +15,40 @@ with lib; {
       default = false;
     };
 
-    # Whether or not to enable 32-bit support for libraries
     support32Bit.enable = mkOption {
       type = types.bool;
       default = false;
+
+      description =
+        "Whether or not to enable support for 32-bit libraries on 64-bit systems";
     };
 
-    # Whether or not to enable NVidia video (graphical) drivers
+    extra32BitPackages = mkOption {
+      type = types.listOf types.package;
+      default = [ ];
+
+      example = literalExpression ''
+        with pkgs.pkgsi686Linux; [
+          vaapiIntel
+          libvdpau-va-gl
+          vaapiVdpau
+        ]";
+      '';
+
+      description = ''
+        Additional packages to add to 32-bit OpenGL drivers on
+        64-bit systems. Used when <option>support32Bit</option> is
+        enabled.
+
+        This can be used to add OpenCL drivers, VA-API/VDPAU drivers etc.
+      '';
+    };
+
     nvidia.enable = mkOption {
       type = types.bool;
       default = false;
+
+      description = "Whether or not to enable NVIDIA graphical drivers";
     };
   };
 
@@ -36,6 +60,10 @@ with lib; {
         driSupport32Bit = config.modules.hardware.video.support32Bit.enable;
       };
     }
+
+    (mkIf config.modules.hardware.video.support32Bit.enable {
+      hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+    })
 
     (mkIf config.modules.hardware.video.nvidia.enable {
       services.xserver.videoDrivers = [ "nvidia" ];

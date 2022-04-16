@@ -25,16 +25,35 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.gaming.steam.enable {
-    hardware = {
-      opengl = {
-        enable = true;
-        driSupport32Bit = true;
-        extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+    # NOTE: config.modules.hardware corresponds to modules in this repository,
+    # they are subject to config.modules.hardware.{audio,video}.enable BEFORE
+    # evaluating the following. i.e.: video and audio MUST be enabled to install
+    # the 32-bit packages.
+    #
+    # Enjoy the UNOBTRUSIVE BEAUTY of a FP language!
+    modules.hardware = {
+      video = {
+        enable = trivial.warnIf (!config.modules.hardware.video.enable) ''
+          Steam is enabled but the video module isn't. Nix won't install
+              the required video libraries''
+          config.modules.hardware.video.enable;
+
+        support32Bit.enable = true;
+        extra32BitPackages = with pkgs.pkgsi686Linux; [ libva ];
       };
-      pulseaudio.support32Bit = config.modules.hardware.audio.enable;
-      steam-hardware.enable =
-        config.modules.desktop.gaming.steam.hardware.enable;
+
+      audio = {
+        enable = trivial.warnIf (!config.modules.hardware.audio.enable) ''
+          Steam is enabled but the audio module isn't. Nix won't install
+              the required audio libraries''
+          config.modules.hardware.audio.enable;
+
+        support32Bit.enable = true;
+      };
     };
+
+    hardware.steam-hardware.enable =
+      config.modules.desktop.gaming.steam.hardware.enable;
 
     user.packages = with pkgs; [
       steam
@@ -47,12 +66,18 @@ with lib; {
         icon = "steam";
         exec = "steam";
         terminal = "false";
-        mimeType = "x-scheme-handler/steam";
-        categories = "Network;FileTransfer;Game";
+        categories = [ "Network" "FileTransfer" "Game" ];
       })
     ];
 
-    # better for steam proton games
+    # When running Steam Windows games through Proton (Wine), the number of file
+    # descriptors can go sky-high due to esync, each synchronization object will
+    # create one eventfd descriptor, possibly reaching the limit of file
+    # descriptors.
+    #
+    # Let's not wait for a mental breakdown and increase it already
+    #
+    # Ref: https://github.com/zfigura/wine/blob/esync/README.esync
     systemd.extraConfig = "DefaultLimitNOFILE=1048576";
   };
 }
