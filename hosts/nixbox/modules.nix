@@ -24,10 +24,7 @@
 
     editors = {
       default = "vim";
-
-      # Without caching, building takes the full disk. Temporarily disabling
-      # emacs.enable = true;
-
+      emacs.enable = true;
       vim.enable = true;
     };
 
