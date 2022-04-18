@@ -52,7 +52,7 @@ jobs:
           git checkout -b ${GIT_BRANCH_NAME}
 
           git add -A
-          git commit -S -m "chore(flake): Updating Flake Lock"
+          git commit -S -m "chore(flake): [auto] Updating Flake Lock"
           git push origin ${GIT_BRANCH_NAME}
 
           # Clean up so next execution won't fail on checkout trying to pull

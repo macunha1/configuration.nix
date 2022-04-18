@@ -9,7 +9,7 @@
   };
 
   # Use the latest kernel
-  boot.kernelPackages = pkgs.linuxPackages_5_16;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
