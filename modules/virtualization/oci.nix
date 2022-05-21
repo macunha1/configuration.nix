@@ -20,7 +20,7 @@ with lib; {
 
   config = mkIf config.modules.virtualization.oci.enable {
     user = {
-      packages = with pkgs; [ buildah crun ];
+      packages = with pkgs; [ buildah crun containerd ];
       extraGroups = [ "containers" ];
     };
   };

@@ -95,12 +95,7 @@
 
     virtualization = {
       kvm2.enable = true;
-
-      docker = {
-        enable = true;
-
-        storagePath = "/var/lib/docker";
-      };
+      oci.enable = true;
     };
   };
 }
