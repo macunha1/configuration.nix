@@ -33,7 +33,7 @@ with lib; {
 
     user.packages = with pkgs; [
       pcmanfm # lightweight file manager
-      xfce.xfce4panel # system trail
+      xfce.xfce4-panel # system trail
 
       # Screenshooters
       scrot # Lightweight screenshooter
