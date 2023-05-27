@@ -23,7 +23,7 @@ with lib; {
 
   config = mkMerge [
     (mkIf config.modules.development.node.enable {
-      user.packages = with pkgs; [ unstable.nodejs-14_x yarn ];
+      user.packages = with pkgs; [ nodejs yarn ];
 
       env.NPM_CONFIG_USERCONFIG = "$XDG_CONFIG_HOME/npm/config";
       env.NPM_CONFIG_CACHE = "$XDG_CACHE_HOME/npm/cache";
