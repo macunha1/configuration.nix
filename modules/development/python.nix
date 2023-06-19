@@ -23,16 +23,16 @@ with lib; {
   config = mkIf config.modules.development.python.enable (mkMerge [
     {
       user.packages = with pkgs; [
-        python39Full
+        python311Full
 
         # Dependency (package) management
-        python39Packages.pip
+        python311Packages.pip
         pipenv # spin virtual envs like a god
 
-        python39Packages.pytest
-        python39Packages.autopep8 # pep8 prettify
-        python39Packages.flake8 # code lint
-        python39Packages.setuptools # distutils++
+        python311Packages.pytest
+        python311Packages.autopep8 # pep8 prettify
+        python311Packages.flake8 # code lint
+        python311Packages.setuptools # distutils++
       ];
 
       env.PYTHONSTARTUP = "$XDG_CONFIG_HOME/python/pythonrc";
@@ -49,7 +49,7 @@ with lib; {
     }
 
     (mkIf config.modules.development.python.languageServer.enable {
-      user.packages = with pkgs; [ python39Packages.jedi ];
+      user.packages = with pkgs; [ python311Packages.jedi ];
     })
   ]);
 }
