@@ -16,6 +16,13 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  # Inherit the default boot loader: systemd
-  # boot.loader.systemd-boot.enable = true;
+  boot.loader = {
+    efi.canTouchEfiVariables = lib.mkDefault true;
+
+    # Inherit the default boot loader: systemd
+    systemd-boot = {
+      enable = lib.mkDefault true;
+      configurationLimit = lib.mkDefault 10;
+    };
+  };
 }

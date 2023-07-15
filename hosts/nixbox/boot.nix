@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   boot.initrd = {
@@ -21,4 +21,14 @@
   #     version = 2;
   #   };
   # };
+
+  boot.loader = {
+    efi.canTouchEfiVariables = lib.mkDefault true;
+
+    systemd-boot = {
+      enable = lib.mkDefault true;
+      configurationLimit = lib.mkDefault 10;
+    };
+  };
+
 }

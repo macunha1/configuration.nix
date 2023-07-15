@@ -20,8 +20,7 @@ with lib; {
       binutils # native-comp needs 'as', provided by this
 
       # Emacs 29 with Native Compilation and Pure GTK3 (pgtk)
-      ((emacsPackagesFor emacsPgtkNativeComp).emacsWithPackages
-        (epkgs: [ epkgs.vterm ]))
+      ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.vterm ]))
 
       (ripgrep.override { withPCRE2 = true; })
 

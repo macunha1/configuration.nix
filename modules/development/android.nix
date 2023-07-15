@@ -6,13 +6,13 @@ with lib;
 let
   androidPackages = pkgs.androidenv.composeAndroidPackages {
     platformVersions = [ "28" "29" "30" ];
-    platformToolsVersion = "31.0.3";
+    platformToolsVersion = "34.0.1";
     toolsVersion = "26.1.1";
-    buildToolsVersions = [ "30.0.3" ];
+    buildToolsVersions = [ "33.0.2" ];
     abiVersions = [ "x86" "x86_64" ];
 
     includeEmulator = true;
-    emulatorVersion = "30.9.0";
+    emulatorVersion = "33.1.6";
   };
 in {
   options.modules.development.android = {

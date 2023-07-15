@@ -27,7 +27,13 @@ with lib; {
       hardware.pulseaudio = {
         # Add Bluetooth support to pulseaudio when both are enabled
         package = pkgs.pulseaudioFull;
-        extraModules = [ pkgs.pulseaudio-modules-bt ];
+
+        # NOTE: Removed due to the following.
+        #
+        # error: pulseaudio-modules-bt has been abandoned, and is superseded by
+        # pulseaudio's native bt functionality
+        #
+        # extraModules = [ pkgs.pulseaudio-modules-bt ];
       };
     })
   ]);
