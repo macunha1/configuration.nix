@@ -2,12 +2,13 @@
 name: Nix Build
 
 on:
-  pull_request:
-  push:
+  workflow_dispatch:
+#   pull_request:
+#   push:
 
 jobs:
   tests:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2.4.0
