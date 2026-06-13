@@ -1,0 +1,45 @@
+# hosts/macbook/local.nix.example
+#
+# This file shows the shape of the machine-local override module.
+# The real file lives OUTSIDE the flake at ~/.config/home-manager/local.nix
+# so it is never committed to the public repository.
+#
+# Setup on a new machine:
+#
+#   mkdir -p ~/.config/home-manager
+#   cp hosts/macbook/local.nix.example ~/.config/home-manager/local.nix
+#   # edit ~/.config/home-manager/local.nix with your values
+#
+# Then switch with the --impure flag so Nix can read the file from the
+# filesystem (it lives outside the flake source tree):
+#
+#   home-manager switch --flake .#mcunha --impure
+
+{ ... }:
+
+{
+  programs.git = {
+    settings = {
+      commit.gpgsign = true;
+      gpg.program = "/opt/homebrew/bin/gpg";
+      init.defaultBranch = "master";
+
+      url = {
+        "git@gitlab.com:YourOrg" = {
+          insteadOf = "https://gitlab.com/YourOrg";
+        };
+      };
+    };
+
+    includes = [
+      {
+        condition = "gitdir:~/Workspace/gitlab.com/YourOrg/";
+        path = "~/.config/git/configs/work";
+      }
+      {
+        condition = "gitdir:~/Workspace/github.com/youruser/";
+        path = "~/.config/git/configs/personal";
+      }
+    ];
+  };
+}

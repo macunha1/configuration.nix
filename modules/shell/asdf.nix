@@ -8,9 +8,19 @@
 # Helps enormously when managing many fleets of servers where some tools are
 # diverging such as Kops, Terraform and even JQ.
 
-{ config, options, pkgs, lib, ... }:
+{ config, options, pkgs, lib, isDarwin ? pkgs.stdenv.isDarwin, ... }:
 
-with lib; {
+with lib;
+
+let
+  asdfSrc = pkgs.fetchFromGitHub {
+    owner = "asdf-vm";
+    repo = "asdf";
+    rev = "ac1a35b85bde049b9e2d531032eb55534e38ffe7";
+    sha256 = "1mdj5alllbafy8r47fna5daib5idi99a72312xvacsd2597id28h";
+  };
+in
+{
   options.modules.shell.asdf = {
     enable = mkOption {
       type = types.bool;
@@ -18,22 +28,28 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.shell.asdf.enable {
-    home.dataFile."asdf" = {
-      source = pkgs.fetchFromGitHub {
-        owner = "asdf-vm";
-        repo = "asdf";
-        rev = "ac1a35b85bde049b9e2d531032eb55534e38ffe7";
-        sha256 = "1mdj5alllbafy8r47fna5daib5idi99a72312xvacsd2597id28h";
-      };
-    };
+  config = mkIf config.modules.shell.asdf.enable (mkMerge [
 
-    env.ASDF_DATA_DIR = "$XDG_CACHE_HOME/asdf";
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) {
+      home.dataFile."asdf".source = asdfSrc;
+      env.ASDF_DATA_DIR = "$XDG_CACHE_HOME/asdf";
+    })
 
-    # Bash autocompletion + initialization
-    modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''
-      source "$XDG_DATA_HOME/asdf/asdf.sh"
-      source "$XDG_DATA_HOME/asdf/completions/asdf.bash"
-    '';
-  };
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin {
+      xdg.dataFile."asdf".source = asdfSrc;
+      modules.shell.zsh.env = ''
+        export ASDF_DATA_DIR="${config.xdg.cacheHome}/asdf"
+      '';
+    })
+
+    # Both platforms: source asdf init when zsh is enabled.
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.init = ''
+        source "$XDG_DATA_HOME/asdf/asdf.sh"
+        source "$XDG_DATA_HOME/asdf/completions/asdf.bash"
+      '';
+    })
+  ]);
 }

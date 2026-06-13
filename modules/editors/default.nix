@@ -1,4 +1,4 @@
-{ config, options, lib, pkgs, ... }:
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
 with lib; {
   options.modules.editors = {
     default = mkOption {
@@ -7,8 +7,12 @@ with lib; {
     };
   };
 
-  config = mkIf (config.modules.editors.default != null) {
-    # Helps when using git from the terminal, i.e. 100% of times
-    env.EDITOR = config.modules.editors.default;
-  };
+  config = mkIf (config.modules.editors.default != null) (mkMerge [
+    (optionalAttrs (!isDarwin) {
+      env.EDITOR = config.modules.editors.default;
+    })
+    (optionalAttrs isDarwin {
+      home.sessionVariables.EDITOR = config.modules.editors.default;
+    })
+  ]);
 }

@@ -3,9 +3,24 @@
 # Simple CLI util that takes advantage of GNU Privacy Guards to encrypt files
 # and store secrets locally. In-a-nutshell: a wrapper for 'gpg' with directory
 # management for the encrypted content.
+#
+# Linux: user.packages + env.PASSWORD_STORE_DIR.
+# Darwin: home.packages + home.sessionVariables.PASSWORD_STORE_DIR.
 
-{ config, options, pkgs, lib, ... }:
-with lib; {
+{ config, options, pkgs, lib, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+
+with lib;
+
+let
+  passPackages = with pkgs; [
+    (pass.withExtensions (exts: [ exts.pass-otp ])) # OTP support (2FA codes in pass)
+    expect  # automates interactive password prompts
+    pwgen   # generates randomized, memorable passwords
+  ];
+
+  passwordStoreDir = "$XDG_CONFIG_HOME/pass";
+in
+{
   options.modules.shell.pass = {
     enable = mkOption {
       type = types.bool;
@@ -13,14 +28,18 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.shell.pass.enable {
-    user.packages = with pkgs; [
-      (pass.withExtensions (exts: [ exts.pass-otp ]))
+  config = mkIf config.modules.shell.pass.enable (mkMerge [
 
-      expect # handles passwords from storage
-      pwgen # generates randomized passwords
-    ];
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) {
+      user.packages = passPackages;
+      env.PASSWORD_STORE_DIR = passwordStoreDir;
+    })
 
-    env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
-  };
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin {
+      home.packages = passPackages;
+      home.sessionVariables.PASSWORD_STORE_DIR = passwordStoreDir;
+    })
+  ]);
 }

@@ -1,1 +1,4 @@
 result
+
+# Machine-local overrides (private values like email, signing keys)
+hosts/*/local.nix

@@ -6,9 +6,31 @@
 #
 # Jokes apart, this is the best option to keep fleets of VMs updated when
 # HashiCorp Packer and Kubernetes aren't easy/feasible options.
+#
+# Linux: user.packages + env = ansibleEnvVars.
+# Darwin: home.packages + home.sessionVariables = ansibleEnvVars.
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+
+with lib;
+
+let
+  ## my.molecule is a custom overlay package; may require the overlay on Darwin.
+  ansiblePackages = with pkgs; [
+    ansible-lint # best-practice rule checker for playbooks
+    my.molecule  # test framework for Ansible roles
+    ansible      # the automation engine itself
+  ];
+
+  ## XDG-compliant Ansible paths — same values on both platforms.
+  ansibleEnvVars = {
+    ANSIBLE_ROLES_PATH       = "$XDG_DATA_HOME/ansible/galaxy/roles";
+    ANSIBLE_COLLECTIONS_PATH = "$XDG_DATA_HOME/ansible/galaxy/collections";
+    ANSIBLE_GALAXY_CACHE_DIR = "$XDG_DATA_HOME/ansible/galaxy/cache";
+    ANSIBLE_GALAXY_TOKEN_PATH = "$XDG_CONFIG_HOME/ansible/galaxy/token";
+  };
+in
+{
   options.modules.networking.ansible = {
     enable = mkOption {
       type = types.bool;
@@ -16,13 +38,18 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.networking.ansible.enable {
-    user.packages = with pkgs; [ ansible-lint my.molecule ansible ];
+  config = mkIf config.modules.networking.ansible.enable (mkMerge [
 
-    env.ANSIBLE_ROLES_PATH = "$XDG_DATA_HOME/ansible/galaxy/roles";
-    env.ANSIBLE_COLLECTIONS_PATH = "$XDG_DATA_HOME/ansible/galaxy/collections";
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) {
+      user.packages = ansiblePackages;
+      env = ansibleEnvVars;
+    })
 
-    env.ANSIBLE_GALAXY_CACHE_DIR = "$XDG_DATA_HOME/ansible/galaxy/cache";
-    env.ANSIBLE_GALAXY_TOKEN_PATH = "$XDG_CONFIG_HOME/ansible/galaxy/token";
-  };
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin {
+      home.packages = ansiblePackages;
+      home.sessionVariables = ansibleEnvVars;
+    })
+  ]);
 }

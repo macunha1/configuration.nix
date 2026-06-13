@@ -1,9 +1,22 @@
 # development/go.nix -- https://golang.org
 #
 # The de-facto cloud system's programming language.
+#
+# Linux: packages from pkgs.unstable (including libcap, a Linux-only dep).
+# Darwin: packages from pkgs; libcap is a Linux kernel capability API and
+#         is not available on macOS.
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+
+with lib;
+
+let
+  ## Go environment — same values on both platforms.
+  goEnvVars = {
+    GOPATH = config.modules.development.go.path;
+  };
+in
+{
   options.modules.development.go = {
     enable = mkOption {
       type = types.bool;
@@ -29,17 +42,40 @@ with lib; {
   };
 
   config = mkIf config.modules.development.go.enable (mkMerge [
-    {
-      user.packages = with pkgs.unstable; [ libcap go ];
-      env.GOPATH = config.modules.development.go.path;
-    }
 
-    (mkIf config.modules.development.go.languageServer.enable {
-      user.packages = with pkgs.unstable; [ gopls ];
-    })
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) (mkMerge [
+      {
+        user.packages = with pkgs.unstable; [
+          libcap # Linux-only: POSIX capabilities (used by some Go tools)
+          go
+        ];
+        env = goEnvVars;
+      }
 
-    (mkIf config.modules.development.go.includeBinToPath {
-      env.PATH = [ "$GOPATH/bin" ];
-    })
+      (mkIf config.modules.development.go.languageServer.enable {
+        user.packages = with pkgs.unstable; [ gopls ];
+      })
+
+      (mkIf config.modules.development.go.includeBinToPath {
+        env.PATH = [ "$GOPATH/bin" ];
+      })
+    ]))
+
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin (mkMerge [
+      {
+        home.packages = with pkgs; [ go ];
+        home.sessionVariables = goEnvVars;
+      }
+
+      (mkIf config.modules.development.go.languageServer.enable {
+        home.packages = with pkgs; [ gopls ];
+      })
+
+      (mkIf config.modules.development.go.includeBinToPath {
+        home.sessionPath = [ "$GOPATH/bin" ];
+      })
+    ]))
   ]);
 }

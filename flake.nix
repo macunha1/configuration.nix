@@ -66,6 +66,9 @@
       # configurations that made this transition hard.
       system = "x86_64-linux";
 
+      # Primary macOS target (Apple Silicon). Change to "x86_64-darwin" for Intel.
+      darwinSystem = "aarch64-darwin";
+
       tests = import ./tests;
 
       mkPkgs = pkgs: extraOverlays:
@@ -83,7 +86,7 @@
           overlays = extraOverlays ++ (attrValues self.overlays);
         };
 
-      pkgs = mkPkgs nixpkgs [ self.overlay ];
+      pkgs = mkPkgs nixpkgs [ self.overlay inputs.emacs-overlay.overlay ];
       uPkgs = mkPkgs nixpkgs-unstable [ ];
 
       lib = nixpkgs.lib.extend (self: super: {
@@ -113,5 +116,28 @@
       nixosConfigurations = mapHosts ./hosts { inherit system; };
 
       devShell."${system}" = import ./shell.nix { inherit pkgs; };
+
+      ## macOS standalone home-manager configurations
+      #
+      # Activate with: home-manager switch --flake .#mcunha
+      # First-time setup: nix run nixpkgs#home-manager -- switch --flake .#mcunha
+      homeConfigurations."mcunha" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = darwinSystem;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
+          overlays = [
+            (final: prev: {
+              unstable = import nixpkgs-unstable {
+                system = darwinSystem;
+                config.allowUnfree = true;
+              };
+            })
+            inputs.emacs-overlay.overlay
+          ] ++ (attrValues self.overlays);
+        };
+        modules = [ ./hosts/macbook/home.nix ];
+        extraSpecialArgs = { inherit inputs; isDarwin = true; };
+      };
     };
 }

@@ -1,5 +1,5 @@
 if (( $+commands[kubectl] )); then
-    __KUBECTL_COMPLETION_FILE="${ZSH_CACHE_DIR}/kubectl_completion"
+    __KUBECTL_COMPLETION_FILE="${ZSH_CACHE:-${XDG_CACHE_HOME}/zsh}/kubectl_completion"
 
     if [[ ! -f $__KUBECTL_COMPLETION_FILE ]]; then
         kubectl completion zsh >! $__KUBECTL_COMPLETION_FILE

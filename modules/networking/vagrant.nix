@@ -6,7 +6,7 @@
 # Vagrant enables users to create and configure lightweight, reproducible, and
 # portable development environments.
 
-{ config, options, lib, pkgs, ... }:
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
 with lib; {
   options.modules.networking.vagrant = {
     enable = mkOption {
@@ -35,27 +35,29 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.networking.vagrant.enable {
-    user.packages = with pkgs; [ vagrant ];
+  # Vagrant + libvirt is Linux-only; no Darwin equivalent.
+  config = mkIf config.modules.networking.vagrant.enable
+    (optionalAttrs (!isDarwin) {
+      user.packages = with pkgs; [ vagrant ];
 
-    # NOTE: Unofficial Vagrant variables from macunha1/Vagrantfiles
-    # Ref: https://github.com/macunha1/Vagrantfiles
-    env.VAGRANT_CPU_CORE = (toString config.modules.networking.vagrant.vCpus);
-    env.VAGRANT_RAM_GB = (toString config.modules.networking.vagrant.ramInGB);
-    env.VAGRANT_PROVIDER = config.modules.networking.vagrant.provider;
+      # NOTE: Unofficial Vagrant variables from macunha1/Vagrantfiles
+      # Ref: https://github.com/macunha1/Vagrantfiles
+      env.VAGRANT_CPU_CORE = (toString config.modules.networking.vagrant.vCpus);
+      env.VAGRANT_RAM_GB = (toString config.modules.networking.vagrant.ramInGB);
+      env.VAGRANT_PROVIDER = config.modules.networking.vagrant.provider;
 
-    env.VAGRANT_HOME = config.modules.networking.vagrant.home;
+      env.VAGRANT_HOME = config.modules.networking.vagrant.home;
 
-    home.dataFile."vagrant" = {
-      source = pkgs.fetchFromGitHub {
-        owner = "macunha1";
-        repo = "Vagrantfiles";
+      home.dataFile."vagrant" = {
+        source = pkgs.fetchFromGitHub {
+          owner = "macunha1";
+          repo = "Vagrantfiles";
 
-        rev = "16a1c428e4fcb8abc411a5de8e914380b5dee796";
-        sha256 = "1f38nrm49vhlr3l0r8x8pq6sqlv5ym0cg17m4yish3i4lq9xh7xl";
+          rev = "16a1c428e4fcb8abc411a5de8e914380b5dee796";
+          sha256 = "1f38nrm49vhlr3l0r8x8pq6sqlv5ym0cg17m4yish3i4lq9xh7xl";
+        };
+
+        recursive = true; # allows to have writable .vagrant dirs inside
       };
-
-      recursive = true; # allows to have writable .vagrant dirs inside
-    };
-  };
+    });
 }

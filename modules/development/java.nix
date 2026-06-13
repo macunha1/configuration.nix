@@ -4,12 +4,20 @@
 # You are the perfect mid-term between performance and productivity.
 # I've tried to avoid you for many years, but I can't resist.
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+
+with lib;
+
+let
+  gradleEnvVars = {
+    GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
+  };
+in
+{
   options.modules.development.java = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
     };
 
     gradle = {
@@ -29,14 +37,26 @@ with lib; {
     {
       programs.java = {
         enable = true;
-        package = pkgs.openjdk11;
+        package = pkgs.openjdk21; # Java 21 LTS (supported until Sep 2031)
       };
     }
 
-    (mkIf config.modules.development.java.gradle.enable {
-      user.packages = with pkgs; [ gradle ];
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) (
+      mkIf config.modules.development.java.gradle.enable {
+        user.packages = with pkgs; [ gradle ];
+        env = gradleEnvVars;
+      }
+    ))
 
-      env.GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
-    })
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin (
+      mkIf config.modules.development.java.gradle.enable {
+        home.packages = with pkgs; [ gradle ];
+        modules.shell.zsh.env = ''
+          export GRADLE_USER_HOME="${config.modules.development.java.gradle.userHome}"
+        '';
+      }
+    ))
   ]);
 }

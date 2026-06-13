@@ -2,7 +2,7 @@
 #
 # The powerful GPU-accelerated terminal fully written in Rust. Flawless!
 
-{ options, config, lib, pkgs, ... }:
+{ options, config, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
 
 with lib;
 with lib.my; {
@@ -22,7 +22,7 @@ with lib.my; {
         ''[[ "$TERM" = "alacritty" ]] && export TERM=xterm-256color'';
     }
 
-    (mkIf pkgs.stdenv.isDarwin {
+    (optionalAttrs isDarwin {
       home.configFile."alacritty/alacritty.yml" = {
         source = "${configDir}/alacritty/macos.yaml";
       };

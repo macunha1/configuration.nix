@@ -7,9 +7,38 @@
 # system. On top of that at this point in time it doesn't even matter if you're
 # using cloud, as you might as well order a Domino's pizza using Terraform.
 # Ref: https://github.com/ndmckinley/terraform-provider-dominos
+#
+# NOTE: This module won't install Terraform due to the highly inconsistent
+# amount of versions available (and in use) on the market. Instead, version
+# managers with support for Terraform are encouraged, either "tfenv" or
+# "asdf" with direnv integrated.
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+
+with lib;
+
+let
+  # Terraform rc.hcl - same content on both platforms.
+  # Disables telemetry and sets a shared plugin cache to avoid re-downloading.
+  terraformRcText = ''
+    plugin_cache_dir = "$XDG_CACHE_HOME/terraform/plugins"
+
+    disable_checkpoint           = true
+    disable_checkpoint_signature = true
+  '';
+
+  # ZSH plugin - fetched by Nix so it is pinned and reproducible.
+  # Previously loaded via antigen (runtime download); this replaces that.
+  # The plugin extends OMZ's terraform support but has no OMZ dependency,
+  # so it survives the planned OMZ removal.
+  zshPlugin = pkgs.fetchFromGitHub {
+    owner = "macunha1";
+    repo  = "zsh-terraform";
+    rev    = "fd1471d3757f8ed13f56c4426f88616111de2a87";
+    sha256 = "02pw5xg72axdz7vcx0bk6hxi5a19xdpcqfg8vwzhd3nqyyvdfygk";
+  };
+in
+{
   options.modules.networking.terraform = {
     enable = mkOption {
       type = types.bool;
@@ -17,23 +46,28 @@ with lib; {
     };
   };
 
-  config = mkIf config.modules.networking.terraform.enable {
+  config = mkIf config.modules.networking.terraform.enable (mkMerge [
 
-    # NOTE: This module won't install Terraform due to the highly inconsistent
-    # amount of versions available (and in use) on the market. Instead, version
-    # managers with support for Terraform are encouraged, either "tfenv" or
-    # "asdf" with direnv integrated.
-    #
-    # ASDF module (modules/shell/asdf.nix) is enabled on nixosmos/modules.nix
-    # that serves as an implementation example.
+    # Source the zsh plugin on both platforms when zsh is active.
+    # Sourced from the Nix store - no antigen/OMZ required.
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.init = ''
+        source "${zshPlugin}/terraform.plugin.zsh"
+      '';
+    })
 
-    home.configFile."terraform/rc.hcl".text = ''
-      plugin_cache_dir = "$XDG_CACHE_HOME/terraform/plugins"
+    # Linux (NixOS)
+    (optionalAttrs (!isDarwin) {
+      home.configFile."terraform/rc.hcl".text = terraformRcText;
+      env.TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
+    })
 
-      disable_checkpoint           = true
-      disable_checkpoint_signature = true
-    '';
-
-    env.TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
-  };
+    # Darwin (MacOS)
+    (optionalAttrs isDarwin {
+      xdg.configFile."terraform/rc.hcl".text = terraformRcText;
+      modules.shell.zsh.env = ''
+        export TF_CLI_CONFIG_FILE="${config.xdg.configHome}/terraform/rc.hcl"
+      '';
+    })
+  ]);
 }
