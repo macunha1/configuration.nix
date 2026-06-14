@@ -10,8 +10,15 @@
 # implementation using alternative tools, such as runc
 # Ref: https://github.com/opencontainers/runc
 
-{ config, options, pkgs, lib, ... }:
-with lib; {
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+with lib;
+{
   options.modules.virtualization.docker = {
     enable = mkOption {
       type = types.bool;
@@ -49,7 +56,7 @@ with lib; {
         autoPrune.enable = true;
 
         extraOptions = "-g ${config.modules.virtualization.docker.storagePath}";
-        package = pkgs.unstable.docker;
+        package = pkgs.docker;
         enableNvidia = config.modules.virtualization.docker.nvidia.enable;
         enableOnBoot = config.modules.virtualization.docker.onBoot.enable;
       };

@@ -19,6 +19,10 @@
     };
 
     development = {
+      python = {
+        enable = true;
+      };
+
       node = {
         enable = true;
         bun.enable = true;
@@ -30,6 +34,13 @@
       };
     };
 
-    networking.terraform.enable = true;
+    networking = {
+      kubernetes = {
+        enable = true;
+        helm.enable = true;
+      };
+
+      terraform.enable = true;
+    };
   };
 }

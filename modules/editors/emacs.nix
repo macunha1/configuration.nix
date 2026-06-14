@@ -9,7 +9,14 @@
 #   git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 #   ~/.config/emacs/bin/doom install
 
-{ config, lib, pkgs, inputs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -18,20 +25,28 @@ let
   # Platform-specific packages (emacs binary, binutils, pinentry, fonts) are added per-section.
   sharedDeps = with pkgs; [
     (ripgrep.override { withPCRE2 = true; }) # :tools ripgrep (faster than silver-searcher)
-    gnutls                                    # TLS for Emacs-as-browser / package fetching
-    zstd                                      # undo-fu-session / undo-tree compression
-    fd                                        # fast file indexer (projectile / consult)
+    gnutls # TLS for Emacs-as-browser / package fetching
+    zstd # undo-fu-session / undo-tree compression
+    fd # fast file indexer (projectile / consult)
 
     # Doom module dependencies
     # :checkers spell
-    (aspellWithDicts (ds: with ds; [ en en-computers en-science ]))
+    (aspellWithDicts (
+      ds: with ds; [
+        en
+        en-computers
+        en-science
+      ]
+    ))
     # :tools lookup & :lang org +roam
     sqlite
     # :tools editorconfig
     editorconfig-core-c
   ];
 
-  emacsAliases = { e = "emacs"; };
+  emacsAliases = {
+    e = "emacs";
+  };
 in
 {
   options.modules.editors.emacs = {
@@ -45,19 +60,22 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [
-        binutils # native-comp needs 'as', provided by binutils
+      user.packages =
+        with pkgs;
+        [
+          binutils # native-comp needs 'as', provided by binutils
 
-        # Emacs 29+ with Native Compilation and Pure GTK3 (pgtk) for Wayland
-        ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.vterm ]))
+          # Emacs 29+ with Native Compilation and Pure GTK3 (pgtk) for Wayland
+          ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.vterm ]))
 
-      ] ++ sharedDeps ++ [
+        ]
+        ++ sharedDeps
+        ++ [
 
-        (mkIf (config.programs.gnupg.agent.enable)
-          pinentry_emacs) # in-emacs gnupg prompts
+          (mkIf (config.programs.gnupg.agent.enable) pinentry_emacs) # in-emacs gnupg prompts
 
-        languagetool # :checkers grammar
-      ];
+          languagetool # :checkers grammar
+        ];
 
       env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ]; # doom sync, doom upgrade, etc.
 
@@ -69,11 +87,14 @@ in
     # Darwin (MacOS)
     # emacs-overlay is already applied to darwin pkgs in flake.nix
     (optionalAttrs isDarwin {
-      home.packages = with pkgs; [
-        # macOS-native Emacs; emacs-pgtk is Linux/GTK-only
-        ((emacsPackagesFor emacs-macport).emacsWithPackages (epkgs: [ epkgs.vterm ]))
+      home.packages =
+        with pkgs;
+        [
+          # macOS-native Emacs; emacs-pgtk is Linux/GTK-only
+          ((emacsPackagesFor emacs-macport).emacsWithPackages (epkgs: [ epkgs.vterm ]))
 
-      ] ++ sharedDeps;
+        ]
+        ++ sharedDeps;
 
       modules.shell.zsh.env = ''
         export PATH="${config.xdg.configHome}/emacs/bin:$PATH"

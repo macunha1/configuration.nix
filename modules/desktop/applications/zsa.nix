@@ -4,8 +4,15 @@
 # configurator. ZSA is the company behind ErgoDox, Moonlander and Planck.
 # Ref: https://configure.zsa.io/
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.desktop.applications.zsa = {
     enable = mkOption {
       type = types.bool;
@@ -14,7 +21,7 @@ with lib; {
   };
 
   config = mkIf config.modules.desktop.applications.zsa.enable {
-    user.packages = [ pkgs.unstable.wally-cli ];
+    user.packages = [ pkgs.wally-cli ];
 
     hardware.keyboard.zsa.enable = true;
 

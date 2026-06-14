@@ -1,8 +1,15 @@
 # desktop/terminal -- default configuration among installations
 
-{ config, options, lib, pkgs, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.desktop.terminal = {
     default = mkOption {
       type = with types; nullOr str;

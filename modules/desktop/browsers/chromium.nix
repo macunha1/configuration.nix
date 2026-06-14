@@ -5,8 +5,15 @@
 # and GPU processing capabilities which are IMHO big selling points in
 # comparison to Firefox.
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.desktop.browsers.chromium = {
     enable = mkOption {
       type = types.bool;

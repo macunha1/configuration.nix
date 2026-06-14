@@ -2,9 +2,10 @@
 
 with lib;
 with lib.my;
-let system = "x86_64-linux";
-in {
-  mkHost = path: attrs @ { system ? system, ... }:
+let
+  defaultSystem = "x86_64-linux";
+
+  mkHost = path: attrs @ { system ? defaultSystem, ... }:
     nixosSystem {
       inherit system;
       specialArgs = { inherit lib inputs; };
@@ -18,8 +19,8 @@ in {
         (import path)
       ];
     };
-
-  mapHosts = dir: attrs @ { system ? system, ... }:
+in {
+  mapHosts = dir: attrs @ { system ? defaultSystem, ... }:
     mapModules dir
       (hostPath: mkHost hostPath attrs);
 }

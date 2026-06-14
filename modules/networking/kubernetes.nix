@@ -6,19 +6,74 @@
 # Both platforms wrap kubectl to enforce XDG config path (upstream ignores XDG).
 # Ref: https://github.com/kubernetes/kubernetes/issues/56402
 #
-# Linux: pkgs.unstable.kubectl, docker-machine-kvm2 for minikube.
+# Linux: kubectl, QEMU/KVM support for minikube.
 # Darwin: pkgs.kubectl, minikube without KVM (uses hyperkit/qemu).
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   # XDG-compliant Kubernetes paths - same values on both platforms.
   kubeEnvVars = {
-    KUBECONFIG = "$XDG_CONFIG_HOME/kubectl/config";
-    KUBECACHE  = "$XDG_CACHE_HOME/kubectl/cache";
+    KUBECONFIG = "${config.xdg.configHome}/kubectl/config";
+    KUBECACHE = "${config.xdg.cacheHome}/kubectl/cache";
   };
+
+  kubernetesEnvVars =
+    optionalAttrs config.modules.networking.kubernetes.minikube.enable {
+      MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
+    }
+    // optionalAttrs config.modules.networking.kubernetes.helm.enable {
+      HELM_PLUGIN_DIR = "${config.xdg.dataHome}/helm";
+    };
+
+  kubernetesPackages =
+    [ ]
+    ++ optional config.modules.networking.kubernetes.helm.enable helm
+    ++ optional config.modules.networking.kubernetes.kops.enable kops;
+
+  kubectl = pkgs.writeScriptBin "kubectl" ''
+    #!${pkgs.stdenv.shell}
+    ${generatedFileWarning { file = ./kubernetes.nix; }}
+    exec ${pkgs.kubectl}/bin/kubectl \
+         --cache-dir "$KUBECACHE" "$@"
+  '';
+
+  helm = pkgs.my.helm or (pkgs.callPackage ../../packages/helm.nix { });
+
+  kops = pkgs.kops.overrideAttrs (
+    finalAttrs: previousAttrs: {
+      version = "1.35.1";
+
+      src = pkgs.fetchFromGitHub {
+        owner = "kubernetes";
+        repo = "kops";
+        rev = "v${finalAttrs.version}";
+        hash = "sha256-v2oudbdzbeEr4dlEgEs0+TqBqdmdhnlzwcrEt6BTLXk=";
+      };
+
+      ldflags = [
+        "-s"
+        "-w"
+        "-X k8s.io/kops.Version=${finalAttrs.version}"
+        "-X k8s.io/kops.GitVersion=${finalAttrs.version}"
+      ];
+    }
+  );
 in
 {
   options.modules.networking.kubernetes = {
@@ -30,7 +85,7 @@ in
     minikube = {
       enable = mkOption {
         type = types.bool;
-        default = config.modules.networking.kubernetes.enable;
+        default = false;
       };
 
       home = mkOption {
@@ -58,77 +113,49 @@ in
       modules.shell.zsh.init = ''
         source ${../../config/kubectl/zsh/kubectl.plugin.zsh}
       '';
+
+      modules.shell.zsh.env = ''
+        ${concatStringsSep "\n" (
+          mapAttrsToList (name: value: ''export ${name}="${value}"'') (kubeEnvVars // kubernetesEnvVars)
+        )}
+      '';
     })
+
+    (mkIf (kubernetesPackages != [ ]) (
+      optionalAttrs isDarwin { home.packages = kubernetesPackages; }
+      // optionalAttrs (!isDarwin) { user.packages = kubernetesPackages; }
+    ))
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) (mkMerge [
       {
-        user.packages = with pkgs; [
-          (writeScriptBin "kubectl" ''
-            #!${stdenv.shell}
-            exec ${unstable.kubectl}/bin/kubectl \
-                 --cache-dir $KUBECACHE "$@"
-          '')
-        ];
+        user.packages = [ kubectl ];
 
         env = kubeEnvVars;
       }
 
+      (mkIf (kubernetesEnvVars != { }) {
+        env = kubernetesEnvVars;
+      })
+
       (mkIf config.modules.networking.kubernetes.minikube.enable {
         user.packages = with pkgs; [
-          minikube
-          docker-machine-kvm2 # KVM-backed VM driver for minikube on Linux
+          (minikube.override { withQemu = true; })
+          qemu_kvm # QEMU/KVM-backed VM driver for minikube on Linux
         ];
-
-        env.MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
-      })
-
-      (mkIf config.modules.networking.kubernetes.helm.enable {
-        user.packages = with pkgs; [ unstable.kubernetes-helm ];
-        env.HELM_PLUGIN_DIR = "$XDG_DATA_HOME/helm";
-      })
-
-      (mkIf config.modules.networking.kubernetes.kops.enable {
-        user.packages = with pkgs; [ kops ];
       })
     ]))
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin (mkMerge [
       {
-        home.packages = with pkgs; [
-          (writeScriptBin "kubectl" ''
-            #!${stdenv.shell}
-            exec ${kubectl}/bin/kubectl \
-                 --cache-dir $KUBECACHE "$@"
-          '')
-        ];
-
-        modules.shell.zsh.env = ''
-          export KUBECONFIG="${config.xdg.configHome}/kubectl/config"
-          export KUBECACHE="${config.xdg.cacheHome}/kubectl/cache"
-        '';
+        home.packages = [ kubectl ];
       }
 
       (mkIf config.modules.networking.kubernetes.minikube.enable {
         home.packages = with pkgs; [
           minikube # uses hyperkit or qemu on macOS; no KVM driver
         ];
-
-        modules.shell.zsh.env = ''
-          export MINIKUBE_HOME="${config.modules.networking.kubernetes.minikube.home}"
-        '';
-      })
-
-      (mkIf config.modules.networking.kubernetes.helm.enable {
-        home.packages = with pkgs; [ kubernetes-helm ];
-        modules.shell.zsh.env = ''
-          export HELM_PLUGIN_DIR="${config.xdg.dataHome}/helm"
-        '';
-      })
-
-      (mkIf config.modules.networking.kubernetes.kops.enable {
-        home.packages = with pkgs; [ kops ];
       })
     ]))
   ]);

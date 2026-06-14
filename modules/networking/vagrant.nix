@@ -6,8 +6,16 @@
 # Vagrant enables users to create and configure lightweight, reproducible, and
 # portable development environments.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
-with lib; {
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
+with lib;
+{
   options.modules.networking.vagrant = {
     enable = mkOption {
       type = types.bool;
@@ -36,8 +44,8 @@ with lib; {
   };
 
   # Vagrant + libvirt is Linux-only; no Darwin equivalent.
-  config = mkIf config.modules.networking.vagrant.enable
-    (optionalAttrs (!isDarwin) {
+  config = mkIf config.modules.networking.vagrant.enable (
+    optionalAttrs (!isDarwin) {
       user.packages = with pkgs; [ vagrant ];
 
       # NOTE: Unofficial Vagrant variables from macunha1/Vagrantfiles
@@ -59,5 +67,6 @@ with lib; {
 
         recursive = true; # allows to have writable .vagrant dirs inside
       };
-    });
+    }
+  );
 }

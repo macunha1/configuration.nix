@@ -4,9 +4,16 @@
 # enables Steam + 32-bit libs and configures the Steam client with custom (XDG
 # base dir spec) path
 
-{ options, config, lib, pkgs, ... }:
+{
+  options,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.desktop.gaming.steam = {
     enable = mkOption {
       type = types.bool;
@@ -35,8 +42,7 @@ with lib; {
       video = {
         enable = trivial.warnIf (!config.modules.hardware.video.enable) ''
           Steam is enabled but the video module isn't. Nix won't install
-              the required video libraries''
-          config.modules.hardware.video.enable;
+              the required video libraries'' config.modules.hardware.video.enable;
 
         support32Bit.enable = true;
         extra32BitPackages = with pkgs.pkgsi686Linux; [ libva ];
@@ -45,15 +51,13 @@ with lib; {
       audio = {
         enable = trivial.warnIf (!config.modules.hardware.audio.enable) ''
           Steam is enabled but the audio module isn't. Nix won't install
-              the required audio libraries''
-          config.modules.hardware.audio.enable;
+              the required audio libraries'' config.modules.hardware.audio.enable;
 
         support32Bit.enable = true;
       };
     };
 
-    hardware.steam-hardware.enable =
-      config.modules.desktop.gaming.steam.hardware.enable;
+    hardware.steam-hardware.enable = config.modules.desktop.gaming.steam.hardware.enable;
 
     user.packages = with pkgs; [
       steam
@@ -66,7 +70,11 @@ with lib; {
         icon = "steam";
         exec = "steam";
         terminal = "false";
-        categories = [ "Network" "FileTransfer" "Game" ];
+        categories = [
+          "Network"
+          "FileTransfer"
+          "Game"
+        ];
       })
     ];
 

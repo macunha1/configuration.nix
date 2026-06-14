@@ -1,7 +1,13 @@
 # desktop/browsers -- default configuration among installations
 
-{ config, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.desktop.browsers = {
     default = mkOption {
       type = with types; nullOr str;

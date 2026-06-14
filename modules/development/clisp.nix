@@ -6,13 +6,20 @@
 # Linux: installed as user packages.
 # Darwin: installed as home packages.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
   clispPackages = with pkgs; [
-    sbcl               # Steel Bank Common Lisp — fast, conforming ANSI CL
+    sbcl # Steel Bank Common Lisp — fast, conforming ANSI CL
     lispPackages.quicklisp # package manager for Common Lisp
   ];
 in

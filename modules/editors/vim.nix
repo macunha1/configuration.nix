@@ -3,7 +3,14 @@
 # For quick edits and writes, Vim suits better (due to its fast load time):
 #   open, type, ESC, ESC, ESC, ZZ or :wq, done.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 with lib;
 
 let
@@ -24,7 +31,9 @@ let
     sha256 = "0kcln63kiivc0gyb82hc7ihgf9h2maj7y9ixn83z5sfk0yilmpxb";
   };
 
-  vimAliases = { v = "vim"; };
+  vimAliases = {
+    v = "vim";
+  };
 in
 {
   options.modules.editors.vim = {
@@ -40,7 +49,7 @@ in
     (optionalAttrs (!isDarwin) {
       user.packages = with pkgs; [
         editorconfig-core-c # honours .editorconfig in repos
-        vim_configurable    # full-featured vim with Python support
+        vim_configurable # full-featured vim with Python support
       ];
 
       environment.shellAliases = vimAliases;
@@ -48,15 +57,21 @@ in
       # $XDG_CONFIG_HOME is set by the NixOS env system before any shell sources VIMINIT.
       env.VIMINIT = ''source "$XDG_CONFIG_HOME/vim/init.vim"'';
 
-      home.configFile."vim" = { source = vimrcSrc; recursive = true; };
-      home.configFile."vim/plugins/dein.vim" = { source = deinSrc; recursive = true; };
+      home.configFile."vim" = {
+        source = vimrcSrc;
+        recursive = true;
+      };
+      home.configFile."vim/plugins/dein.vim" = {
+        source = deinSrc;
+        recursive = true;
+      };
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
       home.packages = with pkgs; [
         editorconfig-core-c # honours .editorconfig in repos
-        vim                 # vim on Darwin (vim_configurable -> vim in recent nixpkgs)
+        vim # vim on Darwin (vim_configurable -> vim in recent nixpkgs)
       ];
 
       modules.shell.zsh.aliases = vimAliases;
@@ -67,8 +82,15 @@ in
         export VIMINIT='source ${config.xdg.configHome}/vim/init.vim'
       '';
 
-      xdg.configFile."vim" = { source = vimrcSrc; recursive = true; };
-      xdg.configFile."vim/plugins/dein.vim" = { source = deinSrc; recursive = true; };
+      xdg.configFile."vim" = {
+        source = vimrcSrc;
+        recursive = true;
+      };
+
+      xdg.configFile."vim/plugins/dein.vim" = {
+        source = deinSrc;
+        recursive = true;
+      };
     })
   ]);
 }

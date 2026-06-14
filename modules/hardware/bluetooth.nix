@@ -4,9 +4,16 @@
 # bluetooth headsets/headphones. Therefore, most of the configurations here are
 # focused into enabling audio-related features.
 
-{ options, config, lib, pkgs, ... }:
+{
+  options,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.hardware.bluetooth = {
     enable = mkOption {
       type = types.bool;

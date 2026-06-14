@@ -9,7 +9,14 @@
 # Linux: user.packages + env = flutterEnvVars.
 # Darwin: home.packages + home.sessionVariables = flutterEnvVars.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -23,10 +30,10 @@ let
   flutterEnvVars = {
     FLUTTER_ROOT = config.modules.development.flutter.path;
     # TODO: Install downloaded tools to bin (+patchelf)
-    DART_SDK_PATH =
-      "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
+    DART_SDK_PATH = "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
   };
-in {
+in
+{
   options.modules.development.flutter = {
     enable = mkOption {
       type = types.bool;

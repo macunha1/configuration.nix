@@ -4,9 +4,16 @@
 # Virtual Machines) in Linux. KVM is the best open-source solution for
 # virtualization out there.
 
-{ config, options, pkgs, lib, ... }:
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.virtualization.kvm2 = {
     enable = mkOption {
       type = types.bool;

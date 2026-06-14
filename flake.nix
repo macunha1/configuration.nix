@@ -21,11 +21,7 @@
 
   inputs = {
     # Core dependencies.
-    # Track two channels (even though they're similar here) to allow granular
-    # configurations based on each use case. Change as you wish.
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
 
     nixlib.url = "github:nix-community/nixpkgs.lib";
 
@@ -39,7 +35,7 @@
     # nixos-hardware.url = "github:nixos/nixos-hardware";
 
     deploy.url = "github:serokell/deploy-rs";
-    deploy.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    deploy.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixlib";
@@ -55,8 +51,7 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixlib, home-manager
-    , flake-utils-plus, ... }@inputs:
+  outputs = { self, nixpkgs, nixlib, home-manager, flake-utils-plus, ... }@inputs:
 
     let
       inherit (lib) attrValues;
@@ -87,7 +82,6 @@
         };
 
       pkgs = mkPkgs nixpkgs [ self.overlay inputs.emacs-overlay.overlay ];
-      uPkgs = mkPkgs nixpkgs-unstable [ ];
 
       lib = nixpkgs.lib.extend (self: super: {
         # Use nice convenient functions developed by @hlissner
@@ -101,7 +95,6 @@
       lib = lib.my;
 
       overlay = final: prev: {
-        unstable = uPkgs;
         my = self.packages."${system}";
       };
 
@@ -119,22 +112,17 @@
 
       ## macOS standalone home-manager configurations
       #
-      # Activate with: home-manager switch --flake .#mcunha
-      # First-time setup: nix run nixpkgs#home-manager -- switch --flake .#mcunha
+      # # First-time setup:
+      # nix run nixpkgs#home-manager -- switch --flake .#mcunha --impure
+      # 
+      # # Subsequent runs:
+      # home-manager switch --flake .#mcunha --impure
       homeConfigurations."mcunha" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = darwinSystem;
           config.allowUnfree = true;
           config.android_sdk.accept_license = true;
-          overlays = [
-            (final: prev: {
-              unstable = import nixpkgs-unstable {
-                system = darwinSystem;
-                config.allowUnfree = true;
-              };
-            })
-            inputs.emacs-overlay.overlay
-          ] ++ (attrValues self.overlays);
+          overlays = [ inputs.emacs-overlay.overlay ] ++ (attrValues self.overlays);
         };
         modules = [ ./hosts/macbook ];
         extraSpecialArgs = { inherit inputs; isDarwin = true; };

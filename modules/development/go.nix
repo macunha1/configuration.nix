@@ -2,18 +2,27 @@
 #
 # The de-facto cloud system's programming language.
 #
-# Linux: packages from pkgs.unstable (including libcap, a Linux-only dep).
-# Darwin: packages from pkgs; libcap is a Linux kernel capability API and
-#         is not available on macOS.
+# Linux: packages include libcap, a Linux-only dependency used by some Go tools.
+# Darwin: libcap is a Linux kernel capability API and is not available on macOS.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
   # Go environment — same values on both platforms.
-  goEnvVars = { GOPATH = config.modules.development.go.path; };
-in {
+  goEnvVars = {
+    GOPATH = config.modules.development.go.path;
+  };
+in
+{
   options.modules.development.go = {
     enable = mkOption {
       type = types.bool;
@@ -43,7 +52,7 @@ in {
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) (mkMerge [
       {
-        user.packages = with pkgs.unstable; [
+        user.packages = with pkgs; [
           libcap # Linux-only: POSIX capabilities (used by some Go tools)
           go
         ];
@@ -51,7 +60,7 @@ in {
       }
 
       (mkIf config.modules.development.go.languageServer.enable {
-        user.packages = with pkgs.unstable; [ gopls ];
+        user.packages = with pkgs; [ gopls ];
       })
 
       (mkIf config.modules.development.go.includeBinToPath {

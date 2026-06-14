@@ -9,9 +9,17 @@
 # Linux: direnv installed as a user package; zsh hook appended to init.zsh.
 # Darwin: programs.direnv managed declaratively by home-manager (includes nix-direnv).
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.shell.direnv = {
     enable = mkOption {
       type = types.bool;

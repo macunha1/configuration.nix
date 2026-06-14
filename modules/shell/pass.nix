@@ -5,20 +5,29 @@
 # management for the encrypted content.
 #
 # Linux: user.packages + env.PASSWORD_STORE_DIR.
-# Darwin: home.packages + home.sessionVariables.PASSWORD_STORE_DIR.
+# Darwin: home.packages + modules.shell.zsh.env.
 
-{ config, options, pkgs, lib, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
   passPackages = with pkgs; [
-    (pass.withExtensions (exts: [ exts.pass-otp ])) # OTP support (2FA codes in pass)
-    expect  # automates interactive password prompts
-    pwgen   # generates randomized, memorable passwords
-  ];
+    (pass.withExtensions (exts: [
+      # OTP support (2FA codes in pass)
+      exts.pass-otp
+    ]))
 
-  passwordStoreDir = "$XDG_CONFIG_HOME/pass";
+    expect # automates interactive password prompts
+    pwgen # generates randomized, memorable passwords
+  ];
 in
 {
   options.modules.shell.pass = {
@@ -33,13 +42,18 @@ in
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
       user.packages = passPackages;
-      env.PASSWORD_STORE_DIR = passwordStoreDir;
+      env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
       home.packages = passPackages;
-      home.sessionVariables.PASSWORD_STORE_DIR = passwordStoreDir;
+
+      # home.sessionVariables does not reliably reach interactive shell apps on
+      # macOS, so write the variable into zsh env init instead.
+      modules.shell.zsh.env = ''
+        export PASSWORD_STORE_DIR="${config.xdg.configHome}/pass"
+      '';
     })
   ]);
 }

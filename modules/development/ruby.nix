@@ -6,7 +6,14 @@
 # Linux: user.packages + env = rubyEnvVars.
 # Darwin: home.packages + home.sessionVariables = rubyEnvVars.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -24,7 +31,8 @@ let
     BUNDLE_USER_CACHE = "$XDG_CACHE_HOME/bundle/cache";
     BUNDLE_USER_PLUGIN = "$XDG_CACHE_HOME/bundle/plugin";
   };
-in {
+in
+{
   options.modules.development.ruby = {
     enable = mkOption {
       type = types.bool;

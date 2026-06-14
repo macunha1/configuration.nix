@@ -1,8 +1,15 @@
 # media -- default media players config among installations
 
-{ config, options, lib, pkgs, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.media = {
     enable = mkOption {
       type = types.bool;
@@ -11,9 +18,8 @@ with lib; {
   };
 
   config = mkIf config.modules.media.enable {
-    user.packages = with pkgs;
-      [
-        playerctl # One controller to rule them all
-      ];
+    user.packages = with pkgs; [
+      playerctl # One controller to rule them all
+    ];
   };
 }

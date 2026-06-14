@@ -10,7 +10,14 @@
 # Linux: user.packages + env = awsEnvVars.
 # Darwin: home.packages + modules.shell.zsh.env = awsEnvVars.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -21,9 +28,9 @@ let
 
   # XDG-compliant AWS credential paths - same values on both platforms.
   awsEnvVars = {
-    AWS_CONFIG_FILE             = "$XDG_CONFIG_HOME/aws/config";
+    AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
     AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
-    BOTO_CONFIG                 = "$XDG_CONFIG_HOME/boto/config"; # Python boto2/boto3
+    BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config"; # Python boto2/boto3
   };
 in
 {

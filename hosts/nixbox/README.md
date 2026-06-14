@@ -42,7 +42,6 @@ Vagrant.configure("2") do |config|
       echo #{ssh_pub_key} >> $VAGRANT_AUTH_KEYS
 
       sudo nix-channel --add https://nixos.org/channels/nixos-unstable
-      sudo nix-channel --add https://nixos.org/channels/nixpkgs-unstable
       sudo nix-channel --update
 
       sudo nix-env -i vim git

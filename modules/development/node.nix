@@ -5,30 +5,44 @@
 # Linux: user.packages + env = nodeEnvVars + home.configFile."npm/config".
 # Darwin: home.packages + modules.shell.zsh.env = nodeEnvVars + xdg.configFile."npm/config".
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   nodePackages = with pkgs; [
     nodejs # JavaScript runtime
-    yarn   # faster, deterministic package manager
+    yarn # faster, deterministic package manager
   ];
 
   # XDG-compliant npm/yarn paths - same values on both platforms.
   nodeEnvVars = {
-    NPM_CONFIG_USERCONFIG  = "$XDG_CONFIG_HOME/npm/config";
-    NPM_CONFIG_CACHE       = "$XDG_CACHE_HOME/npm/cache";
-    NPM_CONFIG_TMP         = "$XDG_CACHE_HOME/npm/temp";
-    NPM_CONFIG_PREFIX      = "$XDG_DATA_HOME/npm";       # global install target
-    NODE_REPL_HISTORY      = "$XDG_CONFIG_HOME/node/repl_history";
+    NPM_CONFIG_USERCONFIG = "$XDG_CONFIG_HOME/npm/config";
+    NPM_CONFIG_CACHE = "$XDG_CACHE_HOME/npm/cache";
+    NPM_CONFIG_TMP = "$XDG_CACHE_HOME/npm/temp";
+    NPM_CONFIG_PREFIX = "$XDG_DATA_HOME/npm"; # global install target
+    NODE_REPL_HISTORY = "$XDG_CONFIG_HOME/node/repl_history";
     # Ref https://yarnpkg.com/configuration/yarnrc
-    YARN_CACHE_FOLDER      = "$XDG_CACHE_HOME/node/yarn";
-    YARN_RC_FILENAME       = "$XDG_CONFIG_HOME/node/yarnrc";
+    YARN_CACHE_FOLDER = "$XDG_CACHE_HOME/node/yarn";
+    YARN_RC_FILENAME = "$XDG_CONFIG_HOME/node/yarnrc";
   };
 
   # npm config file - same content on both platforms; only the option differs.
   npmConfigText = ''
+    ${generatedFileWarning { file = ./node.nix; }}
     cache=$XDG_CACHE_HOME/npm/cache
     prefix=$XDG_DATA_HOME/npm
   '';

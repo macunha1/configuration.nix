@@ -10,23 +10,33 @@
 # Linux: user.packages + env = ansibleEnvVars.
 # Darwin: home.packages + home.sessionVariables = ansibleEnvVars.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
-  ansiblePackages = with pkgs; [
-    ansible-lint # best-practice rule checker for playbooks
-    ansible      # the automation engine itself
-  ] ++ optionals config.modules.networking.ansible.molecule.enable [
-    pkgs.molecule # test framework for Ansible roles
-  ];
+  ansiblePackages =
+    with pkgs;
+    [
+      ansible-lint # best-practice rule checker for playbooks
+      ansible # the automation engine itself
+    ]
+    ++ optionals config.modules.networking.ansible.molecule.enable [
+      pkgs.molecule # test framework for Ansible roles
+    ];
 
   # XDG-compliant Ansible paths
   ansibleEnvVars = {
-    ANSIBLE_ROLES_PATH        = "$XDG_DATA_HOME/ansible/galaxy/roles";
-    ANSIBLE_COLLECTIONS_PATH  = "$XDG_DATA_HOME/ansible/galaxy/collections";
-    ANSIBLE_GALAXY_CACHE_DIR  = "$XDG_DATA_HOME/ansible/galaxy/cache";
+    ANSIBLE_ROLES_PATH = "$XDG_DATA_HOME/ansible/galaxy/roles";
+    ANSIBLE_COLLECTIONS_PATH = "$XDG_DATA_HOME/ansible/galaxy/collections";
+    ANSIBLE_GALAXY_CACHE_DIR = "$XDG_DATA_HOME/ansible/galaxy/cache";
     ANSIBLE_GALAXY_TOKEN_PATH = "$XDG_CONFIG_HOME/ansible/galaxy/token";
   };
 in

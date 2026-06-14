@@ -6,13 +6,17 @@
 # Heavily copied from the author's overlay
 # Ref: https://github.com/stefano-m/nix-stefano-m-nix-overlays/blob/master/lua/dbus_proxy/default.nix
 
-{ pkgs, fetchFromGitHub }:
+{ pkgs
+, fetchFromGitHub
+, lua ? pkgs.lua
+, luaPackages ? pkgs.luaPackages
+}:
 
 let
   pname = "dbus_proxy";
   version = "0.10.2"; # default version to install
 
-in pkgs.luaPackages.buildLuaPackage rec {
+in luaPackages.buildLuaPackage rec {
   inherit pname version;
 
   name = "${pname}-${version}";
@@ -30,12 +34,12 @@ in pkgs.luaPackages.buildLuaPackage rec {
     }."${version}";
   };
 
-  propagatedBuildInputs = [ pkgs.luaPackages.lgi ];
+  propagatedBuildInputs = [ luaPackages.lgi ];
 
   buildPhase = ":";
 
   installPhase = ''
-    mkdir -p "$out/share/lua/${pkgs.lua.luaversion}"
-    cp -r src/${pname} "$out/share/lua/${pkgs.lua.luaversion}/"
+    mkdir -p "$out/share/lua/${lua.luaversion}"
+    cp -r src/${pname} "$out/share/lua/${lua.luaversion}/"
   '';
 }

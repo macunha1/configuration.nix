@@ -8,7 +8,14 @@
 # Helps enormously when managing many fleets of servers where some tools are
 # diverging such as Kops, Terraform and even JQ.
 
-{ config, options, pkgs, lib, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 

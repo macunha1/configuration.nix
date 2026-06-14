@@ -5,8 +5,16 @@
 # daemon is also installed that could be extended with Spotify TUI
 # Ref: https://github.com/Spotifyd/spotifyd
 
-{ config, home-manager, options, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  home-manager,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.media.spotify = {
     enable = mkOption {
       type = types.bool;

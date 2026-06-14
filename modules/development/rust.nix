@@ -6,7 +6,14 @@
 # Linux: user.packages + env = rustEnvVars.
 # Darwin: home.packages + home.sessionVariables = rustEnvVars.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -22,9 +29,10 @@ let
   '';
 
   rustupPackage =
-    if config.modules.development.rust.languageServer.enable
-    then rustupWithoutRustAnalyzer
-    else pkgs.rustup;
+    if config.modules.development.rust.languageServer.enable then
+      rustupWithoutRustAnalyzer
+    else
+      pkgs.rustup;
 
   rustPackages = with pkgs; [
     nasm # assembler (used by some Rust crates with C interop)
@@ -36,10 +44,10 @@ let
   rustEnvVars = {
     RUSTUP_HOME = "${config.modules.development.rust.path}/up";
     CARGO_HOME = "${config.modules.development.rust.path}/cargo";
-    CARGO_TARGET_DIR =
-      "$CARGO_HOME/target"; # shared build cache across projects
+    CARGO_TARGET_DIR = "$CARGO_HOME/target"; # shared build cache across projects
   };
-in {
+in
+{
   options.modules.development.rust = {
     enable = mkOption {
       type = types.bool;

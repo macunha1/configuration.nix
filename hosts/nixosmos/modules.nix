@@ -105,8 +105,6 @@
     networking = {
       kubernetes = {
         enable = true;
-
-        minikube.enable = false;
         helm.enable = true;
       };
 
@@ -115,13 +113,6 @@
         home = "/data/1/opt/vagrant";
         provider = "libvirt";
       };
-
-      aws = {
-        enable = true;
-        iamAuthenticator.enable = true;
-      };
-
-      gcp.enable = true;
 
       ansible.enable = true;
       terraform.enable = true;

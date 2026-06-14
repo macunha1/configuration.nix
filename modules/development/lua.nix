@@ -14,20 +14,27 @@
 # jit.enable: picks LuaJIT over the reference interpreter (default = !lua.enable).
 # includeBinToPath: luarocks path injected into zsh.init on both platforms.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
   # Interpreter: reference Lua or LuaJIT - mutually exclusive, both provide
   # bin/lua so only one can live in the same package environment at a time.
-  interpreter =
-    if config.modules.development.lua.jit.enable
-    then pkgs.luajit
-    else pkgs.lua;
+  interpreter = if config.modules.development.lua.jit.enable then pkgs.luajit else pkgs.lua;
 
   # Base packages - chosen interpreter + luarocks, same on both platforms.
-  basePkgs = [ interpreter pkgs.luarocks ];
+  basePkgs = [
+    interpreter
+    pkgs.luarocks
+  ];
 in
 {
   options.modules.development.lua = {
@@ -67,8 +74,7 @@ in
     # enabling lua for the first time selects the reference interpreter.
     # The user can explicitly set jit.enable = true to opt into LuaJIT.
     {
-      modules.development.lua.jit.enable =
-        mkDefault (!config.modules.development.lua.enable);
+      modules.development.lua.jit.enable = mkDefault (!config.modules.development.lua.enable);
     }
 
     (mkIf config.modules.development.lua.enable (mkMerge [

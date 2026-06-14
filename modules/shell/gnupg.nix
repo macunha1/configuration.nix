@@ -13,18 +13,33 @@
 # content (the pinentryPackage option is skipped in favour of the explicit
 # pinentry-program line in the conf, which correctly respects GNUPGHOME).
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   # gpg-agent configuration - same content on both platforms.
   # Both home.configFile (Linux) and xdg.configFile (Darwin) consume this text.
   gpgAgentConf = ''
+    ${generatedFileWarning { file = ./gnupg.nix; }}
     default-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
     pinentry-program ${config.modules.shell.gnupg.pinentry}/bin/pinentry
   '';
-in {
+in
+{
   options.modules.shell.gnupg = {
     enable = mkOption {
       type = types.bool;
@@ -38,8 +53,7 @@ in {
 
     pinentry = mkOption {
       type = types.package;
-      default =
-        pkgs.pinentry-curses; # override to pinentry-mac on Darwin if preferred
+      default = pkgs.pinentry-curses; # override to pinentry-mac on Darwin if preferred
     };
 
     cacheTTL = mkOption {

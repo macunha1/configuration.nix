@@ -1,9 +1,16 @@
 # options.nix -- parameters and convience setup
 
-{ config, options, lib, home-manager, ... }:
+{
+  config,
+  options,
+  lib,
+  home-manager,
+  ...
+}:
 
 with lib;
-with lib.my; {
+with lib.my;
+{
   options = with types; {
     user = mkOption {
       type = attrs;
@@ -31,12 +38,14 @@ with lib.my; {
     };
 
     env = mkOption {
-      type = attrsOf (oneOf [ str path (listOf (either str path)) ]);
-      apply = mapAttrs (n: v:
-        if isList v then
-          concatMapStringsSep ":" (x: toString x) v
-        else
-          (toString v));
+      type = attrsOf (oneOf [
+        str
+        path
+        (listOf (either str path))
+      ]);
+      apply = mapAttrs (
+        n: v: if isList v then concatMapStringsSep ":" (x: toString x) v else (toString v)
+      );
       default = { };
       description = "TODO";
     };
@@ -47,8 +56,19 @@ with lib.my; {
       description = "Default user account";
       extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
       isNormalUser = true;
-      name = let name = builtins.getEnv "USER";
-      in if elem name [ "" "root" ] then "macunha1" else name;
+      name =
+        let
+          name = builtins.getEnv "USER";
+        in
+        if
+          elem name [
+            ""
+            "root"
+          ]
+        then
+          "macunha1"
+        else
+          name;
       # Mainly for Git config and GNU PG
       uid = 1000;
     };
@@ -81,20 +101,29 @@ with lib.my; {
 
     users.users.${config.user.name} = mkAliasDefinitions options.user;
 
-    nix = let users = [ "root" config.user.name ];
-    in {
-      settings = {
-        trusted-users = users;
-        allowed-users = users;
+    nix =
+      let
+        users = [
+          "root"
+          config.user.name
+        ];
+      in
+      {
+        settings = {
+          trusted-users = users;
+          allowed-users = users;
+        };
       };
-    };
 
-    # must already begin with pre-existing PATH. Also, can't use binDir here,
-    # because it contains a nix store path.
-    env.PATH =
-      [ "$XDG_CONFIG_HOME/nixos/dotfiles/bin" "$HOME/.local/bin" "$PATH" ];
+    # must already begin with pre-existing PATH.
+    env.PATH = [
+      "$XDG_CONFIG_HOME/nixos/dotfiles/bin"
+      "$HOME/.local/bin"
+      "$PATH"
+    ];
 
-    environment.extraInit = concatStringsSep "\n"
-      (mapAttrsToList (n: v: ''export ${n}="${v}"'') config.env);
+    environment.extraInit = concatStringsSep "\n" (
+      mapAttrsToList (n: v: ''export ${n}="${v}"'') config.env
+    );
   };
 }

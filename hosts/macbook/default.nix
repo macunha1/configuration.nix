@@ -23,9 +23,19 @@ let
   # 
   # Modules default to disabled; each handles its own isDarwin guards.
   nixFilesIn = dir:
-    lib.mapAttrsToList (name: _: dir + "/${name}") (lib.filterAttrs
-      (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-      (builtins.readDir dir));
+    let
+      # `readDir` gives us every entry, including directories and helper files
+      # we do not want to import.
+      entries = builtins.readDir dir;
+
+      # Keep only plain `.nix` files. Subdirectories are handled elsewhere, and
+      # non-Nix files should stay invisible to module discovery.
+      nixEntries = lib.filterAttrs
+        (name: type: type == "regular" && lib.hasSuffix ".nix" name)
+        entries;
+    in
+      # Turn the filtered set back into a list of import paths.
+      lib.mapAttrsToList (name: _: dir + "/${name}") nixEntries;
 in {
   imports = nixFilesIn ../../modules/editors ++ nixFilesIn ../../modules/shell
     ++ nixFilesIn ../../modules/development
@@ -45,8 +55,8 @@ in {
       gnumake
 
       # Nix tooling
-      nil
       nixfmt
+      nixfmt-tree
     ];
 
     sessionVariables.DOTFILES = toString ../..;

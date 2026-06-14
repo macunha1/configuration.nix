@@ -19,7 +19,7 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "nixpkgs": [
-          "nixpkgs-unstable"
+          "nixpkgs"
         ],
         "utils": "utils"
       },
@@ -43,11 +43,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1781436952,
-        "narHash": "sha256-e6z6VbmMnQKZvnNHXcFWYeD2KUebj3DzxulfbplS+N0=",
+        "lastModified": 1781499588,
+        "narHash": "sha256-KuC1EtYmeJHmrY/g7pprRQAY5K47panP0w1E9xHBwvw=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "07e6b1383f0331d64333944274170cd39c9b31b5",
+        "rev": "40f4eb0b670cda550b545f877289056cd4474c3b",
         "type": "github"
       },
       "original": {
@@ -115,11 +115,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781365335,
-        "narHash": "sha256-zqDBhXMzfbdlO7F2bGHe7MOtB3xngd/+4ieMHDC+ZXo=",
+        "lastModified": 1781497404,
+        "narHash": "sha256-9GAF8sSsnkyCVCWkomXR0T+zdSxyUlfPt6neQidimdg=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "5b6f5733726a1b2ccafb5dec6ac4ca7299fad66c",
+        "rev": "1285cd3d6882a9847f2d56ed5541b3350c8a6162",
         "type": "github"
       },
       "original": {
@@ -192,22 +192,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-unstable": {
-      "locked": {
-        "lastModified": 1781435757,
-        "narHash": "sha256-DrwDI4WwdzcL+gmaF3woM/vuu1Y/uJkDKjP5e8VU7jQ=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "2f1f041e432b51c5b8ffcf69c13cd4035f720cce",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "master",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1781074563,
@@ -233,8 +217,7 @@
         "home-manager": "home-manager",
         "latest": "latest",
         "nixlib": "nixlib",
-        "nixpkgs": "nixpkgs_2",
-        "nixpkgs-unstable": "nixpkgs-unstable"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "systems": {

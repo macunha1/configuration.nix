@@ -4,10 +4,10 @@
 <tr>
 
 <td>
-<b>Shell:</b> ZSH + Antigen<br>
+<b>Shell:</b> ZSH (Nix as the package manager)<br>
 <b>DM:</b> LightDM<br>
 <b>WM:</b> AwesomeWM<br>
-<b>Terminal:</b> Alacritty<br>
+<b>Terminal:</b> Alacritty (+ Tmux)<br>
 <b>Launcher:</b> Rofi<br>
 <b>Browser:</b> Chromium
 </td>

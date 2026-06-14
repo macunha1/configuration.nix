@@ -3,17 +3,28 @@
 # ZSH, Oh my dear and loved ZSH. There are simply no words that would make
 # justice to how good you are.
 #
-# Linux: system-wide zsh + generated dotfiles via home.configFile.
-#        Antigen manages plugin installs; plugins are NOT sourced from the nix store.
-# Darwin: programs.zsh managed declaratively by home-manager.
+# Linux and Darwin: zsh managed declaratively with Nix-fetched plugins.
 
-{ config, options, pkgs, lib, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 with lib;
 # lib.my (configDir etc.) is present on NixOS; absent in standalone home-manager.
 # The Darwin sections never access configDir, so the empty fallback is safe.
 with (lib.my or { });
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   # CLI utilities installed on both platforms.
   # Linux also adds pkgs.zsh itself; Darwin gets zsh from the system or nix-darwin.
   commonCliPackages = with pkgs; [
@@ -29,9 +40,12 @@ let
   ];
 
   # Syntax-highlighting theme - defined once, consumed by both platforms.
-  # Darwin:  programs.zsh.syntaxHighlighting.{highlighters,styles}.
-  # NixOS:   modules.shell.zsh.env -> env.zsh (sourced before antigen loads the plugin).
-  zshHighlighters = [ "main" "brackets" "line" "cursor" ];
+  zshHighlighters = [
+    "main"
+    "brackets"
+    "line"
+    "cursor"
+  ];
 
   zshHighlightStyles = {
     "bracket-level-1" = "fg=14";
@@ -55,15 +69,58 @@ let
 
   # Shell code that initialises the highlighting variables for NixOS.
   # typeset -A is required before the (key value ...) assignment form.
-  syntaxHighlightingEnv = let
-    highlightersLine = concatStringsSep " " zshHighlighters;
-    styleLines = mapAttrsToList (k: v: "  ${k} '${v}'") zshHighlightStyles;
-  in ''
-    ZSH_HIGHLIGHT_HIGHLIGHTERS=(${highlightersLine})
-    typeset -A ZSH_HIGHLIGHT_STYLES
-    ZSH_HIGHLIGHT_STYLES=(
-    ${concatStringsSep "\n" styleLines}
-    )
+  syntaxHighlightingEnv =
+    let
+      highlightersLine = concatStringsSep " " zshHighlighters;
+      styleLines = mapAttrsToList (k: v: "  ${k} '${v}'") zshHighlightStyles;
+    in
+    ''
+      ZSH_HIGHLIGHT_HIGHLIGHTERS=(${highlightersLine})
+      typeset -A ZSH_HIGHLIGHT_STYLES
+      ZSH_HIGHLIGHT_STYLES=(
+      ${concatStringsSep "\n" styleLines}
+      )
+    '';
+
+  zshPluginSources = {
+    autosuggestions = "${pkgs."zsh-autosuggestions"}/share/zsh-autosuggestions/zsh-autosuggestions.zsh";
+    syntaxHighlighting = "${pkgs."zsh-syntax-highlighting"}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
+  };
+
+  zshPluginBeforeInit = ''
+    source "${zshPluginSources.autosuggestions}"
+  '';
+
+  zshPluginAfterInit = ''
+    source "${zshPluginSources.syntaxHighlighting}"
+  '';
+
+  zshAliasLines = concatStringsSep "\n" (
+    mapAttrsToList (n: v: "alias '${n}'='${v}'") config.modules.shell.zsh.aliases
+  );
+
+  zshInitText = ''
+    #!/usr/bin/env zsh
+    #
+    ${generatedFileWarning { file = ./zsh.nix; }}
+    ${config.modules.shell.zsh.init}
+  '';
+
+  zshEnvText = ''
+    #!/usr/bin/env zsh
+    #
+    ${generatedFileWarning { file = ./zsh.nix; }}
+    export PATH="${config.xdg.binHome}:$PATH"
+    ${config.modules.shell.zsh.env}
+
+    # Source per-user profile fragments - analogous to /etc/profile.d/.
+    # Previously a separate .zprofile; inlined here so the file tree
+    # stays clean and there is one authoritative place to read.
+    if [[ -d "$HOME/.profile.d" ]]; then
+      for i in "$HOME"/.profile.d/*.sh; do
+        [[ -x "$i" ]] && source "$i"
+      done
+    fi
   '';
 
   # Tool completions - sourced after init.zsh, conditional on module flags.
@@ -78,18 +135,18 @@ let
     '')
   ];
 
-  urlEncodeCommand = "python3 -c "
-    + ''"import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'';
+  urlEncodeCommand =
+    "python3 -c " + ''"import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'';
 
-  urlDecodeCommand = "python3 -c "
-    + ''"import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
+  urlDecodeCommand =
+    "python3 -c " + ''"import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
 
   # Key bindings - identical on both platforms (NixOS and MacOS).
   #
   # Ctrl+Y is used for `kill-line` instead of the default Ctrl+K to avoid
   # conflicting with Tmux Vim navigation keybinds (Ctrl+H,J,K,L). Y was picked
   # because it stand right next to U (default backward-kill-line).
-  # 
+  #
   # select-word-style bash: word chars = alphanumeric + underscore only, so Ctrl+W stops
   # at slashes, dashes, dots and other separators (matches the old OMZ Ctrl+W behaviour).
   #
@@ -126,25 +183,8 @@ let
     eval "$(keychain --dir "${dir}/keychain" -q --eval || ssh-agent)" >/dev/null
   '';
 
-  # Generated .zshrc for Linux - antigen loads plugins, then init.zsh runs.
-  # zsh-syntax-highlighting must be the last antigen bundle (it wraps zle widgets).
-  linuxZshrc = ''
-    #!/usr/bin/env zsh
-
-    source "$HOME/.config/zsh/env.zsh"
-    source "$ANTIGEN_HOME/antigen.zsh"
-
-    antigen bundles <<EOFBUNDLES
-        zsh-users/zsh-autosuggestions
-        zsh-users/zsh-syntax-highlighting
-    EOFBUNDLES
-
-    antigen apply
-
-    source "$HOME/.config/zsh/init.zsh"
-    ${completionSources}
-  '';
-in {
+in
+{
   options.modules.shell.zsh = {
     enable = mkOption {
       type = types.bool;
@@ -152,17 +192,19 @@ in {
     };
 
     # Cross-platform alias collection; other modules append here.
-    aliases = with types;
+    aliases =
+      with types;
       mkOption {
-        type = attrsOf (oneOf [ str path (listOf (either str path)) ]);
-        apply = mapAttrs (n: v:
-          if isList v then
-            concatMapStringsSep ":" (x: toString x) v
-          else
-            (toString v));
+        type = attrsOf (oneOf [
+          str
+          path
+          (listOf (either str path))
+        ]);
+        apply = mapAttrs (
+          n: v: if isList v then concatMapStringsSep ":" (x: toString x) v else (toString v)
+        );
         default = { };
-        description =
-          "Shell aliases written into zsh/init.zsh on both platforms.";
+        description = "Shell aliases written into zsh/init.zsh on both platforms.";
       };
 
     # Extra shell lines appended into init.zsh on both platforms.
@@ -192,13 +234,6 @@ in {
       type = types.int;
       default = 9223372036854775807; # LONG_MAX: Unlimited
     };
-
-    antigen = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-      };
-    };
   };
 
   config = mkIf config.modules.shell.zsh.enable (mkMerge [
@@ -226,39 +261,32 @@ in {
 
         # Write variables down to ZSH files
         home.configFile = {
-          "zsh/.zshrc".text = linuxZshrc;
+          "zsh/.zshrc".text = ''
+            #!/usr/bin/env zsh
+            #
+            ${generatedFileWarning { file = ./zsh.nix; }}
 
-          "zsh/init.zsh".text = let
-            aliasLines = mapAttrsToList (n: v: "alias '${n}'='${v}'")
-              config.modules.shell.zsh.aliases;
-          in ''
-            # WARNING: Content autogenerated, edits can be overwritten!
-
-            ${config.modules.shell.zsh.init}
-            ${concatStringsSep "\n" aliasLines}
+            source "$HOME/.config/zsh/env.zsh"
+            ${zshPluginBeforeInit}
+            source "$HOME/.config/zsh/init.zsh"
+            ${completionSources}
+            ${zshPluginAfterInit}
           '';
 
-          "zsh/env.zsh".text = ''
-            # WARNING: Content autogenerated, edits can be overwritten!
+          "zsh/init.zsh".text = ''
+            ${zshInitText}
 
-            ${config.modules.shell.zsh.env}
-
-            # Source per-user profile fragments - analogous to /etc/profile.d/.
-            # Previously a separate .zprofile; inlined here so the file tree
-            # stays clean and there is one authoritative place to read.
-            if [[ -d "$HOME/.profile.d" ]]; then
-              for i in "$HOME"/.profile.d/*.sh; do
-                [[ -x "$i" ]] && source "$i"
-              done
-            fi
+            ${zshAliasLines}
           '';
+
+          "zsh/env.zsh".text = zshEnvText;
         };
 
         home.configFile."starship.toml" = {
           source = "${configDir}/starship/config.toml";
         };
 
-        # Syntax-highlight vars must be set in env.zsh before antigen loads the plugin.
+        # Syntax-highlight vars must be set in env.zsh before the plugin is sourced.
         modules.shell.zsh.env = syntaxHighlightingEnv;
 
         # Clipboard, URL encode/decode - mirror of the Darwin programs.zsh.shellAliases.
@@ -270,31 +298,14 @@ in {
           clipbp = "xclip -out -selection clipboard";
         };
 
-        # Shell init - goes into init.zsh, sourced from .zshrc before antigen apply.
+        # Shell init - goes into init.zsh, sourced from .zshrc after plugins load.
         modules.shell.zsh.init = ''
+          setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
           ${shellBindings}
           ${keychainInit "$XDG_CONFIG_HOME"}
           eval "$(starship init zsh)"
         '';
       }
-
-      (mkIf config.modules.shell.zsh.antigen.enable {
-        # Antigen - plugin manager (Linux only; Darwin uses programs.zsh natively)
-        env.ADOTDIR = "$XDG_CONFIG_HOME/antigen";
-        # ANTIGEN_HOME is not an official env var, used for convenience in .zshrc
-        env.ANTIGEN_HOME = "$XDG_CONFIG_HOME/zsh/custom/plugins/antigen";
-        env.ANTIGEN_CACHE = "$XDG_CACHE_HOME/antigen";
-        env.ANTIGEN_DEBUG_LOG = "/dev/null";
-
-        home.configFile."zsh/custom/plugins/antigen" = {
-          source = pkgs.fetchFromGitHub {
-            owner = "zsh-users";
-            repo = "antigen";
-            rev = "v2.2.3";
-            sha256 = "1hqnwdskdmaiyi1p63gg66hbxi1igxib6ql8db3w950kjs1cs7rq";
-          };
-        };
-      })
     ]))
 
     # Darwin (MacOS)
@@ -308,18 +319,11 @@ in {
         enable = true;
         enableCompletion = true;
         dotDir = "${config.xdg.configHome}/zsh";
-        autosuggestion.enable = true;
-
-        syntaxHighlighting = {
-          enable = true;
-          highlighters = zshHighlighters;
-          styles = zshHighlightStyles;
-        };
 
         history = {
           size = config.modules.shell.zsh.historySize;
-          path = "${config.xdg.configHome}/zsh/history";
-          share = true;
+          path = "${config.xdg.stateHome}/zsh/history";
+          share = false;
         };
 
         # macOS-only aliases. Cross-platform aliases live in init.zsh (generated
@@ -329,23 +333,23 @@ in {
           urldecode = urlDecodeCommand;
           clipbc = "pbcopy";
           clipbp = "pbpaste";
-
-          # Homebrew python3 takes precedence over any macOS-bundled python.
-          python = "/opt/homebrew/bin/python3";
         };
 
         initContent = mkMerge [
           # Source env.zsh before completions so PATH, XDG vars, and brew are
-          # already set when autosuggestions and syntax-highlighting initialise.
+          # already set when the plugins initialise.
           (mkOrder 550 ''
             source "${config.xdg.configHome}/zsh/env.zsh"
           '')
 
           ''
+            setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
+            ${zshPluginBeforeInit}
             ${shellBindings}
             ${keychainInit config.xdg.configHome}
             source "${config.xdg.configHome}/zsh/init.zsh"
             ${completionSources}
+            ${zshPluginAfterInit}
           ''
         ];
       };
@@ -356,32 +360,20 @@ in {
       modules.shell.zsh.env = ''
         eval "$(/opt/homebrew/bin/brew shellenv)"
         export GPG_TTY=$(tty)
-        export PATH="$HOME/.local/bin:$PATH"
       '';
 
-      # Generate env.zsh - mirrors the NixOS home.configFile."zsh/env.zsh" approach.
-      xdg.configFile."zsh/env.zsh".text = ''
-        # WARNING: Content autogenerated, edits can be overwritten!
+      xdg.configFile."zsh/env.zsh".text = zshEnvText;
 
-        ${config.modules.shell.zsh.env}
-      '';
+      xdg.configFile."zsh/init.zsh".text = ''
+        ${zshInitText}
 
-      # Generate init.zsh - same pattern as NixOS home.configFile."zsh/init.zsh".
-      xdg.configFile."zsh/init.zsh".text = let
-        aliasLines = mapAttrsToList (n: v: "alias '${n}'='${v}'")
-          config.modules.shell.zsh.aliases;
-      in ''
-        # WARNING: Content autogenerated, edits can be overwritten!
-
-        ${config.modules.shell.zsh.init}
-        ${concatStringsSep "\n" aliasLines}
+        ${zshAliasLines}
       '';
 
       programs.starship = {
         enable = true;
         enableZshIntegration = true;
-        settings = builtins.fromTOML
-          (builtins.readFile ../../config/starship/config.toml);
+        settings = builtins.fromTOML (builtins.readFile ../../config/starship/config.toml);
       };
     })
   ]);

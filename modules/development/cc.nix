@@ -6,7 +6,14 @@
 # Darwin: home.packages.
 # languageServer: ccls appended via optionals to avoid mkIf-in-list antipattern.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -19,7 +26,8 @@ let
     cmake # cross-platform build system
     llvmPackages.libcxx # LLVM C++ standard library
   ];
-in {
+in
+{
   options.modules.development.cc = {
     enable = mkOption {
       type = types.bool;

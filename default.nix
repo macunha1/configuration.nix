@@ -25,7 +25,6 @@ with inputs; {
     registryInputs = mapAttrs (_: v: { flake = v; }) filteredInputs;
   in {
     package = pkgs.nixVersions.stable;
-    extraOptions = "experimental-features = nix-command";
 
     nixPath = nixPathInputs ++ [
       "nixpkgs-overlays=${dotFilesDir}/overlays"
@@ -35,6 +34,7 @@ with inputs; {
     registry = registryInputs // { dotfiles.flake = inputs.self; };
 
     settings = {
+      experimental-features = [ "nix-command" "flakes" ];
       sandbox = true;
       auto-optimise-store = true;
 

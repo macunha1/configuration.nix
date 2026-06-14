@@ -5,9 +5,22 @@
 # performatic UI for commonly used Linux tools, fitting perfectly with a Window
 # manager setup.
 
-{ config, options, lib, pkgs, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-with lib.my; {
+let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+in
+{
   options.modules.desktop.applications.rofi = {
     enable = mkOption {
       type = types.bool;
@@ -27,13 +40,20 @@ with lib.my; {
 
     home.configFile."rofi/config.rasi" = {
       text = ''
-        configuration {
-            modi: "window,drun,combi";
-            font: "Source Code Pro 10";
-            combi-modi: "window,drun";
-        }
+            /*
+        ${generatedFileWarning {
+          file = ./rofi.nix;
+          comment = " *";
+        }}
+             */
 
-        @theme "${config.modules.desktop.applications.rofi.theme}"
+            configuration {
+                modi: "window,drun,combi";
+                font: "Source Code Pro 10";
+                combi-modi: "window,drun";
+            }
+
+            @theme "${config.modules.desktop.applications.rofi.theme}"
       '';
     };
 

@@ -2,6 +2,7 @@ if (( $+commands[kubectl] )); then
     __KUBECTL_COMPLETION_FILE="${ZSH_CACHE:-${XDG_CACHE_HOME}/zsh}/kubectl_completion"
 
     if [[ ! -f $__KUBECTL_COMPLETION_FILE ]]; then
+        mkdir -p "${__KUBECTL_COMPLETION_FILE:h}"
         kubectl completion zsh >! $__KUBECTL_COMPLETION_FILE
     fi
 
@@ -167,4 +168,3 @@ alias kgpvcw='kgpvc --watch'
 alias kepvc='kubectl edit pvc'
 alias kdpvc='kubectl describe pvc'
 alias kdelpvc='kubectl delete pvc'
-

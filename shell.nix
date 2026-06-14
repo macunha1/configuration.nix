@@ -2,7 +2,10 @@
 
 with pkgs;
 let
+  inherit (import ./lib/generators.nix { lib = pkgs.lib; inherit pkgs; }) generatedFileWarning;
+
   nixBin = writeShellScriptBin "nix" ''
+    ${generatedFileWarning { file = ./shell.nix; }}
     ${nixVersions.stable}/bin/nix --option experimental-features "nix-command flakes" "$@"
   '';
 in mkShell {

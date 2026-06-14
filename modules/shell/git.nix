@@ -6,11 +6,23 @@
 # Linux  -> lib.generators.toGitINI serialises it to an INI file via home.configFile.
 # Darwin -> programs.git.settings consumes the attrset directly.
 
-{ config, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   hasEmail = config.modules.shell.git.user.email != "";
   hasGpg = config.modules.shell.git.user.gpgSigningKeyId != "";
 
@@ -20,8 +32,7 @@ let
 
   ohMyZshGitPlugin = rec {
     rev = "93c837fec8e9fe61509b9dff9e909e84f7ebe32d";
-    url = "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/" + rev
-      + "/plugins/git/git.plugin.zsh";
+    url = "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/" + rev + "/plugins/git/git.plugin.zsh";
     hash = "sha256-lzToZgFVpNxN3yszVytFxPJlTFLhGedxarpc7vK4L5g=";
   };
 
@@ -31,11 +42,14 @@ let
     user = {
       name = config.modules.shell.git.user.name;
       useconfigonly = true;
-    } // optionalAttrs hasEmail { email = config.modules.shell.git.user.email; }
-      // optionalAttrs hasGpg {
-        signingkey = config.modules.shell.git.user.gpgSigningKeyId;
-      };
-  } // optionalAttrs hasGpg { commit.gpgsign = true; } // {
+    }
+    // optionalAttrs hasEmail { email = config.modules.shell.git.user.email; }
+    // optionalAttrs hasGpg {
+      signingkey = config.modules.shell.git.user.gpgSigningKeyId;
+    };
+  }
+  // optionalAttrs hasGpg { commit.gpgsign = true; }
+  // {
     pull.rebase = true;
     push.default = "current";
     rebase.autosquash = true;
@@ -52,11 +66,9 @@ let
     "gcm!" = "gcm && ggpull";
 
     # Checkout master and (kindly) delete the old branch
-    gcmd =
-      "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbd $CURRENT_BRANCH";
+    gcmd = "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbd $CURRENT_BRANCH";
     # Same but force-delete
-    gcmD =
-      "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbD $CURRENT_BRANCH";
+    gcmD = "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbD $CURRENT_BRANCH";
 
     # Merge current branch into master, push, return to branch, then delete it
     "gm!" = concatStringsSep " && " [
@@ -97,7 +109,8 @@ let
       echo main
     }
   '';
-in {
+in
+{
   options.modules.shell.git = {
     enable = mkOption {
       type = types.bool;
@@ -108,8 +121,19 @@ in {
       name = mkOption {
         type = types.str;
         # Fall back to $USER so this works outside a NixOS user context (standalone HM).
-        default = let n = builtins.getEnv "USER";
-        in if elem n [ "" "root" ] then "macunha1" else n;
+        default =
+          let
+            n = builtins.getEnv "USER";
+          in
+          if
+            elem n [
+              ""
+              "root"
+            ]
+          then
+            "macunha1"
+          else
+            n;
         description = "git/config user.name";
       };
 
@@ -152,7 +176,8 @@ in {
     (optionalAttrs (!isDarwin) {
       user.packages = hostedGitCliPackages;
 
-      home.configFile."git/config".text = generators.toGitINI gitSettings;
+      home.configFile."git/config".text =
+        generatedFileWarning { file = ./git.nix; } + generators.toGitINI gitSettings;
 
       # Explicit so NixOS and Darwin stay consistent: both declare GIT_CONFIG_GLOBAL.
       env.GIT_CONFIG_GLOBAL = "$XDG_CONFIG_HOME/git/config";

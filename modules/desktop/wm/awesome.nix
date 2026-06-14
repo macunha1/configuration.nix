@@ -4,9 +4,38 @@
 # Supports async implementations using XCB and customization with Lua.
 # Ref: https://xcb.freedesktop.org/
 
-{ config, options, lib, pkgs, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
+  luaJitEnabled = config.modules.development.lua.enable && config.modules.development.lua.jit.enable;
+
+  lua = if luaJitEnabled then pkgs.luajit else pkgs.lua;
+
+  luaPackages = if luaJitEnabled then pkgs.luajitPackages else pkgs.luaPackages;
+
+  awesome = pkgs.awesome.override {
+    gtk3Support = true;
+    inherit lua;
+  };
+
+  lua-dbus-proxy = pkgs.my.lua-dbus-proxy.override {
+    inherit lua luaPackages;
+  };
+in
+{
   options.modules.desktop = {
     awesomewm.enable = mkOption {
       type = types.bool;
@@ -26,7 +55,8 @@ with lib; {
         displayManager.defaultSession = "none+awesome";
         windowManager.awesome = {
           enable = true;
-          luaModules = [ pkgs.my.lua-dbus-proxy ];
+          package = awesome;
+          luaModules = [ lua-dbus-proxy ];
         };
       };
     };
@@ -36,11 +66,12 @@ with lib; {
 
       # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
       # i.e. Implements the equivalent of
-      #      luaModules = [ pkgs.my.lua-dbus-proxy ]; # in a non-DM world
+      #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
       (writeScriptBin "awm" ''
         #!${stdenv.shell}
+        ${generatedFileWarning { file = ./awesome.nix; }}
         exec ${awesome}/bin/awesome \
-             --search "${my.lua-dbus-proxy.out}/share/lua/${lua.luaversion}" \
+             --search "${lua-dbus-proxy.out}/share/lua/${lua.luaversion}" \
              "$@"
       '')
     ];
@@ -62,14 +93,5 @@ with lib; {
       };
     };
 
-    nixpkgs.overlays = [
-      (self: super:
-        with super; {
-          awesome = super.awesome.override {
-            # luaPackages = super.luajitPackages;
-            gtk3Support = true;
-          };
-        })
-    ];
   };
 }

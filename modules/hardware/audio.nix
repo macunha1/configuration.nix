@@ -3,9 +3,16 @@
 # PulseAudio sound system for Linux. Categorized under the generic name of
 # "audio.nix" since it is the standard.
 
-{ options, config, lib, pkgs, ... }:
+{
+  options,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.hardware.audio = {
     enable = mkOption {
       type = types.bool;
@@ -16,8 +23,7 @@ with lib; {
       type = types.bool;
       default = false;
 
-      description =
-        "Whether or not to enable support for 32-bit libraries on 64-bit systems";
+      description = "Whether or not to enable support for 32-bit libraries on 64-bit systems";
     };
   };
 
@@ -34,11 +40,10 @@ with lib; {
     }
 
     (mkIf config.modules.desktop.enable {
-      environment.systemPackages = with pkgs;
-        [
-          # PulseAudio Volume Control GUI
-          pavucontrol
-        ];
+      environment.systemPackages = with pkgs; [
+        # PulseAudio Volume Control GUI
+        pavucontrol
+      ];
     })
   ]);
 }

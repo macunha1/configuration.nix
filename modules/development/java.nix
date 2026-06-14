@@ -4,7 +4,14 @@
 # You are the perfect mid-term between performance and productivity.
 # I've tried to avoid you for many years, but I can't resist.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 

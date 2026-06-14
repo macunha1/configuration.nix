@@ -2,9 +2,16 @@
 #
 # Minimal and extensible open-source media player
 
-{ config, options, lib, pkgs, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.media.mpv = {
     enable = mkOption {
       type = types.bool;
@@ -13,12 +20,11 @@ with lib; {
   };
 
   config = mkIf config.modules.media.mpv.enable {
-    user.packages = with pkgs;
-      [
-        (mpv.override {
-          # Adds support for DBus and controls over playerctl
-          scripts = [ mpvScripts.mpris ];
-        })
-      ];
+    user.packages = with pkgs; [
+      (mpv.override {
+        # Adds support for DBus and controls over playerctl
+        scripts = [ mpvScripts.mpris ];
+      })
+    ];
   };
 }

@@ -1,8 +1,15 @@
 # modules/browser/firefox.nix -- https://www.firefox.org/
 #
 
-{ config, options, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.desktop.browsers.firefox = {
     enable = mkOption {
       type = types.bool;

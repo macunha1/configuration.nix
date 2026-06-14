@@ -2,9 +2,15 @@
 #
 # Basics regardless of the installed WM or DE.
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+{
   options.modules.desktop = {
     enable = mkOption {
       type = types.bool;
@@ -26,8 +32,7 @@ with lib; {
           };
         };
 
-        desktopManager.xterm.enable =
-          mkDefault (config.modules.desktop.terminal.default == "xterm");
+        desktopManager.xterm.enable = mkDefault (config.modules.desktop.terminal.default == "xterm");
       };
     };
 
@@ -48,7 +53,10 @@ with lib; {
       fontDir.enable = true;
       enableGhostscriptFonts = true;
 
-      fonts = with pkgs; [ powerline-fonts source-code-pro ];
+      fonts = with pkgs; [
+        powerline-fonts
+        source-code-pro
+      ];
       fontconfig.defaultFonts.monospace = [ "Source Code Pro" ];
     };
   };

@@ -8,7 +8,14 @@
 # Linux: fzf fetched from GitHub and sourced manually in zsh/init.zsh.
 # Darwin: programs.fzf managed declaratively by home-manager.
 
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
 
 with lib;
 
@@ -27,7 +34,8 @@ let
     "spinner" = "14"; # loading spinner: bright cyan
     "header" = "14"; # header line: bright cyan
   };
-in {
+in
+{
   options.modules.shell.fzf = {
     enable = mkOption {
       type = types.bool;
@@ -39,10 +47,9 @@ in {
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs;
-        [
-          fzf # fuzzy-finder all the things
-        ];
+      user.packages = with pkgs; [
+        fzf # fuzzy-finder all the things
+      ];
 
       home.dataFile."fzf" = {
         source = pkgs.fetchFromGitHub {
@@ -54,8 +61,7 @@ in {
       };
 
       env.FZF_HOME = "$XDG_DATA_HOME/fzf";
-      env.FZF_DEFAULT_OPTS =
-        escapeShellArgs (mapAttrsToList (k: v: "--color=${k}:${v}") fzfColors);
+      env.FZF_DEFAULT_OPTS = escapeShellArgs (mapAttrsToList (k: v: "--color=${k}:${v}") fzfColors);
 
       # Autocompletion + key-bindings for ZSH
       modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''

@@ -4,8 +4,16 @@
 # an Earth location for the observer. If you're from the future and live in
 # Mars, I'm sorry, at the time of this writing only Earth is supported.
 
-{ config, home-manager, options, lib, pkgs, ... }:
-with lib; {
+{
+  config,
+  home-manager,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+with lib;
+{
   options.modules.desktop.applications.redshift = {
     enable = mkOption {
       type = types.bool;
@@ -75,17 +83,14 @@ with lib; {
       settings = {
         redshift = {
           # Brightness for day and night. Available on version >=1.8
-          brightness-day =
-            config.modules.desktop.applications.redshift.brightness.day;
+          brightness-day = config.modules.desktop.applications.redshift.brightness.day;
 
-          brightness-night =
-            config.modules.desktop.applications.redshift.brightness.night;
+          brightness-night = config.modules.desktop.applications.redshift.brightness.night;
 
           # Gamma (for all colors, or each channel) for day and night
           gamma-day = config.modules.desktop.applications.redshift.gamma.day;
 
-          gamma-night =
-            config.modules.desktop.applications.redshift.gamma.night;
+          gamma-night = config.modules.desktop.applications.redshift.gamma.night;
         };
       };
     };

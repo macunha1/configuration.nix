@@ -4,8 +4,15 @@
 # was donated to the Linux Foundation under the OCI spec.
 # Read this module as "Docker v2". The "works on my machine" killer
 
-{ config, options, pkgs, lib, ... }:
-with lib; {
+{
+  config,
+  options,
+  pkgs,
+  lib,
+  ...
+}:
+with lib;
+{
   options.modules.virtualization.oci = {
     enable = mkOption {
       type = types.bool;
@@ -20,7 +27,11 @@ with lib; {
 
   config = mkIf config.modules.virtualization.oci.enable {
     user = {
-      packages = with pkgs; [ buildah crun containerd ];
+      packages = with pkgs; [
+        buildah
+        crun
+        containerd
+      ];
       extraGroups = [ "containers" ];
     };
   };

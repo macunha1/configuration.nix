@@ -1,5 +1,13 @@
-{ config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
-with lib; {
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  isDarwin ? pkgs.stdenv.isDarwin,
+  ...
+}:
+with lib;
+{
   options.modules.editors = {
     default = mkOption {
       type = types.str;

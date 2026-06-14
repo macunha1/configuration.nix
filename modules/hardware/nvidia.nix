@@ -5,9 +5,23 @@
 # NVIDIA is a relevant resource to code using CUDA, or train deep learning
 # models significantly faster than on CPU.
 
-{ options, config, lib, pkgs, ... }:
+{
+  options,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-with lib; {
+with lib;
+let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+in
+{
   options.modules.hardware.video = {
     # Whether or not to enable OpenGL video/graphical support
     enable = mkOption {
@@ -19,8 +33,7 @@ with lib; {
       type = types.bool;
       default = false;
 
-      description =
-        "Whether or not to enable support for 32-bit libraries on 64-bit systems";
+      description = "Whether or not to enable support for 32-bit libraries on 64-bit systems";
     };
 
     extra32BitPackages = mkOption {
@@ -72,17 +85,17 @@ with lib; {
       # Ref: https://github.com/Syllo/nvtop
       user.packages = with pkgs; [ nvtop ];
 
-      environment.systemPackages = with pkgs;
-        [
-          # Enforce XDG base dir spec on nvidia settings
-          (writeScriptBin "nvidia-settings" ''
-            #!${stdenv.shell}
-            mkdir -p "$XDG_CONFIG_HOME/nvidia"
+      environment.systemPackages = with pkgs; [
+        # Enforce XDG base dir spec on nvidia settings
+        (writeScriptBin "nvidia-settings" ''
+          #!${stdenv.shell}
+          ${generatedFileWarning { file = ./nvidia.nix; }}
+          mkdir -p "$XDG_CONFIG_HOME/nvidia"
 
-            exec ${config.boot.kernelPackages.nvidia_x11.settings}/bin/nvidia-settings \
-                --config="$XDG_CONFIG_HOME/nvidia/settings"
-          '')
-        ];
+          exec ${config.boot.kernelPackages.nvidia_x11.settings}/bin/nvidia-settings \
+              --config="$XDG_CONFIG_HOME/nvidia/settings"
+        '')
+      ];
     })
   ]);
 }
