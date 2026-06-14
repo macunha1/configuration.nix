@@ -11,22 +11,33 @@
 with lib;
 
 let
-  cfg = config.modules.shell.git.user;
+  hasEmail = config.modules.shell.git.user.email != "";
+  hasGpg = config.modules.shell.git.user.gpgSigningKeyId != "";
 
-  hasEmail = cfg.email != "";
-  hasGpg   = cfg.gpgSigningKeyId != "";
+  hostedGitCliPackages =
+    optionals config.modules.shell.git.githubCli.enable [ pkgs.gh ]
+    ++ optionals config.modules.shell.git.gitlabCli.enable [ pkgs.glab ];
+
+  ohMyZshGitPlugin = rec {
+    rev = "93c837fec8e9fe61509b9dff9e909e84f7ebe32d";
+    url = "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/" + rev
+      + "/plugins/git/git.plugin.zsh";
+    hash = "sha256-lzToZgFVpNxN3yszVytFxPJlTFLhGedxarpc7vK4L5g=";
+  };
 
   # Canonical git configuration - defined once, used by both platforms.
   # lib.generators.toGitINI and programs.git.settings both accept this shape.
   gitSettings = {
-    user = { name = cfg.name; useconfigonly = true; }
-      // optionalAttrs hasEmail { email = cfg.email; }
-      // optionalAttrs hasGpg   { signingkey = cfg.gpgSigningKeyId; };
-  } // optionalAttrs hasGpg {
-    commit.gpgsign = true;
-  } // {
-    pull.rebase    = true;
-    push.default   = "current";
+    user = {
+      name = config.modules.shell.git.user.name;
+      useconfigonly = true;
+    } // optionalAttrs hasEmail { email = config.modules.shell.git.user.email; }
+      // optionalAttrs hasGpg {
+        signingkey = config.modules.shell.git.user.gpgSigningKeyId;
+      };
+  } // optionalAttrs hasGpg { commit.gpgsign = true; } // {
+    pull.rebase = true;
+    push.default = "current";
     rebase.autosquash = true;
   };
 
@@ -41,24 +52,30 @@ let
     "gcm!" = "gcm && ggpull";
 
     # Checkout master and (kindly) delete the old branch
-    gcmd = "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbd $CURRENT_BRANCH";
+    gcmd =
+      "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbd $CURRENT_BRANCH";
     # Same but force-delete
-    gcmD = "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbD $CURRENT_BRANCH";
+    gcmD =
+      "CURRENT_BRANCH=$(git_current_branch) && gcm! && gbD $CURRENT_BRANCH";
 
     # Merge current branch into master, push, return to branch, then delete it
-    "gm!" = "GIT_CURRENT_BRANCH=$(git_current_branch) && gcm && gm \${GIT_CURRENT_BRANCH} && ggpush && gco \${GIT_CURRENT_BRANCH} && gcmd";
+    "gm!" = concatStringsSep " && " [
+      "GIT_CURRENT_BRANCH=$(git_current_branch)"
+      "gcm"
+      "gm \${GIT_CURRENT_BRANCH}"
+      "ggpush"
+      "gco \${GIT_CURRENT_BRANCH}"
+      "gcmd"
+    ];
 
     "gstc!" = "gaa && gsta && gstc"; # stash and clear local changes
-    "ggpush!" = "ggpush --force";    # explicit force-push
+    "ggpush!" = "ggpush --force"; # explicit force-push
     "gg!" = "gaa && gc! && ggpush!"; # add all, amend, force-push
   };
 
   # OMZ git.plugin.zsh - single-file fetch; provides all standard git shell aliases.
   # The companion lib/git.zsh helper functions are inlined as gitHelperFunctions below.
-  gitOmzPlugin = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/93c837fec8e9fe61509b9dff9e909e84f7ebe32d/plugins/git/git.plugin.zsh";
-    sha256 = "161gp3rfwp5sd9qyf6g1a966bwn48lmmfcrbvx6xr92m05kfhd4p";
-  };
+  gitOmzPlugin = pkgs.fetchurl { inherit (ohMyZshGitPlugin) url hash; };
 
   # Inline replacements for the lib/git.zsh helpers called by git.plugin.zsh.
   #
@@ -80,8 +97,7 @@ let
       echo main
     }
   '';
-in
-{
+in {
   options.modules.shell.git = {
     enable = mkOption {
       type = types.bool;
@@ -93,7 +109,7 @@ in
         type = types.str;
         # Fall back to $USER so this works outside a NixOS user context (standalone HM).
         default = let n = builtins.getEnv "USER";
-          in if elem n [ "" "root" ] then "macunha1" else n;
+        in if elem n [ "" "root" ] then "macunha1" else n;
         description = "git/config user.name";
       };
 
@@ -109,6 +125,18 @@ in
         description = "git/config user.signingkey for commit signing";
       };
     };
+
+    githubCli.enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether or not to install GitHub CLI";
+    };
+
+    gitlabCli.enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether or not to install GitLab CLI";
+    };
   };
 
   config = mkIf config.modules.shell.git.enable (mkMerge [
@@ -122,9 +150,7 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [
-        gitAndTools.gh # GitHub CLI
-      ];
+      user.packages = hostedGitCliPackages;
 
       home.configFile."git/config".text = generators.toGitINI gitSettings;
 
@@ -136,9 +162,7 @@ in
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = with pkgs; [
-        gh # GitHub CLI
-      ];
+      home.packages = hostedGitCliPackages;
 
       programs.git = {
         enable = true;

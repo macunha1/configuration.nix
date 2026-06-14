@@ -28,7 +28,7 @@ with lib; {
     })
 
     # Darwin (MacOS)
-    ## nix-direnv speeds up nix-shell / flake devShell entry.
+    # nix-direnv speeds up nix-shell / flake devShell entry.
     (optionalAttrs isDarwin {
       programs.direnv = {
         enable = true;

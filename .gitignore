@@ -2,3 +2,10 @@ result
 
 # Machine-local overrides (private values like email, signing keys)
 hosts/*/local.nix
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
+.codex-plugin/*
+.mcp.json
+mcp.json

@@ -11,21 +11,21 @@
 with lib;
 # lib.my (configDir etc.) is present on NixOS; absent in standalone home-manager.
 # The Darwin sections never access configDir, so the empty fallback is safe.
-with (lib.my or {});
+with (lib.my or { });
 
 let
   # CLI utilities installed on both platforms.
   # Linux also adds pkgs.zsh itself; Darwin gets zsh from the system or nix-darwin.
   commonCliPackages = with pkgs; [
-    starship  # Spaceship prompt reimplemented in Rust
-    htop      # colorful top
-    tldr      # short man pages
-    tree      # directory tree view
-    ripgrep   # fast grep (also used by Doom Emacs)
-    stow      # GNU Stow, symlink manager
-    jq        # JSON for the shell
+    starship # Spaceship prompt reimplemented in Rust
+    htop # colorful top
+    tldr # short man pages
+    tree # directory tree view
+    ripgrep # fast grep (also used by Doom Emacs)
+    stow # GNU Stow, symlink manager
+    jq # JSON for the shell
     fastfetch # system info banner (neofetch successor)
-    keychain  # SSH/GPG agent lifecycle manager
+    keychain # SSH/GPG agent lifecycle manager
   ];
 
   # Syntax-highlighting theme - defined once, consumed by both platforms.
@@ -34,46 +34,55 @@ let
   zshHighlighters = [ "main" "brackets" "line" "cursor" ];
 
   zshHighlightStyles = {
-    "bracket-level-1"        = "fg=14";
-    "bracket-level-2"        = "fg=13,bold";
-    "bracket-level-3"        = "fg=4";
-    "bracket-level-4"        = "fg=10,bold";
-    alias                    = "fg=14";
-    command                  = "fg=10,bold";
-    function                 = "fg=10";
-    arg0                     = "fg=10,bold";
-    autodirectory            = "fg=4,underline";
-    "bracket-error"          = "fg=9,bold";
+    "bracket-level-1" = "fg=14";
+    "bracket-level-2" = "fg=13,bold";
+    "bracket-level-3" = "fg=4";
+    "bracket-level-4" = "fg=10,bold";
+    alias = "fg=14";
+    command = "fg=10,bold";
+    function = "fg=10";
+    arg0 = "fg=10,bold";
+    autodirectory = "fg=4,underline";
+    "bracket-error" = "fg=9,bold";
     "dollar-quoted-argument" = "fg=9";
     "double-quoted-argument" = "fg=9,bold";
-    precommand                = "fg=14,underline";
-    redirection               = "fg=10";
-    "reserved-word"           = "fg=10";
-    "single-quoted-argument"  = "fg=10";
-    "suffix-alias"            = "fg=14,underline";
+    precommand = "fg=14,underline";
+    redirection = "fg=10";
+    "reserved-word" = "fg=10";
+    "single-quoted-argument" = "fg=10";
+    "suffix-alias" = "fg=14,underline";
   };
 
   # Shell code that initialises the highlighting variables for NixOS.
   # typeset -A is required before the (key value ...) assignment form.
-  syntaxHighlightingEnv =
-    let
-      highlightersLine = concatStringsSep " " zshHighlighters;
-      styleLines       = mapAttrsToList (k: v: "  ${k} '${v}'") zshHighlightStyles;
-    in
-    ''
+  syntaxHighlightingEnv = let
+    highlightersLine = concatStringsSep " " zshHighlighters;
+    styleLines = mapAttrsToList (k: v: "  ${k} '${v}'") zshHighlightStyles;
+  in ''
     ZSH_HIGHLIGHT_HIGHLIGHTERS=(${highlightersLine})
     typeset -A ZSH_HIGHLIGHT_STYLES
     ZSH_HIGHLIGHT_STYLES=(
     ${concatStringsSep "\n" styleLines}
     )
-    '';
+  '';
 
   # Tool completions - sourced after init.zsh, conditional on module flags.
   # kubectl completion is handled by the kubectl plugin (with caching); only
   # minikube and helm need explicit sourcing here.
-  completionSources =
-    optionalString config.modules.networking.kubernetes.minikube.enable "source <(minikube completion zsh)\n"
-    + optionalString config.modules.networking.kubernetes.helm.enable   "source <(helm completion zsh)\n";
+  completionSources = concatStrings [
+    (optionalString config.modules.networking.kubernetes.minikube.enable ''
+      source <(minikube completion zsh)
+    '')
+    (optionalString config.modules.networking.kubernetes.helm.enable ''
+      source <(helm completion zsh)
+    '')
+  ];
+
+  urlEncodeCommand = "python3 -c "
+    + ''"import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'';
+
+  urlDecodeCommand = "python3 -c "
+    + ''"import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
 
   # Key bindings - identical on both platforms.
   #
@@ -83,10 +92,15 @@ let
   # up-line-or-beginning-search: arrow-up searches history by the prefix already typed
   # rather than walking commands in chronological order (matches OMZ history-search plugin).
   # terminfo keys are used so the binding works across terminals and over SSH.
+  #
+  # Ctrl+Q push-line: temporarily queues the current command line, presents a fresh
+  # prompt, then restores the queued line after the next command completes.
   shellBindings = ''
+    stty -ixon
     bindkey -e
     bindkey '^U' backward-kill-line
     bindkey '^Y' kill-line
+    bindkey '^Q' push-line
     autoload -U +X bashcompinit && bashcompinit
     autoload -U select-word-style
     select-word-style bash
@@ -123,8 +137,7 @@ let
     source "$HOME/.config/zsh/init.zsh"
     ${completionSources}
   '';
-in
-{
+in {
   options.modules.shell.zsh = {
     enable = mkOption {
       type = types.bool;
@@ -141,7 +154,8 @@ in
           else
             (toString v));
         default = { };
-        description = "Shell aliases written into zsh/init.zsh on both platforms.";
+        description =
+          "Shell aliases written into zsh/init.zsh on both platforms.";
       };
 
     # Extra shell lines appended into init.zsh on both platforms.
@@ -219,9 +233,9 @@ in
 
             ${config.modules.shell.zsh.env}
 
-            ## Source per-user profile fragments - analogous to /etc/profile.d/.
-            ## Previously a separate .zprofile; inlined here so the file tree
-            ## stays clean and there is one authoritative place to read.
+            # Source per-user profile fragments - analogous to /etc/profile.d/.
+            # Previously a separate .zprofile; inlined here so the file tree
+            # stays clean and there is one authoritative place to read.
             if [[ -d "$HOME/.profile.d" ]]; then
               for i in "$HOME"/.profile.d/*.sh; do
                 [[ -x "$i" ]] && source "$i"
@@ -240,10 +254,10 @@ in
         # Clipboard, URL encode/decode - mirror of the Darwin programs.zsh.shellAliases.
         # xclip replaces pbcopy/pbpaste on Linux.
         environment.shellAliases = {
-          urlencode = ''python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'';
-          urldecode = ''python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
-          clipbc    = ''xclip -in -selection clipboard < "''${1:-/dev/stdin}"'';
-          clipbp    = "xclip -out -selection clipboard";
+          urlencode = urlEncodeCommand;
+          urldecode = urlDecodeCommand;
+          clipbc = ''xclip -in -selection clipboard < "''${1:-/dev/stdin}"'';
+          clipbp = "xclip -out -selection clipboard";
         };
 
         # Shell init - goes into init.zsh, sourced from .zshrc before antigen apply.
@@ -287,9 +301,9 @@ in
         autosuggestion.enable = true;
 
         syntaxHighlighting = {
-          enable      = true;
+          enable = true;
           highlighters = zshHighlighters;
-          styles       = zshHighlightStyles;
+          styles = zshHighlightStyles;
         };
 
         history = {
@@ -301,13 +315,13 @@ in
         # macOS-only aliases. Cross-platform aliases live in init.zsh (generated
         # from modules.shell.zsh.aliases) so they follow the same path as NixOS.
         shellAliases = {
-          urlencode = ''python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'';
-          urldecode = ''python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
-          clipbc  = "pbcopy";
-          clipbp  = "pbpaste";
+          urlencode = urlEncodeCommand;
+          urldecode = urlDecodeCommand;
+          clipbc = "pbcopy";
+          clipbp = "pbpaste";
 
           # Homebrew python3 takes precedence over any macOS-bundled python.
-          python  = "/opt/homebrew/bin/python3";
+          python = "/opt/homebrew/bin/python3";
         };
 
         # Source env.zsh before completions so PATH, XDG vars, and brew are
@@ -354,7 +368,8 @@ in
       programs.starship = {
         enable = true;
         enableZshIntegration = true;
-        settings = builtins.fromTOML (builtins.readFile ../../config/starship/config.toml);
+        settings = builtins.fromTOML
+          (builtins.readFile ../../config/starship/config.toml);
       };
     })
   ]);

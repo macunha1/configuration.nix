@@ -1,29 +1,26 @@
 # development/android.nix -- https://www.android.com/
 #
-# Android SDK, emulator, and ADB tooling.
+# ADB and Fastboot tooling.
 #
-# This module is Linux-only: it uses udev rules (services.udev), the adbusers
-# group (users.groups), and KVM-backed emulation — none of which exist on macOS.
-# iOS/Android development on macOS is better handled via Android Studio directly.
+# This module is Linux-only: it uses udev rules (services.udev) and the adbusers
+# group (users.groups), neither of which exists on macOS. iOS/Android development
+# on macOS is better handled via Android Studio directly.
 
 { config, options, lib, pkgs, isDarwin ? pkgs.stdenv.isDarwin, ... }:
 
 with lib;
 
 let
-  ## Android SDK composition — platform and build tool versions pinned here.
-  androidPackages = pkgs.androidenv.composeAndroidPackages {
-    platformVersions     = [ "28" "29" "30" ];
-    platformToolsVersion = "34.0.1";
-    toolsVersion         = "26.1.1";
-    buildToolsVersions   = [ "33.0.2" ];
-    abiVersions          = [ "x86" "x86_64" ];
+  androidTools = pkgs.android-tools;
 
-    includeEmulator = true;
-    emulatorVersion = "33.1.6";
-  };
-in
-{
+  # Minimal SDK-shaped directory for tools that expect $ANDROID_SDK_ROOT/platform-tools/adb.
+  androidAdbSdk =
+    pkgs.runCommand "android-adb-sdk-${androidTools.version}" { } ''
+      mkdir -p "$out/platform-tools"
+      ln -s ${androidTools}/bin/adb "$out/platform-tools/adb"
+      ln -s ${androidTools}/bin/fastboot "$out/platform-tools/fastboot"
+    '';
+in {
   options.modules.development.android = {
     enable = mkOption {
       type = types.bool;
@@ -41,9 +38,9 @@ in
     };
   };
 
-  ## Linux-only: udev rules and KVM emulation are not available on macOS.
-  config = mkIf config.modules.development.android.enable (
-    optionalAttrs (!isDarwin) (mkMerge [
+  # Linux-only: udev rules and adbusers are not available on macOS.
+  config = mkIf config.modules.development.android.enable
+    (optionalAttrs (!isDarwin) (mkMerge [
       {
         # Copied from programs.adb to extend its capability with a custom pkg
         # Ref: github.com/NixOS/nixpkgs/blob/master/nixos/modules/programs/adb.nix
@@ -53,25 +50,15 @@ in
         user = {
           extraGroups = [ "adbusers" ];
 
-          packages = with pkgs; [
-            androidPackages.androidsdk
-
-            # Version-pinned emulator wrapper to avoid path/version conflicts
-            (writeScriptBin "amulator" ''
-              #!${stdenv.shell}
-              exec ${androidPackages.emulator}/libexec/android-sdk/emulator/emulator "$@"
-            '')
-          ];
+          packages = [ androidTools ];
         };
 
-        env.ANDROID_SDK_ROOT      = "${config.modules.development.android.path}/sdk";
-        env.ANDROID_AVD_HOME      = "${config.modules.development.android.path}/avd";
-        env.ANDROID_EMULATOR_HOME = "${config.modules.development.android.path}/emulator";
+        env.ANDROID_SDK_ROOT = "${androidAdbSdk}";
+        env.ANDROID_USER_HOME = config.modules.development.android.path;
       }
 
       (mkIf config.modules.development.android.includeBinToPath {
-        env.PATH = [ "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" ];
+        env.PATH = [ "$ANDROID_SDK_ROOT/platform-tools" ];
       })
-    ])
-  );
+    ]));
 }

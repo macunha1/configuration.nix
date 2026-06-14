@@ -11,12 +11,9 @@
 with lib;
 
 let
-  ## Go environment — same values on both platforms.
-  goEnvVars = {
-    GOPATH = config.modules.development.go.path;
-  };
-in
-{
+  # Go environment — same values on both platforms.
+  goEnvVars = { GOPATH = config.modules.development.go.path; };
+in {
   options.modules.development.go = {
     enable = mkOption {
       type = types.bool;

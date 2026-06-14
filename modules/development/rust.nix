@@ -12,20 +12,20 @@ with lib;
 
 let
   rustPackages = with pkgs; [
-    nasm    # assembler (used by some Rust crates with C interop)
-    rustup  # toolchain manager (installs stable/nightly via rustup)
-    zlib    # compression library linked by many crates
+    nasm # assembler (used by some Rust crates with C interop)
+    rustup # toolchain manager (installs stable/nightly via rustup)
+    zlib # compression library linked by many crates
     rustfmt # canonical code formatter
   ];
 
-  ## XDG-compliant Rust/Cargo paths — same values on both platforms.
+  # XDG-compliant Rust/Cargo paths — same values on both platforms.
   rustEnvVars = {
-    RUSTUP_HOME        = "${config.modules.development.rust.path}/up";
-    CARGO_HOME         = "${config.modules.development.rust.path}/cargo";
-    CARGO_TARGET_DIR   = "$CARGO_HOME/target"; # shared build cache across projects
+    RUSTUP_HOME = "${config.modules.development.rust.path}/up";
+    CARGO_HOME = "${config.modules.development.rust.path}/cargo";
+    CARGO_TARGET_DIR =
+      "$CARGO_HOME/target"; # shared build cache across projects
   };
-in
-{
+in {
   options.modules.development.rust = {
     enable = mkOption {
       type = types.bool;

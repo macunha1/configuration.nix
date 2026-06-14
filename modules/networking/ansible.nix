@@ -15,18 +15,18 @@
 with lib;
 
 let
-  ## my.molecule is a custom overlay package; may require the overlay on Darwin.
   ansiblePackages = with pkgs; [
     ansible-lint # best-practice rule checker for playbooks
-    my.molecule  # test framework for Ansible roles
     ansible      # the automation engine itself
+  ] ++ optionals config.modules.networking.ansible.molecule.enable [
+    pkgs.molecule # test framework for Ansible roles
   ];
 
-  ## XDG-compliant Ansible paths — same values on both platforms.
+  # XDG-compliant Ansible paths
   ansibleEnvVars = {
-    ANSIBLE_ROLES_PATH       = "$XDG_DATA_HOME/ansible/galaxy/roles";
-    ANSIBLE_COLLECTIONS_PATH = "$XDG_DATA_HOME/ansible/galaxy/collections";
-    ANSIBLE_GALAXY_CACHE_DIR = "$XDG_DATA_HOME/ansible/galaxy/cache";
+    ANSIBLE_ROLES_PATH        = "$XDG_DATA_HOME/ansible/galaxy/roles";
+    ANSIBLE_COLLECTIONS_PATH  = "$XDG_DATA_HOME/ansible/galaxy/collections";
+    ANSIBLE_GALAXY_CACHE_DIR  = "$XDG_DATA_HOME/ansible/galaxy/cache";
     ANSIBLE_GALAXY_TOKEN_PATH = "$XDG_CONFIG_HOME/ansible/galaxy/token";
   };
 in
@@ -35,6 +35,13 @@ in
     enable = mkOption {
       type = types.bool;
       default = false;
+    };
+
+    molecule = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+      };
     };
   };
 

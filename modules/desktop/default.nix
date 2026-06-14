@@ -43,7 +43,7 @@ with lib; {
       xclip # clipboard access from terminal
     ];
 
-    ## Fonts
+    # Fonts
     fonts = {
       fontDir.enable = true;
       enableGhostscriptFonts = true;

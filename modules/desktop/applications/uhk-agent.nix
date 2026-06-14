@@ -11,17 +11,11 @@ with lib; {
       type = types.bool;
       default = false;
     };
-
-    version = mkOption {
-      type = types.str;
-      # version >1.3.0 causes it to hang on launch ("Loading configuration. Hang on")
-      default = "1.3.0";
-    };
   };
 
   config = mkIf config.modules.desktop.applications.uhkAgent.enable {
-    user.packages = with pkgs; [ my.uhk-agent ];
+    user.packages = with pkgs; [ uhk-agent ];
 
-    services.udev.packages = with pkgs; [ my.uhk-agent ];
+    services.udev.packages = with pkgs; [ uhk-agent ];
   };
 }

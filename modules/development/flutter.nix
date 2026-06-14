@@ -16,17 +16,17 @@ with lib;
 let
   flutterPackages = with pkgs; [
     flutter # framework + CLI (dart bundled)
-    dart    # explicit dart SDK for IDE tooling
+    dart # explicit dart SDK for IDE tooling
   ];
 
-  ## Flutter path configuration — same values on both platforms.
+  # Flutter path configuration — same values on both platforms.
   flutterEnvVars = {
-    FLUTTER_ROOT    = config.modules.development.flutter.path;
+    FLUTTER_ROOT = config.modules.development.flutter.path;
     # TODO: Install downloaded tools to bin (+patchelf)
-    DART_SDK_PATH   = "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
+    DART_SDK_PATH =
+      "${config.modules.development.flutter.path}/bin/cache/dart-sdk";
   };
-in
-{
+in {
   options.modules.development.flutter = {
     enable = mkOption {
       type = types.bool;

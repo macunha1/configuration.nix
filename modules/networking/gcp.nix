@@ -12,16 +12,16 @@
 with lib;
 
 let
-  gcpPackages = with pkgs; [
-    google-cloud-sdk # gcloud, gsutil, bq
-  ];
+  gcpPackages = with pkgs;
+    [
+      google-cloud-sdk # gcloud, gsutil, bq
+    ];
 
-  ## XDG-compliant GCP paths — same values on both platforms.
+  # XDG-compliant GCP paths — same values on both platforms.
   gcpEnvVars = {
     BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config"; # gsutil / Python boto config
   };
-in
-{
+in {
   options.modules.networking.gcp = {
     enable = mkOption {
       type = types.bool;

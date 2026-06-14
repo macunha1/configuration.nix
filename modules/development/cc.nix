@@ -11,16 +11,15 @@
 with lib;
 
 let
-  ## Base C/C++ toolchain — same on both platforms.
+  # Base C/C++ toolchain — same on both platforms.
   ccPackages = with pkgs; [
-    clang              # LLVM C/C++ compiler frontend
-    gcc                # GNU C/C++ compiler
-    gdb                # GNU debugger
-    cmake              # cross-platform build system
+    clang # LLVM C/C++ compiler frontend
+    gcc # GNU C/C++ compiler
+    gdb # GNU debugger
+    cmake # cross-platform build system
     llvmPackages.libcxx # LLVM C++ standard library
   ];
-in
-{
+in {
   options.modules.development.cc = {
     enable = mkOption {
       type = types.bool;

@@ -10,8 +10,8 @@ with inputs; {
   ] ++ (mapModulesRec' (toString ./modules) import);
 
   ## Base Flake configuration
+  #
   # Mainly to make 'nix flake' available in the terminal for installation
-
   environment.variables = {
     DOTFILES = dotFilesDir;
 
@@ -49,6 +49,7 @@ with inputs; {
   };
 
   ## Global defaults
+  #
   # Enables 'nix flake check' for hosts even if there's no fileSystem config
   fileSystems."/".device = mkDefault "/dev/disk/by-label/nixos";
 
