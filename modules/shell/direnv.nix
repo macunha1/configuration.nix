@@ -1,7 +1,7 @@
 # shell/direnv.nix -- https://github.com/direnv/direnv
 #
 # Path-relative configurations for repositories and tools. Extends greatly some
-# version managers for projects and fits perfectly with lorri for NixOS.
+# version managers for projects.
 #
 # direnv allows to have configurations such as "enable the Python virtual env"
 # inside the repository path and unload when you leave it.

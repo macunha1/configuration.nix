@@ -67,25 +67,18 @@
         helm.enable = true;
       };
 
-      aws = {
-        enable = true;
-        iamAuthenticator.enable = true;
-      };
-
-      gcp.enable = true;
       terraform.enable = true;
     };
 
     shell = {
-      git.user.name = "Matheus Cunha";
-
+      git.enable = true;
       zsh.enable = true;
-      fzf.enable = true;
-      tmux.enable = true;
-      pass.enable = true;
-      gnupg.enable = true;
-      direnv.enable = true;
       asdf.enable = true;
+      direnv.enable = true;
+      fzf.enable = true;
+      gnupg.enable = true;
+      pass.enable = true;
+      tmux.enable = true;
     };
   };
 }

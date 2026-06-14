@@ -84,8 +84,12 @@ let
   urlDecodeCommand = "python3 -c "
     + ''"import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'';
 
-  # Key bindings - identical on both platforms.
+  # Key bindings - identical on both platforms (NixOS and MacOS).
   #
+  # Ctrl+Y is used for `kill-line` instead of the default Ctrl+K to avoid
+  # conflicting with Tmux Vim navigation keybinds (Ctrl+H,J,K,L). Y was picked
+  # because it stand right next to U (default backward-kill-line).
+  # 
   # select-word-style bash: word chars = alphanumeric + underscore only, so Ctrl+W stops
   # at slashes, dashes, dots and other separators (matches the old OMZ Ctrl+W behaviour).
   #
@@ -97,13 +101,16 @@ let
   # prompt, then restores the queued line after the next command completes.
   shellBindings = ''
     stty -ixon
+
     bindkey -e
     bindkey '^U' backward-kill-line
     bindkey '^Y' kill-line
     bindkey '^Q' push-line
+
     autoload -U +X bashcompinit && bashcompinit
     autoload -U select-word-style
     select-word-style bash
+
     autoload -U up-line-or-beginning-search down-line-or-beginning-search
     zle -N up-line-or-beginning-search
     zle -N down-line-or-beginning-search
@@ -195,6 +202,9 @@ in {
   };
 
   config = mkIf config.modules.shell.zsh.enable (mkMerge [
+    {
+      modules.shell.zsh.aliases.l = mkDefault "ls --color=auto -lah";
+    }
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) (mkMerge [
@@ -324,18 +334,20 @@ in {
           python = "/opt/homebrew/bin/python3";
         };
 
-        # Source env.zsh before completions so PATH, XDG vars, and brew are
-        # already set when autosuggestions and syntax-highlighting initialise.
-        initExtraBeforeCompInit = ''
-          source "${config.xdg.configHome}/zsh/env.zsh"
-        '';
+        initContent = mkMerge [
+          # Source env.zsh before completions so PATH, XDG vars, and brew are
+          # already set when autosuggestions and syntax-highlighting initialise.
+          (mkOrder 550 ''
+            source "${config.xdg.configHome}/zsh/env.zsh"
+          '')
 
-        initContent = ''
-          ${shellBindings}
-          ${keychainInit config.xdg.configHome}
-          source "${config.xdg.configHome}/zsh/init.zsh"
-          ${completionSources}
-        '';
+          ''
+            ${shellBindings}
+            ${keychainInit config.xdg.configHome}
+            source "${config.xdg.configHome}/zsh/init.zsh"
+            ${completionSources}
+          ''
+        ];
       };
 
       # Darwin-specific env.zsh content: brew path setup and GPG_TTY.

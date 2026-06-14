@@ -24,7 +24,7 @@
     xkbVariant = "intl";
   };
 
-  time.timeZone = "Europe/Berlin";
+  time.timeZone = "Etc/UTC";
   user.extraGroups = [ "networkmanager" ];
 
   nix = {

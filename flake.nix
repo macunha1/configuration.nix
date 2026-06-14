@@ -136,7 +136,7 @@
             inputs.emacs-overlay.overlay
           ] ++ (attrValues self.overlays);
         };
-        modules = [ ./hosts/macbook/home.nix ];
+        modules = [ ./hosts/macbook ];
         extraSpecialArgs = { inherit inputs; isDarwin = true; };
       };
     };

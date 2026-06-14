@@ -11,11 +11,25 @@
 with lib;
 
 let
+  rustupWithoutRustAnalyzer = pkgs.runCommand "rustup-without-rust-analyzer" { } ''
+    mkdir -p "$out/bin"
+
+    for bin in ${pkgs.rustup}/bin/*; do
+      ln -s "$bin" "$out/bin/$(basename "$bin")"
+    done
+
+    rm -f "$out/bin/rust-analyzer"
+  '';
+
+  rustupPackage =
+    if config.modules.development.rust.languageServer.enable
+    then rustupWithoutRustAnalyzer
+    else pkgs.rustup;
+
   rustPackages = with pkgs; [
     nasm # assembler (used by some Rust crates with C interop)
-    rustup # toolchain manager (installs stable/nightly via rustup)
+    rustupPackage # toolchain manager (installs stable/nightly via rustup)
     zlib # compression library linked by many crates
-    rustfmt # canonical code formatter
   ];
 
   # XDG-compliant Rust/Cargo paths — same values on both platforms.
