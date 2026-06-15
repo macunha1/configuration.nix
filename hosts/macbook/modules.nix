@@ -28,6 +28,11 @@
         bun.enable = true;
       };
 
+      go = {
+        enable = true;
+        languageServer.enable = true;
+      };
+
       rust = {
         enable = true;
         languageServer.enable = true;

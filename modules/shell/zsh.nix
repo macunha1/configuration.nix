@@ -163,6 +163,8 @@ let
     bindkey '^U' backward-kill-line
     bindkey '^Y' kill-line
     bindkey '^Q' push-line
+    bindkey '^[[3~' delete-char
+    [[ -n "''${terminfo[kdch1]}" ]] && bindkey "''${terminfo[kdch1]}" delete-char
 
     autoload -U +X bashcompinit && bashcompinit
     autoload -U select-word-style
