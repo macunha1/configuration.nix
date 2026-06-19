@@ -48,8 +48,8 @@ let
   zshPlugin = pkgs.fetchFromGitHub {
     owner = "macunha1";
     repo = "zsh-terraform";
-    rev = "fd1471d3757f8ed13f56c4426f88616111de2a87";
-    sha256 = "02pw5xg72axdz7vcx0bk6hxi5a19xdpcqfg8vwzhd3nqyyvdfygk";
+    rev = "00aa577102496c2df3d4b2be5582de97cf292f58";
+    hash = "sha256-DrOw886sN9Qh2olznVaoUdJ97Bvmtln2TulqQrPL3rg=";
   };
 
   # Implement a Terraform wrapper, with a pass-backed secret store for the API
