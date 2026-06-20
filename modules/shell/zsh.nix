@@ -156,7 +156,11 @@ let
   #
   # Ctrl+Q push-line: temporarily queues the current command line, presents a fresh
   # prompt, then restores the queued line after the next command completes.
-  shellBindings = ''
+  zshCompletionInit = ''
+    autoload -U compinit && compinit -i
+  '';
+
+  shellBindings = runCompinit: ''
     stty -ixon
 
     bindkey -e
@@ -166,6 +170,7 @@ let
     bindkey '^[[3~' delete-char
     [[ -n "''${terminfo[kdch1]}" ]] && bindkey "''${terminfo[kdch1]}" delete-char
 
+    ${optionalString runCompinit zshCompletionInit}
     autoload -U +X bashcompinit && bashcompinit
     autoload -U select-word-style
     select-word-style bash
@@ -252,6 +257,7 @@ in
         programs.zsh = {
           enable = true;
           enableCompletion = true;
+          enableGlobalCompInit = false;
           histSize = config.modules.shell.zsh.historySize;
         };
 
@@ -303,7 +309,7 @@ in
         # Shell init - goes into init.zsh, sourced from .zshrc after plugins load.
         modules.shell.zsh.init = ''
           setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
-          ${shellBindings}
+          ${shellBindings true}
           ${keychainInit "$XDG_CONFIG_HOME"}
           eval "$(starship init zsh)"
         '';
@@ -320,6 +326,7 @@ in
       programs.zsh = {
         enable = true;
         enableCompletion = true;
+        completionInit = zshCompletionInit;
         dotDir = "${config.xdg.configHome}/zsh";
 
         history = {
@@ -347,7 +354,7 @@ in
           ''
             setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
             ${zshPluginBeforeInit}
-            ${shellBindings}
+            ${shellBindings false}
             ${keychainInit config.xdg.configHome}
             source "${config.xdg.configHome}/zsh/init.zsh"
             ${completionSources}

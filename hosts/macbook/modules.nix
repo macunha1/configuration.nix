@@ -23,6 +23,11 @@
         enable = true;
       };
 
+      lua = {
+        enable = true;
+        jit.enable = true;
+      };
+
       node = {
         enable = true;
         bun.enable = true;
