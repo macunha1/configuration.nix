@@ -37,6 +37,7 @@ let
     jq # JSON for the shell
     fastfetch # system info banner (neofetch successor)
     keychain # SSH/GPG agent lifecycle manager
+    sops # encrypted secrets editor
   ];
 
   # Syntax-highlighting theme - defined once, consumed by both platforms.

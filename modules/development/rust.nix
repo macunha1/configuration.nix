@@ -18,6 +18,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
   rustupWithoutRustAnalyzer = pkgs.runCommand "rustup-without-rust-analyzer" { } ''
     mkdir -p "$out/bin"
 
@@ -56,7 +60,7 @@ in
 
     path = mkOption {
       type = with types; (either str path);
-      default = "$XDG_DATA_HOME/rust";
+      default = if isDarwin then "${config.xdg.dataHome}/rust" else "$XDG_DATA_HOME/rust";
     };
 
     languageServer = {
@@ -73,6 +77,10 @@ in
   };
 
   config = mkIf config.modules.development.rust.enable (mkMerge [
+
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.env = shellExports rustEnvVars;
+    })
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) (mkMerge [

@@ -37,11 +37,7 @@
       cc.enable = true;
       python.enable = true;
       rust.enable = true;
-
-      go = {
-        enable = true;
-        path = "/data/1/opt/go";
-      };
+      go.enable = true;
     };
 
     media = {

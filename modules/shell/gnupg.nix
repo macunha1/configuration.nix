@@ -31,6 +31,11 @@ let
     generatedFileWarning
     ;
 
+  gnupgPackages = with pkgs; [
+    gnupg
+    gpgme
+  ];
+
   # gpg-agent configuration - same content on both platforms.
   # Both home.configFile (Linux) and xdg.configFile (Darwin) consume this text.
   gpgAgentConf = ''
@@ -66,7 +71,7 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [ gnupg ];
+      user.packages = gnupgPackages;
 
       # home-manager.users.* is the NixOS proxy for per-user home-manager options
       home-manager.users.${config.user.name}.services.gpg-agent = {
@@ -84,7 +89,7 @@ in
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = with pkgs; [ gnupg ];
+      home.packages = gnupgPackages;
 
       services.gpg-agent = {
         enable = true;

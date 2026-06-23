@@ -21,11 +21,7 @@
     development = {
       python = {
         enable = true;
-      };
-
-      lua = {
-        enable = true;
-        jit.enable = true;
+        languageServer.enable = true;
       };
 
       node = {
@@ -36,12 +32,16 @@
       go = {
         enable = true;
         languageServer.enable = true;
+        includeBinToPath = true;
       };
 
       rust = {
         enable = true;
         languageServer.enable = true;
       };
+
+      lua.enable = true;
+      elixir.enable = true;
     };
 
     networking = {

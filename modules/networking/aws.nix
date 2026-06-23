@@ -22,6 +22,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
   awsPackages = with pkgs; [
     awscli # AWS CLI v1
   ];
@@ -71,11 +75,7 @@ in
     (optionalAttrs isDarwin (mkMerge [
       {
         home.packages = awsPackages;
-        modules.shell.zsh.env = ''
-          export AWS_CONFIG_FILE="${config.xdg.configHome}/aws/config"
-          export AWS_SHARED_CREDENTIALS_FILE="${config.xdg.configHome}/aws/credentials"
-          export BOTO_CONFIG="${config.xdg.configHome}/boto/config"
-        '';
+        modules.shell.zsh.env = shellExports awsEnvVars;
       }
 
       (mkIf config.modules.networking.aws.iamAuthenticator.enable {
