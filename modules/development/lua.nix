@@ -46,6 +46,7 @@ in
     jit = {
       enable = mkOption {
         type = types.bool;
+        default = false;
         description = ''
           Use LuaJIT instead of the reference Lua interpreter.
           Defaults to the opposite of modules.development.lua.enable:

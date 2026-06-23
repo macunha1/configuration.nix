@@ -94,9 +94,7 @@ let
   terraformBin = pkgs.callPackage ../../packages/terraform-bin.nix { };
 
   terraformPackage =
-    if config.modules.networking.terraform.wrapper.enable
-    then terraformWrapper
-    else terraformBin;
+    if config.modules.networking.terraform.wrapper.enable then terraformWrapper else terraformBin;
 in
 {
   options.modules.networking.terraform = {

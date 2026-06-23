@@ -2,12 +2,23 @@
 
 with lib;
 {
-  generatedFileWarning = { file, comment ? "#" }:
+  generatedFileWarning =
+    {
+      file,
+      comment ? "#",
+    }:
     let
       relativePath = removePrefix ((toString ../.) + "/") (toString file);
-    in ''
+    in
+    ''
       ${comment} WARNING: DO NOT EDIT. Auto-generated configuration, managed by Nix.
       ${comment}          Changes WILL be overwritten. Implement changes at:
       ${comment}          ${relativePath}
     '';
+
+  shellExports =
+    envVars:
+    concatStringsSep "\n" (
+      mapAttrsToList (name: value: ''export ${name}="${toString value}"'') envVars
+    );
 }

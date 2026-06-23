@@ -4,6 +4,8 @@
 #
 # Linux: user.packages + env = nodeEnvVars + home.configFile."npm/config".
 # Darwin: home.packages + modules.shell.zsh.env = nodeEnvVars + xdg.configFile."npm/config".
+#
+# Bun package-manager support is gated by modules.development.node.bun.enable.
 
 {
   config,
@@ -21,23 +23,31 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
 
   nodePackages = with pkgs; [
     nodejs # JavaScript runtime
-    yarn # faster, deterministic package manager
   ];
 
-  # XDG-compliant npm/yarn paths - same values on both platforms.
+  bunPackages = with pkgs; [
+    bun # JavaScript runtime, package manager, bundler, and test runner
+  ];
+
+  # XDG-compliant npm paths - same values on both platforms.
   nodeEnvVars = {
     NPM_CONFIG_USERCONFIG = "$XDG_CONFIG_HOME/npm/config";
     NPM_CONFIG_CACHE = "$XDG_CACHE_HOME/npm/cache";
     NPM_CONFIG_TMP = "$XDG_CACHE_HOME/npm/temp";
     NPM_CONFIG_PREFIX = "$XDG_DATA_HOME/npm"; # global install target
     NODE_REPL_HISTORY = "$XDG_CONFIG_HOME/node/repl_history";
-    # Ref https://yarnpkg.com/configuration/yarnrc
-    YARN_CACHE_FOLDER = "$XDG_CACHE_HOME/node/yarn";
-    YARN_RC_FILENAME = "$XDG_CONFIG_HOME/node/yarnrc";
+  };
+
+  # XDG-compliant Bun paths - same values on both platforms.
+  bunEnvVars = {
+    BUN_INSTALL = "$XDG_DATA_HOME/bun";
+    BUN_INSTALL_GLOBAL_DIR = "$XDG_DATA_HOME/bun/install/global";
+    BUN_INSTALL_BIN = "$XDG_DATA_HOME/bun/bin";
   };
 
   # npm config file - same content on both platforms; only the option differs.
@@ -45,6 +55,17 @@ let
     ${generatedFileWarning { file = ./node.nix; }}
     cache=$XDG_CACHE_HOME/npm/cache
     prefix=$XDG_DATA_HOME/npm
+  '';
+
+  # Bun global config - same content on both platforms; only the option differs.
+  bunConfigText = ''
+    ${generatedFileWarning { file = ./node.nix; }}
+    [install]
+    globalDir = "$XDG_DATA_HOME/bun/install/global"
+    globalBinDir = "$XDG_DATA_HOME/bun/bin"
+
+    [install.cache]
+    dir = "$XDG_CACHE_HOME/bun/install/cache"
   '';
 in
 {
@@ -69,7 +90,7 @@ in
     bun = {
       enable = mkOption {
         type = types.bool;
-        default = false;
+        default = true;
       };
     };
   };
@@ -87,15 +108,7 @@ in
       # Darwin (MacOS)
       (optionalAttrs isDarwin {
         home.packages = nodePackages;
-        modules.shell.zsh.env = ''
-          export NPM_CONFIG_USERCONFIG="${config.xdg.configHome}/npm/config"
-          export NPM_CONFIG_CACHE="${config.xdg.cacheHome}/npm/cache"
-          export NPM_CONFIG_TMP="${config.xdg.cacheHome}/npm/temp"
-          export NPM_CONFIG_PREFIX="${config.xdg.dataHome}/npm"
-          export NODE_REPL_HISTORY="${config.xdg.configHome}/node/repl_history"
-          export YARN_CACHE_FOLDER="${config.xdg.cacheHome}/node/yarn"
-          export YARN_RC_FILENAME="${config.xdg.configHome}/node/yarnrc"
-        '';
+        modules.shell.zsh.env = shellExports nodeEnvVars;
         xdg.configFile."npm/config".text = npmConfigText;
       })
     ]))
@@ -109,33 +122,40 @@ in
       })
     ]))
 
-    (mkIf config.modules.development.node.includeBinToPath (mkMerge [
-      (optionalAttrs (!isDarwin) {
-        env.PATH = [ "$(yarn global bin)" ];
-      })
-      (optionalAttrs isDarwin {
-        modules.shell.zsh.env = ''
-          export PATH="$(yarn global bin):$PATH"
-        '';
-      })
-    ]))
+    (mkIf
+      (
+        config.modules.development.node.enable
+        && config.modules.development.node.includeBinToPath
+        && config.modules.development.node.bun.enable
+      )
+      (mkMerge [
+        (optionalAttrs (!isDarwin) {
+          env.PATH = [ "$BUN_INSTALL_BIN" ];
+        })
+        (optionalAttrs isDarwin {
+          modules.shell.zsh.env = ''
+            export PATH="$BUN_INSTALL_BIN:$PATH"
+          '';
+        })
+      ])
+    )
 
-    (mkIf config.modules.development.node.bun.enable (mkMerge [
-      # Linux (NixOS)
-      (optionalAttrs (!isDarwin) {
-        user.packages = with pkgs; [ bun ];
-        env.BUN_INSTALL = "$XDG_DATA_HOME/bun";
-        env.PATH = [ "$XDG_DATA_HOME/bun/bin" ];
-      })
+    (mkIf (config.modules.development.node.enable && config.modules.development.node.bun.enable)
+      (mkMerge [
+        # Linux (NixOS)
+        (optionalAttrs (!isDarwin) {
+          user.packages = bunPackages;
+          env = bunEnvVars;
+          home.configFile.".bunfig.toml".text = bunConfigText;
+        })
 
-      # Darwin (MacOS)
-      (optionalAttrs isDarwin {
-        home.packages = with pkgs; [ bun ];
-        modules.shell.zsh.env = ''
-          export BUN_INSTALL="${config.xdg.dataHome}/bun"
-          export PATH="${config.xdg.dataHome}/bun/bin:$PATH"
-        '';
-      })
-    ]))
+        # Darwin (MacOS)
+        (optionalAttrs isDarwin {
+          home.packages = bunPackages;
+          modules.shell.zsh.env = shellExports bunEnvVars;
+          xdg.configFile.".bunfig.toml".text = bunConfigText;
+        })
+      ])
+    )
   ];
 }

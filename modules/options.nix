@@ -122,8 +122,6 @@ with lib.my;
       "$PATH"
     ];
 
-    environment.extraInit = concatStringsSep "\n" (
-      mapAttrsToList (n: v: ''export ${n}="${v}"'') config.env
-    );
+    environment.extraInit = shellExports config.env;
   };
 }

@@ -25,6 +25,7 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
 
   # XDG-compliant Kubernetes paths - same values on both platforms.
@@ -115,9 +116,7 @@ in
       '';
 
       modules.shell.zsh.env = ''
-        ${concatStringsSep "\n" (
-          mapAttrsToList (name: value: ''export ${name}="${value}"'') (kubeEnvVars // kubernetesEnvVars)
-        )}
+        ${shellExports (kubeEnvVars // kubernetesEnvVars)}
       '';
     })
 

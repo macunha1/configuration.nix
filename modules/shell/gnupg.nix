@@ -31,11 +31,17 @@ let
     generatedFileWarning
     ;
 
+  gnupgPackages = with pkgs; [
+    gnupg
+    gpgme
+  ];
+
   # gpg-agent configuration - same content on both platforms.
   # Both home.configFile (Linux) and xdg.configFile (Darwin) consume this text.
   gpgAgentConf = ''
     ${generatedFileWarning { file = ./gnupg.nix; }}
     default-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
+    max-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
     pinentry-program ${config.modules.shell.gnupg.pinentry}/bin/pinentry
   '';
 in
@@ -58,7 +64,7 @@ in
 
     cacheTTL = mkOption {
       type = types.int;
-      default = 3600;
+      default = 21600;
     };
   };
 
@@ -66,13 +72,14 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [ gnupg ];
+      user.packages = gnupgPackages;
 
       # home-manager.users.* is the NixOS proxy for per-user home-manager options
       home-manager.users.${config.user.name}.services.gpg-agent = {
         enable = true;
         enableSshSupport = config.modules.shell.gnupg.ssh.enable;
         defaultCacheTtl = config.modules.shell.gnupg.cacheTTL;
+        maxCacheTtl = config.modules.shell.gnupg.cacheTTL;
       };
 
       # pinentryFlavor/pinentryPackage doesn't respect GNUPGHOME, so we write
@@ -84,12 +91,13 @@ in
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = with pkgs; [ gnupg ];
+      home.packages = gnupgPackages;
 
       services.gpg-agent = {
         enable = true;
         enableSshSupport = config.modules.shell.gnupg.ssh.enable;
         defaultCacheTtl = config.modules.shell.gnupg.cacheTTL;
+        maxCacheTtl = config.modules.shell.gnupg.cacheTTL;
       };
 
       xdg.configFile."gpg/gpg-agent.conf".text = gpgAgentConf;

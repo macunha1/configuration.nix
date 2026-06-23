@@ -63,7 +63,6 @@
       go = {
         enable = true;
         languageServer.enable = true;
-        path = "/data/1/opt/go";
       };
 
       node = {

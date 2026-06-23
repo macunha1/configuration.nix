@@ -15,7 +15,8 @@ with lib;
 
 let
   elixirPackages = with pkgs; [
-    elixir # language + runtime (bundles Erlang/OTP)
+    elixir
+    erlang # exposes erl/escript for Mix dependencies compiled through rebar3
   ];
 
   elixirEnvVars = {

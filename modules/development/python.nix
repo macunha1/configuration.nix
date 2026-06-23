@@ -20,6 +20,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
   pythonPackages = with pkgs; [
     python3
 
@@ -40,10 +44,6 @@ let
     PIP_CONFIG_FILE = "${config.xdg.configHome}/pip/pip.conf";
     PIP_LOG_FILE = "${config.xdg.dataHome}/pip/log";
   };
-
-  pythonEnvLines = concatStringsSep "\n" (
-    mapAttrsToList (name: value: ''export ${name}="${value}"'') pythonEnvVars
-  );
 
   # Shell aliases - identical on both platforms; only the option name differs.
   pythonAliases = {
@@ -79,7 +79,7 @@ in
       }
 
       (mkIf config.modules.development.python.languageServer.enable {
-        user.packages = with pkgs; [ python3Packages.jedi ];
+        user.packages = with pkgs; [ zuban ];
       })
     ]))
 
@@ -87,12 +87,12 @@ in
     (optionalAttrs isDarwin (mkMerge [
       {
         home.packages = pythonPackages;
-        modules.shell.zsh.env = pythonEnvLines;
+        modules.shell.zsh.env = shellExports pythonEnvVars;
         modules.shell.zsh.aliases = pythonAliases;
       }
 
       (mkIf config.modules.development.python.languageServer.enable {
-        home.packages = with pkgs; [ python3Packages.jedi ];
+        home.packages = with pkgs; [ zuban ];
       })
     ]))
   ]);
