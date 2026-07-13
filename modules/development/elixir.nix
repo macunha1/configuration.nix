@@ -14,6 +14,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
   elixirPackages = with pkgs; [
     elixir
     erlang # exposes erl/escript for Mix dependencies compiled through rebar3
@@ -21,6 +25,7 @@ let
 
   elixirEnvVars = {
     MIX_HOME = config.modules.development.elixir.mix.path;
+    HEX_HOME = config.modules.development.elixir.hex.path;
   };
 in
 {
@@ -34,12 +39,22 @@ in
     mix = {
       path = mkOption {
         type = with types; (either str path);
-        default = "$XDG_DATA_HOME/mix";
+        default = if isDarwin then "${config.xdg.dataHome}/mix" else "$XDG_DATA_HOME/mix";
+      };
+    };
+
+    hex = {
+      path = mkOption {
+        type = with types; (either str path);
+        default = if isDarwin then "${config.xdg.dataHome}/hex" else "$XDG_DATA_HOME/hex";
       };
     };
   };
 
   config = mkIf config.modules.development.elixir.enable (mkMerge [
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.env = shellExports elixirEnvVars;
+    })
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
