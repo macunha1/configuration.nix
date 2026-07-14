@@ -7,22 +7,28 @@
 # Activation:
 #   # For the first run:
 #   nix run nixpkgs#home-manager -- switch --flake .#mcunha --impure
-#   
+#
 #   # Then all subsequent runsL
 #   home-manager switch --flake .#mcunha --impure
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   # Machine-local overrides live outside the flake so they are never committed.
-  # 
+  #
   # Requires: home-manager switch --flake .#mcunha --impure
   privateConfig = /Users/mcunha/.config/home-manager/local.nix;
 
   # Auto-discover all .nix files in a module subdirectory.
-  # 
+  #
   # Modules default to disabled; each handles its own isDarwin guards.
-  nixFilesIn = dir:
+  nixFilesIn =
+    dir:
     let
       # `readDir` gives us every entry, including directories and helper files
       # we do not want to import.
@@ -30,18 +36,24 @@ let
 
       # Keep only plain `.nix` files. Subdirectories are handled elsewhere, and
       # non-Nix files should stay invisible to module discovery.
-      nixEntries = lib.filterAttrs
-        (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-        entries;
+      nixEntries = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name) entries;
     in
-      # Turn the filtered set back into a list of import paths.
-      lib.mapAttrsToList (name: _: dir + "/${name}") nixEntries;
-in {
-  imports = nixFilesIn ../../modules/editors ++ nixFilesIn ../../modules/shell
+    # Turn the filtered set back into a list of import paths.
+    lib.mapAttrsToList (name: _: dir + "/${name}") nixEntries;
+in
+{
+  imports =
+    nixFilesIn ../../modules/agents/code
+    ++ nixFilesIn ../../modules/agents/mcp
+    ++ nixFilesIn ../../modules/agents/plugins
+    ++ nixFilesIn ../../modules/editors
+    ++ nixFilesIn ../../modules/shell
     ++ nixFilesIn ../../modules/development
-    ++ nixFilesIn ../../modules/networking ++ [
+    ++ nixFilesIn ../../modules/networking
+    ++ [
       ./modules.nix
-    ] ++ lib.optional (builtins.pathExists privateConfig) privateConfig;
+    ]
+    ++ lib.optional (builtins.pathExists privateConfig) privateConfig;
 
   home = {
     username = "mcunha";

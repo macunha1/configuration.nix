@@ -26,7 +26,7 @@ let
     shellExports
     ;
 
-  nodePackages = with pkgs; [
+  nodeRuntimePackages = with pkgs; [
     nodejs # JavaScript runtime
   ];
 
@@ -100,14 +100,14 @@ in
 
       # Linux (NixOS)
       (optionalAttrs (!isDarwin) {
-        user.packages = nodePackages;
+        user.packages = nodeRuntimePackages;
         env = nodeEnvVars;
         home.configFile."npm/config".text = npmConfigText;
       })
 
       # Darwin (MacOS)
       (optionalAttrs isDarwin {
-        home.packages = nodePackages;
+        home.packages = nodeRuntimePackages;
         modules.shell.zsh.env = shellExports nodeEnvVars;
         xdg.configFile."npm/config".text = npmConfigText;
       })
@@ -115,10 +115,10 @@ in
 
     (mkIf config.modules.development.node.languageServer.enable (mkMerge [
       (optionalAttrs (!isDarwin) {
-        user.packages = with pkgs; [ nodePackages.javascript-typescript-langserver ];
+        user.packages = with pkgs; [ javascript-typescript-langserver ];
       })
       (optionalAttrs isDarwin {
-        home.packages = with pkgs; [ nodePackages.javascript-typescript-langserver ];
+        home.packages = with pkgs; [ javascript-typescript-langserver ];
       })
     ]))
 

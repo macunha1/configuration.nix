@@ -2,7 +2,7 @@
 #
 # Official Spotify media player implemented in Electron that works just as
 # shitty as expected. Apart from the official Spotify media player, Spotify
-# daemon is also installed that could be extended with Spotify TUI
+# daemon is also installed that could be extended with Spotify terminal client
 # Ref: https://github.com/Spotifyd/spotifyd
 
 {
@@ -52,9 +52,9 @@ with lib;
     { user.packages = with pkgs; [ pkgs.spotify ]; }
 
     (mkIf config.modules.media.spotify.daemon.enable {
-      # When using the Daemon, install the Spotify TUI together to work as an
+      # When using the Daemon, install the Spotify terminal client together to work as an
       # alternative client..
-      user.packages = with pkgs; [ pkgs.spotify-tui ];
+      user.packages = with pkgs; [ pkgs.spotify-player ];
 
       home-manager.users.${config.user.name}.services.spotifyd = {
         enable = true;

@@ -13,10 +13,6 @@
 
   nixConfig = {
     extra-experimental-features = "nix-command flakes";
-    extra-substituters =
-      "https://nrdxp.cachix.org https://nix-community.cachix.org";
-    extra-trusted-public-keys =
-      "nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=";
   };
 
   inputs = {
@@ -51,7 +47,15 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
   };
 
-  outputs = { self, nixpkgs, nixlib, home-manager, flake-utils-plus, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixlib,
+      home-manager,
+      flake-utils-plus,
+      ...
+    }@inputs:
 
     let
       inherit (lib) attrValues;
@@ -66,7 +70,8 @@
 
       tests = import ./tests;
 
-      mkPkgs = pkgs: extraOverlays:
+      mkPkgs =
+        pkgs: extraOverlays:
         import pkgs {
           inherit system;
           config.allowUnfree = true; # necessary evil
@@ -81,17 +86,23 @@
           overlays = extraOverlays ++ (attrValues self.overlays);
         };
 
-      pkgs = mkPkgs nixpkgs [ self.overlay inputs.emacs-overlay.overlay ];
+      pkgs = mkPkgs nixpkgs [
+        self.overlay
+        inputs.emacs-overlay.overlay
+      ];
 
-      lib = nixpkgs.lib.extend (self: super: {
-        # Use nice convenient functions developed by @hlissner
-        # Ref: https://github.com/hlissner/dotfiles/tree/804011f53826c226cbf7e0acd8002087a223051d/lib
-        my = import ./lib {
-          inherit pkgs inputs;
-          lib = self;
-        };
-      });
-    in {
+      lib = nixpkgs.lib.extend (
+        self: super: {
+          # Use nice convenient functions developed by @hlissner
+          # Ref: https://github.com/hlissner/dotfiles/tree/804011f53826c226cbf7e0acd8002087a223051d/lib
+          my = import ./lib {
+            inherit pkgs inputs;
+            lib = self;
+          };
+        }
+      );
+    in
+    {
       lib = lib.my;
 
       overlay = final: prev: {
@@ -104,7 +115,8 @@
 
       nixosModules = {
         dotfiles = import ./.;
-      } // mapModulesRec ./modules import;
+      }
+      // mapModulesRec ./modules import;
 
       nixosConfigurations = mapHosts ./hosts { inherit system; };
 
@@ -114,7 +126,7 @@
       #
       # # First-time setup:
       # nix run nixpkgs#home-manager -- switch --flake .#mcunha --impure
-      # 
+      #
       # # Subsequent runs:
       # home-manager switch --flake .#mcunha --impure
       homeConfigurations."mcunha" = home-manager.lib.homeManagerConfiguration {
@@ -125,7 +137,10 @@
           overlays = [ inputs.emacs-overlay.overlay ] ++ (attrValues self.overlays);
         };
         modules = [ ./hosts/macbook ];
-        extraSpecialArgs = { inherit inputs; isDarwin = true; };
+        extraSpecialArgs = {
+          inherit inputs;
+          isDarwin = true;
+        };
       };
     };
 }

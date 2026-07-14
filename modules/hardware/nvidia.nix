@@ -67,23 +67,23 @@ in
 
   config = mkIf config.modules.hardware.video.enable (mkMerge [
     {
-      hardware.opengl = {
+      hardware.graphics = {
         enable = true;
-        setLdLibraryPath = true;
-        driSupport32Bit = config.modules.hardware.video.support32Bit.enable;
+        enable32Bit = config.modules.hardware.video.support32Bit.enable;
       };
     }
 
     (mkIf config.modules.hardware.video.support32Bit.enable {
-      hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+      hardware.graphics.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
     })
 
     (mkIf config.modules.hardware.video.nvidia.enable {
       services.xserver.videoDrivers = [ "nvidia" ];
+      hardware.nvidia.open = false;
 
       # NVidia TUI Process Manager, similar to htop.
       # Ref: https://github.com/Syllo/nvtop
-      user.packages = with pkgs; [ nvtop ];
+      user.packages = [ pkgs.nvtopPackages.nvidia ];
 
       environment.systemPackages = with pkgs; [
         # Enforce XDG base dir spec on nvidia settings

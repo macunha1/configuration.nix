@@ -2,6 +2,20 @@
 
 {
   modules = {
+    agents = {
+      code = {
+        claude.enable = true;
+        codex.enable = true;
+      };
+
+      mcp = {
+        codegraphcontext.enable = true;
+        mempalace.enable = true;
+      };
+
+      plugins.context-mode.enable = true;
+    };
+
     editors = {
       default = "vim";
       vim.enable = true;

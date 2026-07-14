@@ -18,7 +18,7 @@ let
     shellExports
     ;
 
-  elixirPackages = with pkgs; [
+  elixirPackages = with pkgs.beamPackages; [
     elixir
     erlang # exposes erl/escript for Mix dependencies compiled through rebar3
   ];

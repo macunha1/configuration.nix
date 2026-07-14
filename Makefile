@@ -30,10 +30,12 @@ HOST ?= $(NIXOS_HOST)
 MOUNT_PATH ?= /
 
 NIX := nix
+NIX_FLAGS := --no-warn-dirty
 NIX_SHELL := nix-shell
 NIXOS_INSTALL := nixos-install
 NIXOS_REBUILD := nixos-rebuild
-HOME_MANAGER_RUN := $(NIX) run nixpkgs\#home-manager --
+NIX_CONFIG_QUIET := warn-dirty = false
+HOME_MANAGER_RUN := $(NIX) run $(NIX_FLAGS) nixpkgs\#home-manager --
 
 NIXOS_FLAKE := $(DOTFILES)\#$(NIXOS_HOST)
 NIXOS_CONFIG := nixosConfigurations.$(NIXOS_HOST)
@@ -72,14 +74,15 @@ help:
 	@printf '%s\n' '  clean           Remove ./result'
 
 update:
-	@$(NIX_SHELL) --run "nix flake update"
+	@$(NIX_SHELL) --run "nix flake update $(NIX_FLAGS)"
 
 check:
-	@$(NIX_SHELL) --run "nix flake check"
+	@$(NIX_SHELL) --run "nix flake check $(NIX_FLAGS)"
 
 build:
 	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
-		$(NIX_SHELL) --run "nix build --impure $(NIXOS_TOPLEVEL)"
+		$(NIX_SHELL) --run \
+			"nix build $(NIX_FLAGS) --impure $(NIXOS_TOPLEVEL)"
 
 install:
 	@case "$(SYSTEM)" in \
@@ -96,19 +99,22 @@ install-darwin:
 	@$(HOME_MANAGER_RUN) switch --flake "$(HOME_MANAGER_FLAKE)" --impure
 
 switch:
-	@$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --fast switch
+	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
+		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --fast switch
 
 upgrade: update switch
 
 rollback:
-	@$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --rollback --fast switch
+	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
+		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --rollback --fast switch
 
 gc:
 	@sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +1
 	@nix-collect-garbage -d
 
 vm:
-	@$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" vm
+	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
+		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" vm
 
 clean:
 	@unlink result

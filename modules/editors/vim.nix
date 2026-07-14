@@ -49,7 +49,7 @@ in
     (optionalAttrs (!isDarwin) {
       user.packages = with pkgs; [
         editorconfig-core-c # honours .editorconfig in repos
-        vim_configurable # full-featured vim with Python support
+        vim-full # full-featured vim with Python support
       ];
 
       environment.shellAliases = vimAliases;

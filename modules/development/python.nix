@@ -2,11 +2,7 @@
 #
 # Python was the main igniter for using NixOS, the mess with minor versions
 # updates breaking system dependencies, packages and creating a dependency hell
-# drives me mad.
-#
-# Python from nixpkgs plus `uv`.
-# Linux: user.packages + env = pythonEnvVars + environment.shellAliases.
-# Darwin: home.packages + modules.shell.zsh.env = pythonEnvVars + home.shellAliases.
+# drives me insane.
 
 {
   config,
@@ -24,11 +20,18 @@ let
     shellExports
     ;
 
+  pythonPackageManagers = {
+    uv = pkgs.uv;
+  };
+
+  pythonPackageManagerPackage =
+    pythonPackageManagers.${config.modules.development.python.packageManager};
+
   pythonPackages = with pkgs; [
     python3
 
     python3Packages.pip # package installer
-    uv # another package installer, but faster
+    pythonPackageManagerPackage # Python tool manager
 
     python3Packages.pytest # test runner
     python3Packages.autopep8 # pep8 prettify
@@ -58,6 +61,18 @@ in
     enable = mkOption {
       type = types.bool;
       default = true;
+    };
+
+    packageManager = mkOption {
+      type = types.enum (attrNames pythonPackageManagers);
+      default = "uv";
+      description = "Python package and tool manager to install.";
+    };
+
+    packageManagerCommand = mkOption {
+      type = types.str;
+      default = config.modules.development.python.packageManager;
+      description = "Command used to run the configured Python package manager.";
     };
 
     languageServer = {

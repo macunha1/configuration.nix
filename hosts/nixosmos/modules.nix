@@ -1,7 +1,27 @@
-{ config, lib, pkgs, options, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  options,
+  ...
+}:
 
 {
   modules = {
+    agents = {
+      code = {
+        claude.enable = true;
+        codex.enable = true;
+      };
+
+      mcp = {
+        codegraphcontext.enable = true;
+        mempalace.enable = true;
+      };
+
+      plugins.context-mode.enable = true;
+    };
+
     hardware = {
       audio.enable = true;
       bluetooth.enable = true;
