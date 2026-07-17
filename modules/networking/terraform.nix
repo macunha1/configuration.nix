@@ -29,7 +29,12 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
+
+  terraformEnvVars = {
+    TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
+  };
 
   # Terraform rc.hcl - same content on both platforms.
   # Disables telemetry and sets a shared plugin cache to avoid re-downloading.
@@ -85,7 +90,61 @@ let
       done < <(find "''${token_root}" -type f -name '*.gpg' | sort)
     }
 
-    load_terraform_tokens
+    terraform_subcommand() {
+      local arg
+
+      for arg in "$@"; do
+        case "''${arg}" in
+          -chdir=*)
+            ;;
+          -help|--help|-version|--version)
+            return 1
+            ;;
+          -*)
+            ;;
+          *)
+            printf '%s\n' "''${arg}"
+            return 0
+            ;;
+        esac
+      done
+
+      return 1
+    }
+
+    terraform_is_help_or_version() {
+      local arg
+
+      for arg in "$@"; do
+        case "''${arg}" in
+          -help|--help|-version|--version)
+            return 0
+            ;;
+        esac
+      done
+
+      return 1
+    }
+
+    terraform_command_loads_tokens() {
+      local command
+
+      [[ "''${TERRAFORM_WRAPPER_LOAD_TOKENS:-}" == "1" ]] && return 0
+      [[ "''${TERRAFORM_WRAPPER_SKIP_TOKENS:-}" == "1" ]] && return 1
+      terraform_is_help_or_version "$@" && return 1
+
+      command="$(terraform_subcommand "$@")" || return 1
+
+      case "''${command}" in
+        apply|destroy|force-unlock|get|import|init|login|logout|output|plan|providers|refresh|state|taint|test|untaint|workspace)
+          return 0
+          ;;
+      esac
+
+      return 1
+    }
+
+    terraform_command_loads_tokens "$@" && load_terraform_tokens
     exec ${terraformBin}/bin/terraform "$@"
   '';
 
@@ -120,6 +179,10 @@ in
       modules.shell.zsh.init = ''
         source "${zshPlugin}/terraform.plugin.zsh"
       '';
+
+      modules.shell.zsh.env = ''
+        ${shellExports terraformEnvVars}
+      '';
     })
 
     # Linux (NixOS)
@@ -127,17 +190,15 @@ in
       user.packages = [ terraformPackage ];
 
       home.configFile."terraform/rc.hcl".text = terraformRcText;
-      env.TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
+      env = terraformEnvVars;
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
       home.packages = [ terraformPackage ];
+      home.sessionVariables = terraformEnvVars;
 
       xdg.configFile."terraform/rc.hcl".text = terraformRcText;
-      modules.shell.zsh.env = ''
-        export TF_CLI_CONFIG_FILE="${config.xdg.configHome}/terraform/rc.hcl"
-      '';
     })
   ]);
 }
