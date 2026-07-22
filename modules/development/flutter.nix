@@ -21,6 +21,15 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   flutterPackages = with pkgs; [
     flutter # framework + CLI (dart bundled)
     dart # explicit dart SDK for IDE tooling
@@ -42,7 +51,7 @@ in
 
     path = mkOption {
       type = with types; (either str path);
-      default = "$XDG_DATA_HOME/flutter";
+      default = xdg.concrete.data "flutter";
     };
 
     includeBinToPath = mkOption {
@@ -52,17 +61,14 @@ in
   };
 
   config = mkIf config.modules.development.flutter.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = flutterPackages;
-      env = flutterEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = flutterPackages;
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = flutterPackages;
-      home.sessionVariables = flutterEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      envVars = flutterEnvVars;
     })
   ]);
 }

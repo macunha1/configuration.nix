@@ -20,6 +20,10 @@
 with lib;
 
 let
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   # Color palette shared between Linux (FZF_DEFAULT_OPTS) and Darwin (programs.fzf.colors).
   fzfColors = {
     "fg" = "15"; # foreground: bright white
@@ -60,13 +64,13 @@ in
         };
       };
 
-      env.FZF_HOME = "$XDG_DATA_HOME/fzf";
+      env.FZF_HOME = xdg.shell.data "fzf";
       env.FZF_DEFAULT_OPTS = escapeShellArgs (mapAttrsToList (k: v: "--color=${k}:${v}") fzfColors);
 
       # Autocompletion + key-bindings for ZSH
       modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''
-        source "$XDG_DATA_HOME/fzf/shell/completion.zsh"
-        source "$XDG_DATA_HOME/fzf/shell/key-bindings.zsh"
+        source "${xdg.shell.data "fzf/shell/completion.zsh"}"
+        source "${xdg.shell.data "fzf/shell/key-bindings.zsh"}"
       '';
     })
 

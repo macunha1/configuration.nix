@@ -14,6 +14,9 @@
   ...
 }:
 with lib;
+let
+  spotifyPackageAvailable = lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.spotify;
+in
 {
   options.modules.media.spotify = {
     enable = mkOption {
@@ -49,7 +52,7 @@ with lib;
   };
 
   config = mkIf config.modules.media.spotify.enable (mkMerge [
-    { user.packages = with pkgs; [ pkgs.spotify ]; }
+    { user.packages = optional spotifyPackageAvailable pkgs.spotify; }
 
     (mkIf config.modules.media.spotify.daemon.enable {
       # When using the Daemon, install the Spotify terminal client together to work as an

@@ -35,13 +35,12 @@ NIX_SHELL := nix-shell
 NIXOS_INSTALL := nixos-install
 NIXOS_REBUILD := nixos-rebuild
 NIX_CONFIG_QUIET := warn-dirty = false
-HOME_MANAGER_RUN := $(NIX) run $(NIX_FLAGS) nixpkgs\#home-manager --
+ACTIVATE_APP := $(DOTFILES)\#activate
 
 NIXOS_FLAKE := $(DOTFILES)\#$(NIXOS_HOST)
 NIXOS_CONFIG := nixosConfigurations.$(NIXOS_HOST)
 NIXOS_SYSTEM_BUILD := config.system.build.toplevel
 NIXOS_TOPLEVEL := $(DOTFILES)\#$(NIXOS_CONFIG).$(NIXOS_SYSTEM_BUILD)
-HOME_MANAGER_FLAKE := $(DOTFILES)\#$(HOME_CONFIG)
 
 .DEFAULT_GOAL := help
 
@@ -54,6 +53,8 @@ help:
 	@printf '%s\n' 'Install targets:'
 	@printf '%s\n' \
 		'  install         Detect OS and install the matching configuration'
+	@printf '%s\n' \
+		'  activate        Activate the matching NixOS/Home Manager config'
 	@printf '%s\n' \
 		'  install-nixos   Build and install the NixOS system configuration'
 	@printf '%s\n' \
@@ -86,21 +87,28 @@ build:
 
 install:
 	@case "$(SYSTEM)" in \
-		Darwin) $(MAKE) install-darwin ;; \
+		Darwin) $(MAKE) activate ;; \
 		Linux) $(MAKE) install-nixos ;; \
 		*) printf 'Unsupported OS: %s\n' "$(SYSTEM)" >&2; exit 1 ;; \
 	esac
+
+activate:
+	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
+		FLAKE="$(DOTFILES)" \
+		CONFIG_USER="$(CONFIG_USER)" \
+		USER="$(CONFIG_USER)" \
+		HOME_CONFIG="$(HOME_CONFIG)" \
+		NIXOS_HOST="$(NIXOS_HOST)" \
+		HOST="$(NIXOS_HOST)" \
+		$(NIX) run $(NIX_FLAGS) "$(ACTIVATE_APP)"
 
 install-nixos: build
 	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
 		$(NIXOS_INSTALL) --root "$(MOUNT_PATH)" --system ./result
 
-install-darwin:
-	@$(HOME_MANAGER_RUN) switch --flake "$(HOME_MANAGER_FLAKE)" --impure
+install-darwin: activate
 
-switch:
-	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
-		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --fast switch
+switch: activate
 
 upgrade: update switch
 
@@ -124,5 +132,5 @@ i: install
 s: switch
 u: upgrade
 
-.PHONY: help update check build install install-nixos install-darwin switch
+.PHONY: help update check build install activate install-nixos install-darwin switch
 .PHONY: upgrade rollback gc vm clean i s u

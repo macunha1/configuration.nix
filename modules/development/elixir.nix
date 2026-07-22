@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   elixirPackages = with pkgs.beamPackages; [
     elixir
     erlang # exposes erl/escript for Mix dependencies compiled through rebar3
@@ -39,33 +48,29 @@ in
     mix = {
       path = mkOption {
         type = with types; (either str path);
-        default = if isDarwin then "${config.xdg.dataHome}/mix" else "$XDG_DATA_HOME/mix";
+        default = xdg.concrete.data "mix";
       };
     };
 
     hex = {
       path = mkOption {
         type = with types; (either str path);
-        default = if isDarwin then "${config.xdg.dataHome}/hex" else "$XDG_DATA_HOME/hex";
+        default = xdg.concrete.data "hex";
       };
     };
   };
 
   config = mkIf config.modules.development.elixir.enable (mkMerge [
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports elixirEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = elixirPackages;
     })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = elixirPackages;
-      env = elixirEnvVars;
-    })
-
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = elixirPackages;
-      home.sessionVariables = elixirEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = elixirEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

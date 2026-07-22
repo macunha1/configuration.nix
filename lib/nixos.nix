@@ -14,6 +14,10 @@ let
     path:
     attrs@{
       system ? defaultSystem,
+      ignoredHosts ? [ ],
+      hostSystemOverrides ? { },
+      nixpkgsConfig ? { },
+      nixpkgsOverlays ? [ ],
       ...
     }:
     nixosSystem {
@@ -24,10 +28,22 @@ let
       };
       modules = [
         {
-          nixpkgs.pkgs = pkgs;
+          nixpkgs = {
+            config = nixpkgsConfig;
+            overlays = nixpkgsOverlays;
+          };
           networking.hostName = mkDefault (removeSuffix ".nix" (baseNameOf path));
         }
-        (filterAttrs (n: v: !elem n [ "system" ]) attrs)
+        (filterAttrs (
+          n: v:
+          !elem n [
+            "system"
+            "ignoredHosts"
+            "hostSystemOverrides"
+            "nixpkgsConfig"
+            "nixpkgsOverlays"
+          ]
+        ) attrs)
         ../.
         (import path)
       ];
@@ -38,7 +54,19 @@ in
     dir:
     attrs@{
       system ? defaultSystem,
+      ignoredHosts ? [ ],
+      hostSystemOverrides ? { },
+      nixpkgsConfig ? { },
+      nixpkgsOverlays ? [ ],
       ...
     }:
-    mapModules dir (hostPath: mkHost hostPath attrs);
+    filterAttrs (hostName: _: !(elem hostName ignoredHosts)) (
+      mapModules dir (
+        hostPath:
+        let
+          hostName = baseNameOf hostPath;
+        in
+        mkHost hostPath (attrs // { system = hostSystemOverrides.${hostName} or system; })
+      )
+    );
 }

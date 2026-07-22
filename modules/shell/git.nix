@@ -21,7 +21,17 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
 
   hasEmail = config.modules.shell.git.user.email != "";
   hasGpg = config.modules.shell.git.user.gpgSigningKeyId != "";
@@ -29,6 +39,10 @@ let
   hostedGitCliPackages =
     optionals config.modules.shell.git.githubCli.enable [ pkgs.gh ]
     ++ optionals config.modules.shell.git.gitlabCli.enable [ pkgs.glab ];
+
+  gitEnvVars = {
+    GIT_CONFIG_GLOBAL = xdg.concrete.config "git/config";
+  };
 
   ohMyZshGitPlugin = rec {
     rev = "93c837fec8e9fe61509b9dff9e909e84f7ebe32d";
@@ -174,33 +188,34 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = hostedGitCliPackages;
-
       home.configFile."git/config".text =
         generatedFileWarning { file = ./git.nix; } + generators.toGitINI gitSettings;
-
-      # Explicit so NixOS and Darwin stay consistent: both declare GIT_CONFIG_GLOBAL.
-      env.GIT_CONFIG_GLOBAL = "$XDG_CONFIG_HOME/git/config";
 
       environment.shellAliases = gitAliases;
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = hostedGitCliPackages;
-
       programs.git = {
         enable = true;
         settings = gitSettings;
       };
 
-      # Explicit override so tools that create ~/.gitconfig (Homebrew, Xcode CLI)
-      # cannot silently shadow the XDG-managed config.
-      modules.shell.zsh.env = ''
-        export GIT_CONFIG_GLOBAL="${config.xdg.configHome}/git/config"
-      '';
-
       modules.shell.zsh.aliases = gitAliases;
+    })
+
+    (platformPackages {
+      inherit isDarwin;
+      packages = hostedGitCliPackages;
+    })
+
+    # Explicit override so tools that create ~/.gitconfig (Homebrew, Xcode CLI)
+    # cannot silently shadow the XDG-managed config.
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = gitEnvVars;
+      darwinTarget = "zsh";
     })
   ]);
 }

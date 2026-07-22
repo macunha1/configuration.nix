@@ -20,17 +20,13 @@ with lib;
 
   config = mkIf config.modules.desktop.enable {
     services = {
+      displayManager.ly = {
+        enable = true;
+        x11Support = true;
+      };
+
       xserver = {
         enable = true;
-
-        displayManager.lightdm = {
-          enable = true;
-
-          greeters.mini = {
-            enable = true;
-            user = config.user.name;
-          };
-        };
 
         desktopManager.xterm.enable = mkDefault (config.modules.desktop.terminal.default == "xterm");
       };
@@ -38,11 +34,11 @@ with lib;
 
     user.packages = with pkgs; [
       pcmanfm # lightweight file manager
-      xfce.xfce4-panel # system trail
+      xfce4-panel # system trail
 
       # Screenshooters
       scrot # Lightweight screenshooter
-      xfce.xfce4-screenshooter
+      xfce4-screenshooter
 
       feh # Simple image viewer
       xclip # clipboard access from terminal
@@ -53,7 +49,7 @@ with lib;
       fontDir.enable = true;
       enableGhostscriptFonts = true;
 
-      fonts = with pkgs; [
+      packages = with pkgs; [
         powerline-fonts
         source-code-pro
       ];

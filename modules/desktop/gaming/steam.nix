@@ -13,6 +13,11 @@
 }:
 
 with lib;
+let
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config;
+  };
+in
 {
   options.modules.desktop.gaming.steam = {
     enable = mkOption {
@@ -27,7 +32,7 @@ with lib;
 
     libDir = mkOption {
       type = types.str;
-      default = "$XDG_DATA_HOME/steamlib";
+      default = xdg.shell.data "steamlib";
     };
   };
 
@@ -61,7 +66,7 @@ with lib;
 
     user.packages = with pkgs; [
       steam
-      steam-run-native
+      steam-run
 
       # Creates a desktop entry
       (makeDesktopItem {

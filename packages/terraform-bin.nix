@@ -12,17 +12,25 @@
 }:
 
 let
-  version = "1.15.6";
+  version = "1.15.8";
 
   platform =
     {
       x86_64-linux = {
         name = "linux_amd64";
-        hash = "sha256-pxUNOw4bXEZq1C6MSZlUo8VGRfi1azhfoCXTT36I+qk=";
+        hash = "sha256-0lzntpAgE62QXbPS6rC+TNkFiH/oi4GmFxuNVQPDHz0=";
+      };
+      aarch64-linux = {
+        name = "linux_arm64";
+        hash = "sha256-iJHp3O3J47iVC8avnU2K8fTPreMGL1O53EA6ifbOjJw=";
+      };
+      x86_64-darwin = {
+        name = "darwin_amd64";
+        hash = "sha256-4ugS54N3EVm/dY/U5V1tybsI9j4q8sY9ISchgHoCxdw=";
       };
       aarch64-darwin = {
         name = "darwin_arm64";
-        hash = "sha256-jUxnkadEMyvHyjlixhqy7Y5dJacpnxdvXt/7nLUl6F8=";
+        hash = "sha256-8hARDFaYuU2AOnpjzbAlG1RVwVCEFHiAjiu7ND+V7Wg=";
       };
     }
     .${stdenv.hostPlatform.system}
@@ -75,6 +83,8 @@ stdenv.mkDerivation {
     mainProgram = "terraform";
     platforms = [
       "x86_64-linux"
+      "aarch64-linux"
+      "x86_64-darwin"
       "aarch64-darwin"
     ];
   };

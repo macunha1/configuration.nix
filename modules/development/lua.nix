@@ -26,6 +26,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformPackages
+    ;
+
   # Interpreter: reference Lua or LuaJIT - mutually exclusive, both provide
   # bin/lua so only one can live in the same package environment at a time.
   interpreter = if config.modules.development.lua.jit.enable then pkgs.luajit else pkgs.lua;
@@ -79,24 +83,15 @@ in
     }
 
     (mkIf config.modules.development.lua.enable (mkMerge [
+      (platformPackages {
+        inherit isDarwin;
+        packages = basePkgs;
+      })
 
-      # Linux (NixOS)
-      (optionalAttrs (!isDarwin) (mkMerge [
-        { user.packages = basePkgs; }
-
-        (mkIf config.modules.development.lua.languageServer.enable {
-          user.packages = [ pkgs.luaPackages.lua-lsp ];
-        })
-      ]))
-
-      # Darwin (MacOS)
-      (optionalAttrs isDarwin (mkMerge [
-        { home.packages = basePkgs; }
-
-        (mkIf config.modules.development.lua.languageServer.enable {
-          home.packages = [ pkgs.luaPackages.lua-lsp ];
-        })
-      ]))
+      (mkIf config.modules.development.lua.languageServer.enable (platformPackages {
+        inherit isDarwin;
+        packages = [ pkgs.luaPackages.lua-lsp ];
+      }))
 
       # Both platforms: prepend luarocks bin dir to PATH via zsh init.
       (mkIf config.modules.development.lua.includeBinToPath {

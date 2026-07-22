@@ -28,10 +28,25 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
 
   tmuxAliases = {
     t = "tmux";
+  };
+
+  tmuxEnvVars = {
+    TMUX_HOME = xdg.concrete.config "tmux";
+    TMUX_PLUGIN_MANAGER_PATH = xdg.concrete.config "tmux/plugins";
   };
 
   # Display and style settings not exposed as programs.tmux declarative options.
@@ -125,9 +140,6 @@ in
 
       environment.shellAliases = tmuxAliases;
 
-      env.TMUX_HOME = "$XDG_CONFIG_HOME/tmux";
-      env.TMUX_PLUGIN_MANAGER_PATH = "$XDG_CONFIG_HOME/tmux/plugins";
-
       # Following path from https://github.com/tmux-plugins/tpm
       home.configFile."tmux/plugins/tpm" = {
         source = pkgs.fetchFromGitHub {
@@ -162,20 +174,13 @@ in
         ${copyModeBindings "xclip -i -selection clipboard"}
 
         # Initialize TPM - must be the last line
-        run -b "$XDG_CONFIG_HOME/tmux/plugins/tpm/tpm"
+        run -b "${xdg.shell.config "tmux/plugins/tpm/tpm"}"
       '';
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
       modules.shell.zsh.aliases = tmuxAliases;
-
-      # Mirror the Linux env.TMUX_HOME / env.TMUX_PLUGIN_MANAGER_PATH assignments;
-      # on Darwin those go into env.zsh via the modules.shell.zsh.env merge point.
-      modules.shell.zsh.env = ''
-        export TMUX_HOME="${config.xdg.configHome}/tmux"
-        export TMUX_PLUGIN_MANAGER_PATH="${config.xdg.configHome}/tmux/plugins"
-      '';
 
       programs.tmux = {
         enable = true;
@@ -213,6 +218,14 @@ in
           ${copyModeBindings "pbcopy"}
         '';
       };
+    })
+
+    # Mirror Linux env.TMUX_* assignments into Darwin env.zsh.
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = tmuxEnvVars;
+      darwinTarget = "zsh";
     })
   ]);
 }

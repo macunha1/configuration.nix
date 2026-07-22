@@ -28,10 +28,19 @@ let
     shellExports
     ;
 
-  # XDG-compliant Kubernetes paths - same values on both platforms.
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
+  # XDG-compliant Kubernetes paths - shared by Linux env and generated ZSH.
   kubeEnvVars = {
-    KUBECONFIG = "${config.xdg.configHome}/kubectl/config";
-    KUBECACHE = "${config.xdg.cacheHome}/kubectl/cache";
+    KUBECONFIG = xdg.shell.config "kubectl/config";
+    KUBECACHE = xdg.shell.cache "kubectl/cache";
   };
 
   kubernetesEnvVars =
@@ -39,7 +48,7 @@ let
       MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
     }
     // optionalAttrs config.modules.networking.kubernetes.helm.enable {
-      HELM_PLUGIN_DIR = "${config.xdg.dataHome}/helm";
+      HELM_PLUGIN_DIR = xdg.shell.data "helm";
     };
 
   kubernetesPackages =
@@ -91,7 +100,7 @@ in
 
       home = mkOption {
         type = with types; (either str path);
-        default = "$XDG_DATA_HOME/minikube";
+        default = xdg.concrete.data "minikube";
       };
     };
 
@@ -114,28 +123,25 @@ in
       modules.shell.zsh.init = ''
         source ${../../config/kubectl/zsh/kubectl.plugin.zsh}
       '';
-
-      modules.shell.zsh.env = ''
-        ${shellExports (kubeEnvVars // kubernetesEnvVars)}
-      '';
     })
 
-    (mkIf (kubernetesPackages != [ ]) (
-      optionalAttrs isDarwin { home.packages = kubernetesPackages; }
-      // optionalAttrs (!isDarwin) { user.packages = kubernetesPackages; }
-    ))
+    (mkIf (kubernetesPackages != [ ]) (platformPackages {
+      inherit isDarwin;
+      packages = kubernetesPackages;
+    }))
+
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = kubeEnvVars // kubernetesEnvVars;
+      darwinTarget = "zsh";
+    })
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) (mkMerge [
       {
         user.packages = [ kubectl ];
-
-        env = kubeEnvVars;
       }
-
-      (mkIf (kubernetesEnvVars != { }) {
-        env = kubernetesEnvVars;
-      })
 
       (mkIf config.modules.networking.kubernetes.minikube.enable {
         user.packages = with pkgs; [

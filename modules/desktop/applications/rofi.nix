@@ -13,6 +13,7 @@
   ...
 }:
 with lib;
+with lib.my;
 let
   # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
   # Import the generator directly in that case.

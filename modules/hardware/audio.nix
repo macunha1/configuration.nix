@@ -1,7 +1,7 @@
-# hardware/audio.nix -- https://www.freedesktop.org/wiki/Software/PulseAudio/
+# hardware/audio.nix -- https://pipewire.org/
 #
-# PulseAudio sound system for Linux. Categorized under the generic name of
-# "audio.nix" since it is the standard.
+# PipeWire audio stack for Linux. PipeWire provides PulseAudio compatibility
+# through services.pipewire.pulse.
 
 {
   options,
@@ -29,11 +29,15 @@ with lib;
 
   config = mkIf config.modules.hardware.audio.enable (mkMerge [
     {
-      sound.enable = true;
+      security.rtkit.enable = true;
 
-      hardware.pulseaudio = {
+      services.pipewire = {
         enable = true;
-        support32Bit = config.modules.hardware.audio.support32Bit.enable;
+        alsa = {
+          enable = true;
+          support32Bit = config.modules.hardware.audio.support32Bit.enable;
+        };
+        pulse.enable = true;
       };
 
       user.extraGroups = [ "audio" ];

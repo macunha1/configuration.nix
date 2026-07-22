@@ -14,6 +14,18 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   # Fetched once; referenced in both Linux (home.configFile) and Darwin (xdg.configFile).
   vimrcSrc = pkgs.fetchFromGitHub {
     owner = "macunha1";
@@ -34,6 +46,10 @@ let
   vimAliases = {
     v = "vim";
   };
+
+  vimEnvVars = {
+    VIMINIT = "source ${xdg.concrete.config "vim/init.vim"}";
+  };
 in
 {
   options.modules.editors.vim = {
@@ -44,6 +60,12 @@ in
   };
 
   config = mkIf config.modules.editors.vim.enable (mkMerge [
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = vimEnvVars;
+      darwinTarget = "zsh";
+    })
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
@@ -53,9 +75,6 @@ in
       ];
 
       environment.shellAliases = vimAliases;
-
-      # $XDG_CONFIG_HOME is set by the NixOS env system before any shell sources VIMINIT.
-      env.VIMINIT = ''source "$XDG_CONFIG_HOME/vim/init.vim"'';
 
       home.configFile."vim" = {
         source = vimrcSrc;
@@ -75,12 +94,6 @@ in
       ];
 
       modules.shell.zsh.aliases = vimAliases;
-
-      # home.sessionVariables does not expand shell-variable references, so the path
-      # must be baked in at Nix evaluation time via env.zsh instead.
-      modules.shell.zsh.env = ''
-        export VIMINIT='source ${config.xdg.configHome}/vim/init.vim'
-      '';
 
       xdg.configFile."vim" = {
         source = vimrcSrc;

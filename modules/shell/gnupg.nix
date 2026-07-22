@@ -29,12 +29,26 @@ let
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
+    shellExports
     ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
 
   gnupgPackages = with pkgs; [
     gnupg
     gpgme
   ];
+
+  gnupgEnvVars = {
+    GNUPGHOME = xdg.concrete.config "gpg";
+  };
 
   # gpg-agent configuration - same content on both platforms.
   # Both home.configFile (Linux) and xdg.configFile (Darwin) consume this text.
@@ -72,8 +86,6 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = gnupgPackages;
-
       # home-manager.users.* is the NixOS proxy for per-user home-manager options
       home-manager.users.${config.user.name}.services.gpg-agent = {
         enable = true;
@@ -86,13 +98,10 @@ in
       # the pinentry-program line directly into the conf file instead
       home.configFile."gpg/gpg-agent.conf".text = gpgAgentConf;
 
-      env.GNUPGHOME = "$XDG_CONFIG_HOME/gpg";
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = gnupgPackages;
-
       services.gpg-agent = {
         enable = true;
         enableSshSupport = config.modules.shell.gnupg.ssh.enable;
@@ -102,11 +111,20 @@ in
 
       xdg.configFile."gpg/gpg-agent.conf".text = gpgAgentConf;
 
-      # home.sessionVariables does not expand shell-variable references at write time,
-      # so "$XDG_CONFIG_HOME/gpg" would land as a literal string. Use env.zsh instead.
-      modules.shell.zsh.env = ''
-        export GNUPGHOME="${config.xdg.configHome}/gpg"
-      '';
+    })
+
+    (platformPackages {
+      inherit isDarwin;
+      packages = gnupgPackages;
+    })
+
+    # home.sessionVariables does not expand shell-variable references at write time,
+    # so Darwin writes GNUPGHOME into env.zsh while NixOS uses the env option.
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = gnupgEnvVars;
+      darwinTarget = "zsh";
     })
   ]);
 }

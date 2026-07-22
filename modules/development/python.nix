@@ -20,6 +20,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   pythonPackageManagers = {
     uv = pkgs.uv;
   };
@@ -39,13 +48,13 @@ let
     python3Packages.setuptools # distutils++
   ];
 
-  # XDG-compliant Python paths - same values on both platforms.
+  # XDG-compliant Python paths - shared by Linux env and generated ZSH.
   pythonEnvVars = {
-    PYTHONSTARTUP = "${config.xdg.configHome}/python/pythonrc";
-    PYTHON_EGG_CACHE = "${config.xdg.cacheHome}/python-eggs";
-    FLAKE8_CONFIG_FILE = "${config.xdg.configHome}/flake8";
-    PIP_CONFIG_FILE = "${config.xdg.configHome}/pip/pip.conf";
-    PIP_LOG_FILE = "${config.xdg.dataHome}/pip/log";
+    PYTHONSTARTUP = xdg.shell.config "python/pythonrc";
+    PYTHON_EGG_CACHE = xdg.shell.cache "python-eggs";
+    FLAKE8_CONFIG_FILE = xdg.shell.config "flake8";
+    PIP_CONFIG_FILE = xdg.shell.config "pip/pip.conf";
+    PIP_LOG_FILE = xdg.shell.data "pip/log";
   };
 
   # Shell aliases - identical on both platforms; only the option name differs.
@@ -84,31 +93,29 @@ in
   };
 
   config = mkIf config.modules.development.python.enable (mkMerge [
+    (platformPackages {
+      inherit isDarwin;
+      packages = pythonPackages;
+    })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (mkMerge [
-      {
-        user.packages = pythonPackages;
-        env = pythonEnvVars;
-        environment.shellAliases = pythonAliases;
-      }
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = pythonEnvVars;
+      darwinTarget = "zsh";
+    })
 
-      (mkIf config.modules.development.python.languageServer.enable {
-        user.packages = with pkgs; [ zuban ];
-      })
-    ]))
+    (mkIf config.modules.development.python.languageServer.enable (platformPackages {
+      inherit isDarwin;
+      packages = with pkgs; [ zuban ];
+    }))
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin (mkMerge [
-      {
-        home.packages = pythonPackages;
-        modules.shell.zsh.env = shellExports pythonEnvVars;
-        modules.shell.zsh.aliases = pythonAliases;
-      }
+    (optionalAttrs (!isDarwin) {
+      environment.shellAliases = pythonAliases;
+    })
 
-      (mkIf config.modules.development.python.languageServer.enable {
-        home.packages = with pkgs; [ zuban ];
-      })
-    ]))
+    (optionalAttrs isDarwin {
+      modules.shell.zsh.aliases = pythonAliases;
+    })
   ]);
 }

@@ -26,15 +26,24 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   awsPackages = with pkgs; [
     awscli # AWS CLI v1
   ];
 
   # XDG-compliant AWS credential paths - same values on both platforms.
   awsEnvVars = {
-    AWS_CONFIG_FILE = "$XDG_CONFIG_HOME/aws/config";
-    AWS_SHARED_CREDENTIALS_FILE = "$XDG_CONFIG_HOME/aws/credentials";
-    BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config"; # Python boto2/boto3
+    AWS_CONFIG_FILE = xdg.shell.config "aws/config";
+    AWS_SHARED_CREDENTIALS_FILE = xdg.shell.config "aws/credentials";
+    BOTO_CONFIG = xdg.shell.config "boto/config"; # Python boto2/boto3
   };
 in
 {
@@ -59,28 +68,21 @@ in
       '';
     })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (mkMerge [
-      {
-        user.packages = awsPackages;
-        env = awsEnvVars;
-      }
+    (platformPackages {
+      inherit isDarwin;
+      packages = awsPackages;
+    })
 
-      (mkIf config.modules.networking.aws.iamAuthenticator.enable {
-        user.packages = with pkgs; [ aws-iam-authenticator ];
-      })
-    ]))
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = awsEnvVars;
+      darwinTarget = "zsh";
+    })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin (mkMerge [
-      {
-        home.packages = awsPackages;
-        modules.shell.zsh.env = shellExports awsEnvVars;
-      }
-
-      (mkIf config.modules.networking.aws.iamAuthenticator.enable {
-        home.packages = with pkgs; [ aws-iam-authenticator ];
-      })
-    ]))
+    (mkIf config.modules.networking.aws.iamAuthenticator.enable (platformPackages {
+      inherit isDarwin;
+      packages = with pkgs; [ aws-iam-authenticator ];
+    }))
   ]);
 }
