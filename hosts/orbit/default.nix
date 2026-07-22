@@ -1,8 +1,16 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
+    inputs.nixos-hardware.nixosModules.raspberry-pi-4
 
     ./boot.nix
     ./networking.nix
@@ -15,9 +23,9 @@
 
   environment.systemPackages = with pkgs; [ libraspberrypi ];
 
-  services.xserver = {
+  services.xserver.xkb = {
     layout = "us";
-    xkbVariant = "intl";
+    variant = "intl";
   };
 
   time.timeZone = "Etc/UTC";

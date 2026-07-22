@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   codexPackages = with pkgs; [
     codex
   ];
@@ -35,24 +44,22 @@ in
 
     configHome = mkOption {
       type = with types; either str path;
-      default = if isDarwin then "${config.xdg.configHome}/codex" else "$XDG_CONFIG_HOME/codex";
+      default = xdg.concrete.config "codex";
       description = "Codex XDG configuration directory.";
     };
   };
 
   config = mkIf config.modules.agents.code.codex.enable (mkMerge [
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports codexEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = codexPackages;
     })
 
-    (optionalAttrs (!isDarwin) {
-      user.packages = codexPackages;
-      env = codexEnvVars;
-    })
-
-    (optionalAttrs isDarwin {
-      home.packages = codexPackages;
-      home.sessionVariables = codexEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = codexEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

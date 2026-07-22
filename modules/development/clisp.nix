@@ -18,6 +18,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformPackages
+    ;
+
   clispPackages = with pkgs; [
     sbcl # Steel Bank Common Lisp — fast, conforming ANSI CL
     lispPackages.quicklisp # package manager for Common Lisp
@@ -32,15 +36,9 @@ in
   };
 
   config = mkIf config.modules.development.clisp.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = clispPackages;
-    })
-
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = clispPackages;
+    (platformPackages {
+      inherit isDarwin;
+      packages = clispPackages;
     })
   ]);
 }

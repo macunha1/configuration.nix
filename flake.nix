@@ -28,7 +28,8 @@
     # drivers, proprietary notebook battery Kernel modules, etc) that helps
     # speeding up the NixOS setup on some machines.
     #
-    # nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
 
     deploy.url = "github:serokell/deploy-rs";
     deploy.inputs.nixpkgs.follows = "nixpkgs";
@@ -36,7 +37,8 @@
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixlib";
 
-    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixlib";
 
     # flake-compat = {
     #   url = "github:edolstra/flake-compat";
@@ -53,7 +55,7 @@
       nixpkgs,
       nixlib,
       home-manager,
-      flake-utils-plus,
+      flake-parts,
       ...
     }@inputs:
 
@@ -61,33 +63,46 @@
       inherit (lib) attrValues;
       inherit (lib.my) mapModules mapModulesRec mapHosts;
 
-      # Good luck trying to use Darwin or Windows. Modules are referring NixOS
-      # configurations that made this transition hard.
-      system = "x86_64-linux";
+      hostSystems = {
+        nixbox = "x86_64-linux";
+        nixosmos = "x86_64-linux";
+        orbit = "aarch64-linux";
+        macbook = "aarch64-darwin";
+      };
 
-      # Primary macOS target (Apple Silicon). Change to "x86_64-darwin" for Intel.
-      darwinSystem = "aarch64-darwin";
+      defaultLinuxSystem = "x86_64-linux";
+
+      systems = lib.unique (attrValues hostSystems);
+
+      nixpkgsConfig = { };
+
+      # Flake package exports and standalone Home Manager receive pkgs before
+      # module config exists, so keep this narrow and package-driven.
+      flakePackageNixpkgsConfig = {
+        allowUnfreePredicate =
+          pkg:
+          builtins.elem (lib.getName pkg) [
+            "aspell-dict-en-science"
+            "claude-code"
+            "terraform-bin"
+          ];
+      };
 
       tests = import ./tests;
 
-      mkPkgs =
-        pkgs: extraOverlays:
-        import pkgs {
+      mkConfiguredPkgs =
+        system: config: extraOverlays:
+        import nixpkgs {
           inherit system;
-          config.allowUnfree = true; # necessary evil
-
-          # error: You MUST accept the Android SDK License Agreement.
-          # https://developer.android.com/studio/terms
-          #
-          # Therefore, if you do enable the Android module you're agreeing with
-          # the terms
-          config.android_sdk.accept_license = true;
-
+          inherit config;
           overlays = extraOverlays ++ (attrValues self.overlays);
         };
 
-      pkgs = mkPkgs nixpkgs [
-        self.overlay
+      linuxPkgs = mkConfiguredPkgs defaultLinuxSystem flakePackageNixpkgsConfig [
+        inputs.emacs-overlay.overlay
+      ];
+
+      darwinPkgs = mkConfiguredPkgs hostSystems.macbook flakePackageNixpkgsConfig [
         inputs.emacs-overlay.overlay
       ];
 
@@ -96,50 +111,98 @@
           # Use nice convenient functions developed by @hlissner
           # Ref: https://github.com/hlissner/dotfiles/tree/804011f53826c226cbf7e0acd8002087a223051d/lib
           my = import ./lib {
-            inherit pkgs inputs;
+            inherit inputs;
+            pkgs = linuxPkgs;
             lib = self;
           };
         }
       );
     in
-    {
-      lib = lib.my;
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      inherit systems;
 
-      overlay = final: prev: {
-        my = self.packages."${system}";
-      };
+      perSystem =
+        { system, ... }:
+        let
+          pkgs = mkConfiguredPkgs system flakePackageNixpkgsConfig [ inputs.emacs-overlay.overlay ];
 
-      overlays = mapModules ./overlays import;
+          activate = pkgs.writeShellApplication {
+            name = "activate";
+            runtimeInputs = [ pkgs.nix ];
+            text = ''
+              set -eu
 
-      packages."${system}" = mapModules ./packages (p: pkgs.callPackage p { });
+              flake="''${FLAKE:-$PWD}"
+              system_name="$(uname -s)"
 
-      nixosModules = {
-        dotfiles = import ./.;
-      }
-      // mapModulesRec ./modules import;
-
-      nixosConfigurations = mapHosts ./hosts { inherit system; };
-
-      devShell."${system}" = import ./shell.nix { inherit pkgs; };
-
-      ## macOS standalone home-manager configurations
-      #
-      # # First-time setup:
-      # nix run nixpkgs#home-manager -- switch --flake .#mcunha --impure
-      #
-      # # Subsequent runs:
-      # home-manager switch --flake .#mcunha --impure
-      homeConfigurations."mcunha" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = darwinSystem;
-          config.allowUnfree = true;
-          config.android_sdk.accept_license = true;
-          overlays = [ inputs.emacs-overlay.overlay ] ++ (attrValues self.overlays);
+              case "$system_name" in
+                Darwin)
+                  home_config="''${HOME_CONFIG:-''${CONFIG_USER:-''${USER:-mcunha}}}"
+                  exec nix run --no-warn-dirty nixpkgs#home-manager -- \
+                    switch --flake "$flake#$home_config" --impure
+                  ;;
+                Linux)
+                  nixos_host="''${NIXOS_HOST:-''${HOST:-$(hostname)}}"
+                  exec nixos-rebuild --flake "$flake#$nixos_host" --fast switch
+                  ;;
+                *)
+                  printf 'Unsupported OS: %s\n' "$system_name" >&2
+                  exit 1
+                  ;;
+              esac
+            '';
+          };
+        in
+        {
+          apps.activate = {
+            type = "app";
+            program = "${activate}/bin/activate";
+            meta.description = "Activate the local NixOS or standalone Home Manager configuration";
+          };
+          packages = mapModules ./packages (p: pkgs.callPackage p { });
+          devShells.default = import ./shell.nix { inherit pkgs; };
         };
-        modules = [ ./hosts/macbook ];
-        extraSpecialArgs = {
-          inherit inputs;
-          isDarwin = true;
+
+      flake = {
+        lib = lib.my;
+
+        overlays = {
+          default = final: prev: {
+            my = self.packages.${prev.stdenv.hostPlatform.system or defaultLinuxSystem};
+          };
+        }
+        // mapModules ./overlays import;
+
+        nixosModules = {
+          dotfiles = import ./.;
+        }
+        // mapModulesRec ./modules import;
+
+        nixosConfigurations = mapHosts ./hosts {
+          system = defaultLinuxSystem;
+          ignoredHosts = [ "macbook" ];
+          hostSystemOverrides = builtins.removeAttrs hostSystems [ "macbook" ];
+          inherit nixpkgsConfig;
+          nixpkgsOverlays = [
+            self.overlays.default
+            inputs.emacs-overlay.overlay
+          ];
+        };
+
+        ## macOS standalone home-manager configurations
+        #
+        # # First-time setup:
+        # nix run nixpkgs#home-manager -- switch --flake .#mcunha --impure
+        #
+        # # Subsequent runs:
+        # home-manager switch --flake .#mcunha --impure
+        homeConfigurations."mcunha" = home-manager.lib.homeManagerConfiguration {
+          pkgs = darwinPkgs;
+          modules = [ ./hosts/macbook ];
+          extraSpecialArgs = {
+            inherit inputs;
+            isDarwin = true;
+          };
         };
       };
     };

@@ -6,32 +6,60 @@
 # Heavily copied from the author's overlay
 # Ref: https://github.com/stefano-m/nix-stefano-m-nix-overlays/blob/master/lua/dbus_proxy/default.nix
 
-{ pkgs
-, fetchFromGitHub
-, lua ? pkgs.lua
-, luaPackages ? pkgs.luaPackages
+{
+  pkgs,
+  lib,
+  fetchFromGitHub,
+  lua ? pkgs.lua,
+  luaPackages ? pkgs.luaPackages,
+  version ? "master",
 }:
 
 let
   pname = "dbus_proxy";
-  version = "0.10.2"; # default version to install
+  requestedVersion = version;
 
-in luaPackages.buildLuaPackage rec {
-  inherit pname version;
+  versions = {
+    "0.10.0" = {
+      rev = "v0.10.0";
+      hash = "sha256-dSJw+21xPZjc0PY+8QFROp+AsQGXL3iupbfsHjP8Fo8=";
+    };
+    "0.10.1" = {
+      rev = "v0.10.1";
+      hash = "sha256-fx7Y6fu74sKPIzBs7991E76bIywT4Gl0EU9tKdjHnRg=";
+    };
+    "0.10.2" = {
+      rev = "v0.10.2";
+      hash = "sha256-1MCqcm4bfPAXDIPwkBYrq65A3V9sFPc/1fXO8IJziE4=";
+    };
+    "0.10.3" = {
+      rev = "v0.10.3";
+      hash = "sha256-Yd8TN/vKiqX7NOZyy8OwOnreWS5gdyVMTAjFqoAuces=";
+    };
+    "0.10.4" = {
+      rev = "v0.10.4";
+      hash = "sha256-yALxyLx5HeOTgK8r4C/xakcNg1L3t76Y9Dq3pIk5+Rs=";
+    };
+    master = {
+      version = "master-0f84913";
+      rev = "0f84913358c1f7ce939b79f071bea9883a75cfb5";
+      hash = "sha256-H44JBe2n4QZcQRyQTcYY/DtuG7XQgolPrdPgUU6SJTs=";
+    };
+  };
 
-  name = "${pname}-${version}";
+  source =
+    versions.${requestedVersion}
+      or (throw "Unsupported lua-dbus-proxy version: ${requestedVersion}. Supported versions: ${builtins.concatStringsSep ", " (builtins.attrNames versions)}");
+
+in
+luaPackages.buildLuaPackage rec {
+  inherit pname;
+  version = source.version or requestedVersion;
 
   src = fetchFromGitHub {
     owner = "stefano-m";
     repo = "lua-${pname}";
-    rev = "v${version}";
-    sha256 = {
-      "0.8.5" = "0msxb1hhqq34hv73qkagnassd0h3kj29rzdrhfqs594gw420lry1";
-      "0.9.0" = "0s3xl2sbrc494vsh8wqlh5xdmpfl42annm4nmns24ipkqfm3bf2i";
-      "0.10.0" = "13qnzhrixv5plnp7hbwp06qq17rsa40z2gpns3f9hgbidpxp08km";
-      "0.10.1" = "064xqzc2jvag25s6kq0k5hirpghkfpgyyv1h4f7w5qmvzglxh7kz";
-      "0.10.2" = "0kl8ff1g1kpmslzzf53cbzfl1bmb5cb91w431hbz0z0vdrramh6l";
-    }."${version}";
+    inherit (source) rev hash;
   };
 
   propagatedBuildInputs = [ luaPackages.lgi ];
@@ -42,4 +70,16 @@ in luaPackages.buildLuaPackage rec {
     mkdir -p "$out/share/lua/${lua.luaversion}"
     cp -r src/${pname} "$out/share/lua/${lua.luaversion}/"
   '';
+
+  passthru = {
+    inherit requestedVersion;
+    availableVersions = builtins.attrNames versions;
+    upstreamRev = source.rev;
+  };
+
+  meta = {
+    description = "Simple API around GLib's GIO:GDBusProxy built on top of lgi";
+    homepage = "https://github.com/stefano-m/lua-dbus_proxy";
+    license = lib.licenses.asl20;
+  };
 }

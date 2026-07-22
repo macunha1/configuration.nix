@@ -20,6 +20,10 @@ let
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
     ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config;
+  };
 in
 {
   options.modules.hardware.video = {
@@ -90,10 +94,10 @@ in
         (writeScriptBin "nvidia-settings" ''
           #!${stdenv.shell}
           ${generatedFileWarning { file = ./nvidia.nix; }}
-          mkdir -p "$XDG_CONFIG_HOME/nvidia"
+          mkdir -p "${xdg.shell.config "nvidia"}"
 
           exec ${config.boot.kernelPackages.nvidia_x11.settings}/bin/nvidia-settings \
-              --config="$XDG_CONFIG_HOME/nvidia/settings"
+              --config="${xdg.shell.config "nvidia/settings"}"
         '')
       ];
     })

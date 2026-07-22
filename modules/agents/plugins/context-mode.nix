@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   contextModePackage = pkgs.writeShellApplication {
     name = "context-mode";
     runtimeInputs = [
@@ -48,21 +57,19 @@ in
 
     configHome = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then "${config.xdg.configHome}/context-mode" else "$XDG_CONFIG_HOME/context-mode";
+      default = xdg.concrete.config "context-mode";
       description = "Context Mode configuration directory.";
     };
 
     dataHome = mkOption {
       type = with types; either str path;
-      default = if isDarwin then "${config.xdg.dataHome}/context-mode" else "$XDG_DATA_HOME/context-mode";
+      default = xdg.concrete.data "context-mode";
       description = "Context Mode data directory.";
     };
 
     cacheHome = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then "${config.xdg.cacheHome}/context-mode" else "$XDG_CACHE_HOME/context-mode";
+      default = xdg.concrete.cache "context-mode";
       description = "Context Mode cache directory.";
     };
   };
@@ -72,18 +79,16 @@ in
       modules.development.python.enable = true;
     }
 
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports contextModeEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = contextModePackages;
     })
 
-    (optionalAttrs (!isDarwin) {
-      user.packages = contextModePackages;
-      env = contextModeEnvVars;
-    })
-
-    (optionalAttrs isDarwin {
-      home.packages = contextModePackages;
-      home.sessionVariables = contextModeEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = contextModeEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   mempalacePackage = pkgs.writeShellApplication {
     name = "mempalace";
 
@@ -54,8 +63,7 @@ in
 
     palacePath = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then "${config.xdg.dataHome}/mempalace/palace" else "$XDG_DATA_HOME/mempalace/palace";
+      default = xdg.concrete.data "mempalace/palace";
       description = "MemPalace data directory.";
     };
   };
@@ -65,18 +73,16 @@ in
       modules.development.python.enable = true;
     }
 
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports mempalaceEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = mempalacePackages;
     })
 
-    (optionalAttrs (!isDarwin) {
-      user.packages = mempalacePackages;
-      env = mempalaceEnvVars;
-    })
-
-    (optionalAttrs isDarwin {
-      home.packages = mempalacePackages;
-      home.sessionVariables = mempalaceEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = mempalaceEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

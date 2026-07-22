@@ -25,6 +25,10 @@ let
     generatedFileWarning
     ;
 
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   # CLI utilities installed on both platforms.
   # Linux also adds pkgs.zsh itself; Darwin gets zsh from the system or nix-darwin.
   commonCliPackages = with pkgs; [
@@ -111,7 +115,7 @@ let
     #!/usr/bin/env zsh
     #
     ${generatedFileWarning { file = ./zsh.nix; }}
-    export PATH="${config.xdg.binHome}:$PATH"
+    export PATH="${xdg.shell.binHome}:$PATH"
     ${config.modules.shell.zsh.env}
 
     # Source per-user profile fragments - analogous to /etc/profile.d/.
@@ -185,8 +189,7 @@ let
     [[ -n "''${terminfo[kcud1]}" ]] && bindkey "''${terminfo[kcud1]}" down-line-or-beginning-search
   '';
 
-  # Keychain agent init - dir is platform-specific:
-  # Linux passes the shell variable "$XDG_CONFIG_HOME"; Darwin passes config.xdg.configHome.
+  # Keychain agent init - dir is platform-specific.
   keychainInit = dir: ''
     eval "$(keychain --dir "${dir}/keychain" -q --eval || ssh-agent)" >/dev/null
   '';
@@ -265,8 +268,8 @@ in
         user.packages = [ pkgs.zsh ] ++ commonCliPackages;
 
         # ZSH XDG paths - dotfiles live under $XDG_CONFIG_HOME/zsh
-        env.ZDOTDIR = "$XDG_CONFIG_HOME/zsh";
-        env.ZSH_CACHE = "$XDG_CACHE_HOME/zsh";
+        env.ZDOTDIR = xdg.shell.config "zsh";
+        env.ZSH_CACHE = xdg.shell.cache "zsh";
 
         # Write variables down to ZSH files
         home.configFile = {
@@ -311,7 +314,7 @@ in
         modules.shell.zsh.init = ''
           setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
           ${shellBindings true}
-          ${keychainInit "$XDG_CONFIG_HOME"}
+          ${keychainInit xdg.shell.configHome}
           eval "$(starship init zsh)"
         '';
       }
@@ -328,11 +331,11 @@ in
         enable = true;
         enableCompletion = true;
         completionInit = zshCompletionInit;
-        dotDir = "${config.xdg.configHome}/zsh";
+        dotDir = xdg.concrete.config "zsh";
 
         history = {
           size = config.modules.shell.zsh.historySize;
-          path = "${config.xdg.stateHome}/zsh/history";
+          path = xdg.concrete.state "zsh/history";
           share = false;
         };
 
@@ -349,15 +352,15 @@ in
           # Source env.zsh before completions so PATH, XDG vars, and brew are
           # already set when the plugins initialise.
           (mkOrder 550 ''
-            source "${config.xdg.configHome}/zsh/env.zsh"
+            source "${xdg.concrete.config "zsh/env.zsh"}"
           '')
 
           ''
             setopt NO_SHARE_HISTORY APPEND_HISTORY HIST_FCNTL_LOCK
             ${zshPluginBeforeInit}
             ${shellBindings false}
-            ${keychainInit config.xdg.configHome}
-            source "${config.xdg.configHome}/zsh/init.zsh"
+            ${keychainInit xdg.concrete.configHome}
+            source "${xdg.concrete.config "zsh/init.zsh"}"
             ${completionSources}
             ${zshPluginAfterInit}
           ''

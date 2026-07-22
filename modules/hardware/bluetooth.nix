@@ -30,18 +30,6 @@ with lib;
 
       # Bluetooth device proxy for media control
       home-manager.users.${config.user.name}.services.mpris-proxy.enable = true;
-
-      hardware.pulseaudio = {
-        # Add Bluetooth support to pulseaudio when both are enabled
-        package = pkgs.pulseaudioFull;
-
-        # NOTE: Removed due to the following.
-        #
-        # error: pulseaudio-modules-bt has been abandoned, and is superseded by
-        # pulseaudio's native bt functionality
-        #
-        # extraModules = [ pkgs.pulseaudio-modules-bt ];
-      };
     })
   ]);
 }

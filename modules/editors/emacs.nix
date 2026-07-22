@@ -3,7 +3,7 @@
 # Emacs + Doom configuration, with Evil activated, after all Vim <3
 #
 # Linux: emacs-pgtk (pure GTK3, Wayland-native).
-# Darwin: emacs-macport (railwaycat Cocoa port) -- provided by emacs-overlay.
+# Darwin: stock GNU Emacs from Nix, with native compilation enabled.
 #
 # Doom Emacs is NOT managed here -- clone it manually:
 #   git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
@@ -21,6 +21,14 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformPath
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   # Doom module dependencies shared between Linux and Darwin.
   # Platform-specific packages (emacs binary, binutils, pinentry, fonts) are added per-section.
   sharedDeps = with pkgs; [
@@ -57,6 +65,11 @@ in
   };
 
   config = mkIf config.modules.editors.emacs.enable (mkMerge [
+    (platformPath {
+      inherit config isDarwin;
+      paths = [ (xdg.concrete.config "emacs/bin") ];
+      darwinTarget = "zsh";
+    })
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
@@ -77,28 +90,21 @@ in
           languagetool # :checkers grammar
         ];
 
-      env.PATH = [ "$XDG_CONFIG_HOME/emacs/bin" ]; # doom sync, doom upgrade, etc.
-
       environment.shellAliases = emacsAliases;
 
-      fonts.fonts = [ pkgs.emacs-all-the-icons-fonts ]; # used by doom's :ui icons
+      fonts.packages = [ pkgs.emacs-all-the-icons-fonts ]; # used by doom's :ui icons
     })
 
     # Darwin (MacOS)
-    # emacs-overlay is already applied to darwin pkgs in flake.nix
+    # Use stock GNU Emacs from Nix instead of Homebrew/Emacs.app. Doom manages
+    # Elisp packages; Nix provides Emacs plus runtime/tooling dependencies.
     (optionalAttrs isDarwin {
       home.packages =
         with pkgs;
         [
-          # macOS-native Emacs; emacs-pgtk is Linux/GTK-only
-          ((emacsPackagesFor emacs-macport).emacsWithPackages (epkgs: [ epkgs.vterm ]))
-
+          (emacs.override { withNativeCompilation = true; })
         ]
         ++ sharedDeps;
-
-      modules.shell.zsh.env = ''
-        export PATH="${config.xdg.configHome}/emacs/bin:$PATH"
-      '';
 
       modules.shell.zsh.aliases = emacsAliases;
     })

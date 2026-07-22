@@ -1,16 +1,25 @@
 # hosts/nixosmos/boot.nix -- Boot Configuration (GRUB)
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   boot.initrd = {
-    availableKernelModules =
-      [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+    availableKernelModules = [
+      "xhci_pci"
+      "ahci"
+      "usbhid"
+      "usb_storage"
+      "sd_mod"
+    ];
 
     kernelModules = [ ];
   };
 
-  boot.kernelPackages = pkgs.linuxPackages_rpi4;
   boot.kernelParams = [
     "8250.nr_uarts=1"
     "console=ttyAMA0,115200"
@@ -25,12 +34,5 @@
     useTmpfs = true;
   };
 
-  boot.loader = {
-    raspberryPi = {
-      enable = lib.mkDefault true;
-      version = 4;
-    };
-
-    grub.enable = false;
-  };
+  boot.loader.grub.enable = false;
 }

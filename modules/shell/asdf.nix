@@ -20,6 +20,22 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
+  asdfEnvVars = {
+    ASDF_DATA_DIR = xdg.concrete.cache "asdf";
+  };
+
   asdfSrc = pkgs.fetchFromGitHub {
     owner = "asdf-vm";
     repo = "asdf";
@@ -40,22 +56,25 @@ in
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
       home.dataFile."asdf".source = asdfSrc;
-      env.ASDF_DATA_DIR = "$XDG_CACHE_HOME/asdf";
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
       xdg.dataFile."asdf".source = asdfSrc;
-      modules.shell.zsh.env = ''
-        export ASDF_DATA_DIR="${config.xdg.cacheHome}/asdf"
-      '';
+    })
+
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = asdfEnvVars;
+      darwinTarget = "zsh";
     })
 
     # Both platforms: source asdf init when zsh is enabled.
     (mkIf config.modules.shell.zsh.enable {
       modules.shell.zsh.init = ''
-        source "$XDG_DATA_HOME/asdf/asdf.sh"
-        source "$XDG_DATA_HOME/asdf/completions/asdf.bash"
+        source "${xdg.shell.data "asdf/asdf.sh"}"
+        source "${xdg.shell.data "asdf/completions/asdf.bash"}"
       '';
     })
   ]);

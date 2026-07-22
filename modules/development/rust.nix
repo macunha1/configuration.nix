@@ -22,6 +22,16 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    platformPath
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   rustupWithoutRustAnalyzer = pkgs.runCommand "rustup-without-rust-analyzer" { } ''
     mkdir -p "$out/bin"
 
@@ -60,7 +70,7 @@ in
 
     path = mkOption {
       type = with types; (either str path);
-      default = if isDarwin then "${config.xdg.dataHome}/rust" else "$XDG_DATA_HOME/rust";
+      default = xdg.concrete.data "rust";
     };
 
     languageServer = {
@@ -77,41 +87,27 @@ in
   };
 
   config = mkIf config.modules.development.rust.enable (mkMerge [
-
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports rustEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = rustPackages;
     })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (mkMerge [
-      {
-        user.packages = rustPackages;
-        env = rustEnvVars;
-      }
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = rustEnvVars;
+      darwinTarget = "both";
+    })
 
-      (mkIf config.modules.development.rust.languageServer.enable {
-        user.packages = with pkgs; [ rust-analyzer ];
-      })
+    (mkIf config.modules.development.rust.languageServer.enable (platformPackages {
+      inherit isDarwin;
+      packages = with pkgs; [ rust-analyzer ];
+    }))
 
-      (mkIf config.modules.development.rust.includeBinToPath {
-        env.PATH = [ "$CARGO_HOME/bin" ];
-      })
-    ]))
-
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin (mkMerge [
-      {
-        home.packages = rustPackages;
-        home.sessionVariables = rustEnvVars;
-      }
-
-      (mkIf config.modules.development.rust.languageServer.enable {
-        home.packages = with pkgs; [ rust-analyzer ];
-      })
-
-      (mkIf config.modules.development.rust.includeBinToPath {
-        home.sessionPath = [ "$CARGO_HOME/bin" ];
-      })
-    ]))
+    (mkIf config.modules.development.rust.includeBinToPath (platformPath {
+      inherit config isDarwin;
+      paths = [ "$CARGO_HOME/bin" ];
+      darwinTarget = "session";
+    }))
   ]);
 }

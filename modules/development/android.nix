@@ -18,6 +18,10 @@
 with lib;
 
 let
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   androidTools = pkgs.android-tools;
 
   # Minimal SDK-shaped directory for tools that expect $ANDROID_SDK_ROOT/platform-tools/adb.
@@ -36,7 +40,7 @@ in
 
     path = mkOption {
       type = with types; (either str path);
-      default = "$XDG_DATA_HOME/android";
+      default = xdg.concrete.data "android";
     };
 
     includeBinToPath = mkOption {
@@ -49,18 +53,17 @@ in
   config = mkIf config.modules.development.android.enable (
     optionalAttrs (!isDarwin) (mkMerge [
       {
-        # Copied from programs.adb to extend its capability with a custom pkg
-        # Ref: github.com/NixOS/nixpkgs/blob/master/nixos/modules/programs/adb.nix
-        services.udev.packages = with pkgs; [
-          android-udev-rules
-          usbutils
-        ];
+        nixpkgs.config.android_sdk.accept_license = true;
+
         users.groups.adbusers = { }; # forces group creation
 
         user = {
           extraGroups = [ "adbusers" ];
 
-          packages = [ androidTools ];
+          packages = with pkgs; [
+            androidTools
+            usbutils
+          ];
         };
 
         env.ANDROID_SDK_ROOT = "${androidAdbSdk}";

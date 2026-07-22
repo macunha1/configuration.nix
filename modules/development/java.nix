@@ -16,6 +16,19 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   gradleEnvVars = {
     GRADLE_USER_HOME = config.modules.development.java.gradle.userHome;
   };
@@ -35,7 +48,7 @@ in
 
       userHome = mkOption {
         type = types.str;
-        default = "$XDG_CONFIG_HOME/gradle";
+        default = xdg.concrete.config "gradle";
       };
     };
   };
@@ -48,22 +61,18 @@ in
       };
     }
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (
-      mkIf config.modules.development.java.gradle.enable {
-        user.packages = with pkgs; [ gradle ];
-        env = gradleEnvVars;
-      }
-    ))
+    (mkIf config.modules.development.java.gradle.enable (mkMerge [
+      (platformPackages {
+        inherit isDarwin;
+        packages = with pkgs; [ gradle ];
+      })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin (
-      mkIf config.modules.development.java.gradle.enable {
-        home.packages = with pkgs; [ gradle ];
-        modules.shell.zsh.env = ''
-          export GRADLE_USER_HOME="${config.modules.development.java.gradle.userHome}"
-        '';
-      }
-    ))
+      (platformEnv {
+        inherit config isDarwin;
+        inherit shellExports;
+        envVars = gradleEnvVars;
+        darwinTarget = "zsh";
+      })
+    ]))
   ]);
 }

@@ -32,8 +32,17 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   terraformEnvVars = {
-    TF_CLI_CONFIG_FILE = "$XDG_CONFIG_HOME/terraform/rc.hcl";
+    TF_CLI_CONFIG_FILE = xdg.shell.config "terraform/rc.hcl";
   };
 
   # Terraform rc.hcl - same content on both platforms.
@@ -41,7 +50,7 @@ let
   terraformRcText = ''
     ${generatedFileWarning { file = ./terraform.nix; }}
 
-    plugin_cache_dir = "$XDG_CACHE_HOME/terraform/plugins"
+    plugin_cache_dir = "${xdg.shell.cache "terraform/plugins"}"
 
     disable_checkpoint           = true
     disable_checkpoint_signature = true
@@ -65,6 +74,15 @@ let
   # [2] support XDG config dirs (i.e.: workaround enforced ~/.terraform.d/ for
   # the credentials), allowing to set TF_CLI_CONFIG_FILE and keep that
   # unambiguous.
+  # Prefer the repo-pinned upstream binary where it exists, but keep ARM hosts
+  # evaluable by falling back to nixpkgs' Terraform package.
+  pinnedTerraform = pkgs.callPackage ../../packages/terraform-bin.nix { };
+  terraformBin =
+    if lib.meta.availableOn pkgs.stdenv.hostPlatform pinnedTerraform then
+      pinnedTerraform
+    else
+      pkgs.terraform;
+
   terraformWrapper = pkgs.writeScriptBin "terraform" ''
     #!${pkgs.stdenv.shell}
     ${generatedFileWarning { file = ./terraform.nix; }}
@@ -74,7 +92,7 @@ let
     load_terraform_tokens() {
       local token_root secret token_secret_path env_name token
 
-      token_root="${config.xdg.configHome}/pass/tokens/terraform"
+      token_root="${xdg.shell.config "pass/tokens/terraform"}"
       [[ -n "''${PASSWORD_STORE_DIR:-}" ]] && \
         token_root="''${PASSWORD_STORE_DIR}/tokens/terraform"
       [[ -d "''${token_root}" ]] || return 0
@@ -148,10 +166,6 @@ let
     exec ${terraformBin}/bin/terraform "$@"
   '';
 
-  # Implement a binary that re-uses upstream binary from HashiCorp instead of
-  # compiling Terraform locally (nixpkgs default, as of this writing)
-  terraformBin = pkgs.callPackage ../../packages/terraform-bin.nix { };
-
   terraformPackage =
     if config.modules.networking.terraform.wrapper.enable then terraformWrapper else terraformBin;
 in
@@ -179,25 +193,25 @@ in
       modules.shell.zsh.init = ''
         source "${zshPlugin}/terraform.plugin.zsh"
       '';
-
-      modules.shell.zsh.env = ''
-        ${shellExports terraformEnvVars}
-      '';
     })
 
-    # Linux (NixOS)
+    (platformPackages {
+      inherit isDarwin;
+      packages = [ terraformPackage ];
+    })
+
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = terraformEnvVars;
+      darwinTarget = "both";
+    })
+
     (optionalAttrs (!isDarwin) {
-      user.packages = [ terraformPackage ];
-
       home.configFile."terraform/rc.hcl".text = terraformRcText;
-      env = terraformEnvVars;
     })
 
-    # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = [ terraformPackage ];
-      home.sessionVariables = terraformEnvVars;
-
       xdg.configFile."terraform/rc.hcl".text = terraformRcText;
     })
   ]);

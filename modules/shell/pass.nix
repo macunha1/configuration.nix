@@ -19,6 +19,23 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
+    shellExports
+    ;
+
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
+  passEnvVars = {
+    PASSWORD_STORE_DIR = xdg.concrete.config "pass";
+  };
+
   passPackages = with pkgs; [
     (pass.withExtensions (exts: [
       # OTP support (2FA codes in pass)
@@ -38,22 +55,16 @@ in
   };
 
   config = mkIf config.modules.shell.pass.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = passPackages;
-      env.PASSWORD_STORE_DIR = "$XDG_CONFIG_HOME/pass";
+    (platformPackages {
+      inherit isDarwin;
+      packages = passPackages;
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = passPackages;
-
-      # home.sessionVariables does not reliably reach interactive shell apps on
-      # macOS, so write the variable into zsh env init instead.
-      modules.shell.zsh.env = ''
-        export PASSWORD_STORE_DIR="${config.xdg.configHome}/pass"
-      '';
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = passEnvVars;
+      darwinTarget = "zsh";
     })
   ]);
 }

@@ -18,6 +18,11 @@
   ...
 }:
 with lib;
+let
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config;
+  };
+in
 {
   options.modules.virtualization.docker = {
     enable = mkOption {
@@ -48,7 +53,7 @@ with lib;
     };
 
     env.MACHINE_STORAGE_PATH = config.modules.virtualization.docker.storagePath;
-    env.DOCKER_CONFIG = "$XDG_CONFIG_HOME/docker";
+    env.DOCKER_CONFIG = xdg.shell.config "docker";
 
     virtualisation = {
       docker = {

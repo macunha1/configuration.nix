@@ -18,6 +18,15 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   rubyPackages = with pkgs; [
     ruby_2_7.devEnv # full Ruby dev environment (headers, gems)
     libxml2 # required by Nokogiri and many XML gems
@@ -26,10 +35,10 @@ let
 
   # Bundler XDG compliance — same paths on both platforms.
   rubyEnvVars = {
-    BUNDLE_USER_HOME = "$XDG_CONFIG_HOME/bundle";
-    BUNDLE_USER_CONFIG = "$XDG_CONFIG_HOME/bundle/config";
-    BUNDLE_USER_CACHE = "$XDG_CACHE_HOME/bundle/cache";
-    BUNDLE_USER_PLUGIN = "$XDG_CACHE_HOME/bundle/plugin";
+    BUNDLE_USER_HOME = xdg.shell.config "bundle";
+    BUNDLE_USER_CONFIG = xdg.shell.config "bundle/config";
+    BUNDLE_USER_CACHE = xdg.shell.cache "bundle/cache";
+    BUNDLE_USER_PLUGIN = xdg.shell.cache "bundle/plugin";
   };
 in
 {
@@ -41,17 +50,14 @@ in
   };
 
   config = mkIf config.modules.development.ruby.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = rubyPackages;
-      env = rubyEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = rubyPackages;
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = rubyPackages;
-      home.sessionVariables = rubyEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      envVars = rubyEnvVars;
     })
   ]);
 }

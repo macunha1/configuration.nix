@@ -1,4 +1,10 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
   imports = [
@@ -15,13 +21,11 @@
     packageOverrides = pkgs: {
       vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
     };
-
-    allowUnfree = true; # necessary evil
   };
 
-  services.xserver = {
+  services.xserver.xkb = {
     layout = "us";
-    xkbVariant = "intl";
+    variant = "intl";
   };
 
   time.timeZone = "Etc/UTC";

@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   codegraphcontextPackage = pkgs.writeShellApplication {
     name = "codegraphcontext";
 
@@ -69,25 +78,19 @@ in
 
     configHome = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then
-          "${config.xdg.configHome}/codegraphcontext"
-        else
-          "$XDG_CONFIG_HOME/codegraphcontext";
+      default = xdg.concrete.config "codegraphcontext";
       description = "CodeGraphContext configuration directory.";
     };
 
     dataHome = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then "${config.xdg.dataHome}/codegraphcontext" else "$XDG_DATA_HOME/codegraphcontext";
+      default = xdg.concrete.data "codegraphcontext";
       description = "CodeGraphContext data directory.";
     };
 
     cacheHome = mkOption {
       type = with types; either str path;
-      default =
-        if isDarwin then "${config.xdg.cacheHome}/codegraphcontext" else "$XDG_CACHE_HOME/codegraphcontext";
+      default = xdg.concrete.cache "codegraphcontext";
       description = "CodeGraphContext cache directory.";
     };
   };
@@ -97,18 +100,16 @@ in
       modules.development.python.enable = true;
     }
 
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports codegraphcontextEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = codegraphcontextPackages;
     })
 
-    (optionalAttrs (!isDarwin) {
-      user.packages = codegraphcontextPackages;
-      env = codegraphcontextEnvVars;
-    })
-
-    (optionalAttrs isDarwin {
-      home.packages = codegraphcontextPackages;
-      home.sessionVariables = codegraphcontextEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = codegraphcontextEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

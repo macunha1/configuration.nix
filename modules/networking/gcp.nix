@@ -19,13 +19,22 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   gcpPackages = with pkgs; [
     google-cloud-sdk # gcloud, gsutil, bq
   ];
 
   # XDG-compliant GCP paths — same values on both platforms.
   gcpEnvVars = {
-    BOTO_CONFIG = "$XDG_CONFIG_HOME/boto/config"; # gsutil / Python boto config
+    BOTO_CONFIG = xdg.shell.config "boto/config"; # gsutil / Python boto config
   };
 in
 {
@@ -37,17 +46,14 @@ in
   };
 
   config = mkIf config.modules.networking.gcp.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = gcpPackages;
-      env = gcpEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = gcpPackages;
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = gcpPackages;
-      home.sessionVariables = gcpEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      envVars = gcpEnvVars;
     })
   ]);
 }

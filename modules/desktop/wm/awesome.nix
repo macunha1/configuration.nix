@@ -31,9 +31,15 @@ let
     inherit lua;
   };
 
-  lua-dbus-proxy = pkgs.my.lua-dbus-proxy.override {
-    inherit lua luaPackages;
-  };
+  awesomeLuaModules = optional config.modules.hardware.audio.enable (
+    pkgs.my.lua-dbus-proxy.override {
+      inherit lua luaPackages;
+    }
+  );
+
+  awesomeLuaSearchArgs = concatMapStringsSep " \\\n             " (
+    module: ''--search "${module.out}/share/lua/${lua.luaversion}"''
+  ) awesomeLuaModules;
 in
 {
   options.modules.desktop = {
@@ -50,13 +56,13 @@ in
 
   config = mkIf config.modules.desktop.awesomewm.enable {
     services = {
-      compton.enable = config.modules.desktop.compton.enable;
+      picom.enable = config.modules.desktop.compton.enable;
+      displayManager.defaultSession = "none+awesome";
       xserver = {
-        displayManager.defaultSession = "none+awesome";
         windowManager.awesome = {
           enable = true;
           package = awesome;
-          luaModules = [ lua-dbus-proxy ];
+          luaModules = awesomeLuaModules;
         };
       };
     };
@@ -70,10 +76,17 @@ in
       (writeScriptBin "awm" ''
         #!${stdenv.shell}
         ${generatedFileWarning { file = ./awesome.nix; }}
-        exec ${awesome}/bin/awesome \
-             --search "${lua-dbus-proxy.out}/share/lua/${lua.luaversion}" \
-             "$@"
+        ${if awesomeLuaSearchArgs == "" then ''
+          exec ${awesome}/bin/awesome "$@"
+        '' else ''
+          exec ${awesome}/bin/awesome \
+          ${awesomeLuaSearchArgs} \
+          "$@"
+        ''}
       '')
+    ]
+    ++ optionals config.modules.hardware.audio.enable [
+      wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
     ];
 
     home-manager.users.${config.user.name}.services.screen-locker = {
@@ -86,8 +99,8 @@ in
         owner = "macunha1";
         repo = "aweswm";
 
-        rev = "fd9aed4a26aa421544f8059fced2254616584e26";
-        sha256 = "07iwii65s0yzqq3a00df5yyk6wfqh1nljgsw633qr0m87aiq2bry";
+        rev = "95719817bcb3a30d8fe9b91dd277110a3c6e7b2a";
+        sha256 = "sha256-ig+/xkId+jZFfzMluuoUeerPDifJPiwAmXjsv8v1WNw=";
 
         fetchSubmodules = true;
       };

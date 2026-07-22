@@ -10,6 +10,37 @@
 
 with lib;
 with lib.my;
+let
+  xdg = xdgPaths { inherit config; };
+
+  enabledUnfreePackages =
+    optionals config.modules.editors.emacs.enable [ "aspell-dict-en-science" ]
+    ++ optionals config.modules.agents.code.claude.enable [ "claude-code" ]
+    ++ optionals config.modules.networking.terraform.enable [ "terraform-bin" ]
+    ++ optionals config.modules.networking.vagrant.enable [ "vagrant" ]
+    ++ optionals config.modules.hardware.video.nvidia.enable [
+      "cuda_nvml_dev"
+      "nvidia-settings"
+      "nvidia-x11"
+    ]
+    ++ optionals config.modules.media.spotify.enable [ "spotify" ]
+    ++ optionals (config.modules.media.spotify.enable && config.modules.media.spotify.daemon.enable) [
+      "spotify-player"
+    ]
+    ++ optionals config.modules.desktop.gaming.steam.enable [
+      "steam"
+      "steam-original"
+      "steam-run"
+      "steam-unwrapped"
+    ];
+
+  enabledUnfreePackagePrefixes = optionals config.modules.hardware.video.nvidia.enable [
+    "cuda"
+    "nvidia-"
+  ];
+
+  unfreePolicyEnabled = enabledUnfreePackages != [ ] || enabledUnfreePackagePrefixes != [ ];
+in
 {
   options = with types; {
     user = mkOption {
@@ -101,6 +132,26 @@ with lib.my;
 
     users.users.${config.user.name} = mkAliasDefinitions options.user;
 
+    # Keep unfree access module-scoped. This avoids a global allowUnfree escape
+    # hatch while still making enabled feature modules evaluable.
+    nixpkgs.config = mkIf unfreePolicyEnabled {
+      allowUnfreePredicate =
+        pkg:
+        let
+          packageName = getName pkg;
+        in
+        elem packageName enabledUnfreePackages
+        || any (prefix: hasPrefix prefix packageName) enabledUnfreePackagePrefixes;
+    };
+
+    warnings = optional unfreePolicyEnabled ''
+      Enabled a scoped nixpkgs allowUnfreePredicate for requested modules: ${
+        concatStringsSep ", " (
+          enabledUnfreePackages ++ map (prefix: "${prefix}*") enabledUnfreePackagePrefixes
+        )
+      }
+    '';
+
     nix =
       let
         users = [
@@ -117,7 +168,7 @@ with lib.my;
 
     # must already begin with pre-existing PATH.
     env.PATH = [
-      "$XDG_CONFIG_HOME/nixos/dotfiles/bin"
+      (xdg.shell.config "nixos/dotfiles/bin")
       "$HOME/.local/bin"
       "$PATH"
     ];

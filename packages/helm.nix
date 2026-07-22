@@ -4,35 +4,38 @@
 # tarballs so the Kubernetes module can move faster than the pinned nixpkgs
 # source build when a small Helm patch release lands.
 
-{ lib
-, stdenv
-, fetchurl
-, installShellFiles
-, kubernetes-helm
+{
+  lib,
+  stdenv,
+  fetchurl,
+  installShellFiles,
+  kubernetes-helm,
 }:
 
 let
-  version = "4.2.1";
+  version = "4.2.3";
 
-  platform = {
-    x86_64-linux = {
-      name = "linux-amd64";
-      hash = "sha256-R53Kg25bRei9IiQAxVkbDjpkc3jwP/lllxgNuXwX/a4=";
-    };
-    aarch64-linux = {
-      name = "linux-arm64";
-      hash = "sha256-WWuac9Nmwecs5n1ZXCKAVIDjCRRZOq+8n1R2lOcoFNs=";
-    };
-    x86_64-darwin = {
-      name = "darwin-amd64";
-      hash = "sha256-KiHJ82jWCLz263lOvAZRTra1KahGtg/kpD3qe8zmUig=";
-    };
-    aarch64-darwin = {
-      name = "darwin-arm64";
-      hash = "sha256-iWRy0uwHQMYPZKnfD8MNR4vu44oaKm7ZGqbm7hd8FXU=";
-    };
-  }.${stdenv.hostPlatform.system} or (throw
-    "Unsupported Helm platform: ${stdenv.hostPlatform.system}");
+  platform =
+    {
+      x86_64-linux = {
+        name = "linux-amd64";
+        hash = "sha256-6biLTulbGMcGg5wo06AiDlvEcOnNkmJBDJB5PEX/i3w=";
+      };
+      aarch64-linux = {
+        name = "linux-arm64";
+        hash = "sha256-IavZNU05ss15qNdr5pEs0Tepg8v5lxk1A/uKam4vJ4U=";
+      };
+      x86_64-darwin = {
+        name = "darwin-amd64";
+        hash = "sha256-/zrIZ1WkXzQiRzvBIAd2qsD+BMV2ar5spmaZ97Vksjs=";
+      };
+      aarch64-darwin = {
+        name = "darwin-arm64";
+        hash = "sha256-BI7PWtMWD4PZGPn+lFI40hMrB5ZA97EGF1Mxwl8kLGQ=";
+      };
+    }
+    .${stdenv.hostPlatform.system}
+      or (throw "Unsupported Helm platform: ${stdenv.hostPlatform.system}");
 in
 stdenv.mkDerivation {
   pname = "kubernetes-helm";

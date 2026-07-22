@@ -18,6 +18,15 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   claudePackages = with pkgs; [
     claude-code
   ];
@@ -35,24 +44,22 @@ in
 
     configHome = mkOption {
       type = with types; either str path;
-      default = if isDarwin then "${config.xdg.configHome}/claude" else "$XDG_CONFIG_HOME/claude";
+      default = xdg.concrete.config "claude";
       description = "Claude Code XDG configuration directory.";
     };
   };
 
   config = mkIf config.modules.agents.code.claude.enable (mkMerge [
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = shellExports claudeEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = claudePackages;
     })
 
-    (optionalAttrs (!isDarwin) {
-      user.packages = claudePackages;
-      env = claudeEnvVars;
-    })
-
-    (optionalAttrs isDarwin {
-      home.packages = claudePackages;
-      home.sessionVariables = claudeEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = claudeEnvVars;
+      darwinTarget = "both";
     })
   ]);
 }

@@ -22,13 +22,23 @@ let
     shellExports
     ;
 
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    platformPath
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   goBinPath = "${config.modules.development.go.path}/bin";
 
   # XDG-compliant Go paths - same values on both platforms.
   goEnvVars = {
     GOPATH = config.modules.development.go.path;
-    GOMODCACHE = "$XDG_CACHE_HOME/go/mod";
-    GOCACHE = "$XDG_CACHE_HOME/go-build";
+    GOMODCACHE = xdg.shell.cache "go/mod";
+    GOCACHE = xdg.shell.cache "go-build";
   };
 in
 {
@@ -40,7 +50,7 @@ in
 
     path = mkOption {
       type = with types; (either str path);
-      default = if isDarwin then "${config.xdg.dataHome}/go" else "$XDG_DATA_HOME/go";
+      default = xdg.concrete.data "go";
       description = "Go workspace path used for GOPATH.";
     };
 
@@ -58,11 +68,11 @@ in
   };
 
   config = mkIf config.modules.development.go.enable (mkMerge [
-
-    (mkIf config.modules.shell.zsh.enable {
-      modules.shell.zsh.env = ''
-        ${shellExports goEnvVars}
-      '';
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = goEnvVars;
+      darwinTarget = "both";
     })
 
     (mkIf (config.modules.shell.zsh.enable && config.modules.development.go.includeBinToPath) {
@@ -71,39 +81,28 @@ in
       '';
     })
 
+    (mkIf config.modules.development.go.includeBinToPath (platformPath {
+      inherit config isDarwin;
+      paths = [ goBinPath ];
+      darwinTarget = "session";
+    }))
+
+    (mkIf config.modules.development.go.languageServer.enable (platformPackages {
+      inherit isDarwin;
+      packages = with pkgs; [ gopls ];
+    }))
+
     # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (mkMerge [
-      {
-        user.packages = with pkgs; [
-          libcap # Linux-only: POSIX capabilities (used by some Go tools)
-          go
-        ];
-        env = goEnvVars;
-      }
-
-      (mkIf config.modules.development.go.languageServer.enable {
-        user.packages = with pkgs; [ gopls ];
-      })
-
-      (mkIf config.modules.development.go.includeBinToPath {
-        env.PATH = [ goBinPath ];
-      })
-    ]))
+    (optionalAttrs (!isDarwin) {
+      user.packages = with pkgs; [
+        libcap # Linux-only: POSIX capabilities (used by some Go tools)
+        go
+      ];
+    })
 
     # Darwin (MacOS)
-    (optionalAttrs isDarwin (mkMerge [
-      {
-        home.packages = with pkgs; [ go ];
-        home.sessionVariables = goEnvVars;
-      }
-
-      (mkIf config.modules.development.go.languageServer.enable {
-        home.packages = with pkgs; [ gopls ];
-      })
-
-      (mkIf config.modules.development.go.includeBinToPath {
-        home.sessionPath = [ goBinPath ];
-      })
-    ]))
+    (optionalAttrs isDarwin {
+      home.packages = with pkgs; [ go ];
+    })
   ]);
 }

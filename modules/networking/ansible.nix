@@ -22,6 +22,15 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
+
+  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
+    inherit config isDarwin;
+  };
+
   ansiblePackages =
     with pkgs;
     [
@@ -34,10 +43,10 @@ let
 
   # XDG-compliant Ansible paths
   ansibleEnvVars = {
-    ANSIBLE_ROLES_PATH = "$XDG_DATA_HOME/ansible/galaxy/roles";
-    ANSIBLE_COLLECTIONS_PATH = "$XDG_DATA_HOME/ansible/galaxy/collections";
-    ANSIBLE_GALAXY_CACHE_DIR = "$XDG_DATA_HOME/ansible/galaxy/cache";
-    ANSIBLE_GALAXY_TOKEN_PATH = "$XDG_CONFIG_HOME/ansible/galaxy/token";
+    ANSIBLE_ROLES_PATH = xdg.shell.data "ansible/galaxy/roles";
+    ANSIBLE_COLLECTIONS_PATH = xdg.shell.data "ansible/galaxy/collections";
+    ANSIBLE_GALAXY_CACHE_DIR = xdg.shell.data "ansible/galaxy/cache";
+    ANSIBLE_GALAXY_TOKEN_PATH = xdg.shell.config "ansible/galaxy/token";
   };
 in
 {
@@ -56,17 +65,14 @@ in
   };
 
   config = mkIf config.modules.networking.ansible.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = ansiblePackages;
-      env = ansibleEnvVars;
+    (platformPackages {
+      inherit isDarwin;
+      packages = ansiblePackages;
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      home.packages = ansiblePackages;
-      home.sessionVariables = ansibleEnvVars;
+    (platformEnv {
+      inherit config isDarwin;
+      envVars = ansibleEnvVars;
     })
   ]);
 }

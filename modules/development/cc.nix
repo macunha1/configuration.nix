@@ -18,6 +18,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+    platformPackages
+    ;
+
   # Base C/C++ toolchain — same on both platforms.
   ccPackages = with pkgs; [
     clang # LLVM C/C++ compiler frontend
@@ -43,23 +47,14 @@ in
   };
 
   config = mkIf config.modules.development.cc.enable (mkMerge [
+    (platformPackages {
+      inherit isDarwin;
+      packages = ccPackages;
+    })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) (mkMerge [
-      { user.packages = ccPackages; }
-
-      (mkIf config.modules.development.cc.languageServer.enable {
-        user.packages = with pkgs; [ ccls ]; # C/C++/Objective-C language server
-      })
-    ]))
-
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin (mkMerge [
-      { home.packages = ccPackages; }
-
-      (mkIf config.modules.development.cc.languageServer.enable {
-        home.packages = with pkgs; [ ccls ]; # C/C++/Objective-C language server
-      })
-    ]))
+    (mkIf config.modules.development.cc.languageServer.enable (platformPackages {
+      inherit isDarwin;
+      packages = with pkgs; [ ccls ]; # C/C++/Objective-C language server
+    }))
   ]);
 }
