@@ -95,16 +95,18 @@ rec {
           home.sessionVariables = envVars;
         }
       else if darwinTarget == "both" then
-        {
-          home.sessionVariables = envVars;
-        }
-        // lib.mkIf config.modules.shell.zsh.enable {
-          modules.shell.zsh.env =
-            if shellExports == null then
-              throw "platformEnv with darwinTarget = \"both\" requires shellExports"
-            else
-              shellExports envVars;
-        }
+        lib.mkMerge [
+          {
+            home.sessionVariables = envVars;
+          }
+          (lib.mkIf config.modules.shell.zsh.enable {
+            modules.shell.zsh.env =
+              if shellExports == null then
+                throw "platformEnv with darwinTarget = \"both\" requires shellExports"
+              else
+                shellExports envVars;
+          })
+        ]
       else
         throw "Unsupported Darwin environment target: ${darwinTarget}"
     );
@@ -132,12 +134,14 @@ rec {
           home.sessionPath = paths;
         }
       else if darwinTarget == "both" then
-        {
-          home.sessionPath = paths;
-        }
-        // lib.mkIf config.modules.shell.zsh.enable {
-          modules.shell.zsh.env = zshPathExports;
-        }
+        lib.mkMerge [
+          {
+            home.sessionPath = paths;
+          }
+          (lib.mkIf config.modules.shell.zsh.enable {
+            modules.shell.zsh.env = zshPathExports;
+          })
+        ]
       else
         throw "Unsupported Darwin PATH target: ${darwinTarget}"
     );

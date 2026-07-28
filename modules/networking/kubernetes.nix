@@ -54,7 +54,10 @@ let
   kubernetesPackages =
     [ ]
     ++ optional config.modules.networking.kubernetes.helm.enable helm
-    ++ optional config.modules.networking.kubernetes.kops.enable kops;
+    ++ optional config.modules.networking.kubernetes.kops.enable kops
+    # GKE exec auth must be available whenever kubectl is managed here. If the
+    # GCP module is enabled, it installs this same component-bearing SDK.
+    ++ optional (!config.modules.networking.gcp.enable) googleCloudSdkWithGkeAuthPlugin;
 
   kubectl = pkgs.writeScriptBin "kubectl" ''
     #!${pkgs.stdenv.shell}
@@ -64,6 +67,16 @@ let
   '';
 
   helm = pkgs.my.helm or (pkgs.callPackage ../../packages/helm.nix { });
+
+  pinnedGoogleCloudSdkVersion = "570.0.0";
+  pinnedGkeGcloudAuthPluginVersion = "0.5.15";
+
+  googleCloudSdk = pkgs.google-cloud-sdk;
+  gkeGcloudAuthPlugin = googleCloudSdk.components.gke-gcloud-auth-plugin;
+
+  googleCloudSdkWithGkeAuthPlugin = googleCloudSdk.withExtraComponents [
+    gkeGcloudAuthPlugin
+  ];
 
   kops = pkgs.kops.overrideAttrs (
     finalAttrs: previousAttrs: {
@@ -116,6 +129,18 @@ in
   };
 
   config = mkIf config.modules.networking.kubernetes.enable (mkMerge [
+    {
+      assertions = [
+        {
+          assertion = googleCloudSdk.version == pinnedGoogleCloudSdkVersion;
+          message = "google-cloud-sdk changed; update the pinned GCP SDK version intentionally.";
+        }
+        {
+          assertion = gkeGcloudAuthPlugin.version == pinnedGkeGcloudAuthPluginVersion;
+          message = "gke-gcloud-auth-plugin changed; update the pinned GKE auth plugin version intentionally.";
+        }
+      ];
+    }
 
     # Both platforms: source kubectl plugin (aliases + cached completion) when zsh is enabled.
     # Plugin handles completion with caching - does not spawn kubectl on every shell start.

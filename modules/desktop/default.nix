@@ -44,16 +44,5 @@ with lib;
       xclip # clipboard access from terminal
     ];
 
-    # Fonts
-    fonts = {
-      fontDir.enable = true;
-      enableGhostscriptFonts = true;
-
-      packages = with pkgs; [
-        powerline-fonts
-        source-code-pro
-      ];
-      fontconfig.defaultFonts.monospace = [ "Source Code Pro" ];
-    };
   };
 }

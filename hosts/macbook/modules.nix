@@ -22,6 +22,8 @@
       emacs.enable = true;
     };
 
+    desktop.fonts.enable = true;
+
     shell = {
       git.enable = true;
       zsh.enable = true;
@@ -59,6 +61,8 @@
     };
 
     networking = {
+      gcp.enable = true;
+
       kubernetes = {
         enable = true;
         helm.enable = true;
