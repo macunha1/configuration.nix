@@ -84,6 +84,12 @@ in
       description = "Command used to run the configured Python package manager.";
     };
 
+    packageManagerRunCommand = mkOption {
+      type = types.str;
+      default = "${config.modules.development.python.packageManagerCommand} tool run";
+      description = "Command used to run tools with the configured Python package manager.";
+    };
+
     languageServer = {
       enable = mkOption {
         type = types.bool;

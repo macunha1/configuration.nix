@@ -31,8 +31,8 @@ let
     name = "codegraphcontext";
 
     text = ''
-      exec ${config.modules.development.python.packageManagerCommand} tool \
-        run --from "${config.modules.agents.mcp.codegraphcontext.source}" \
+      exec ${config.modules.development.python.packageManagerRunCommand} \
+        --from "${config.modules.agents.mcp.codegraphcontext.source}" \
         codegraphcontext "$@"
     '';
   };
@@ -41,8 +41,8 @@ let
     name = "cgc";
 
     text = ''
-      exec ${config.modules.development.python.packageManagerCommand} tool \
-        run --from "${config.modules.agents.mcp.codegraphcontext.source}" \
+      exec ${config.modules.development.python.packageManagerRunCommand} \
+        --from "${config.modules.agents.mcp.codegraphcontext.source}" \
         cgc "$@"
     '';
   };

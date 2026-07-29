@@ -31,8 +31,8 @@ let
     name = "mempalace";
 
     text = ''
-      exec ${config.modules.development.python.packageManagerCommand} tool \
-        run --from mempalace mempalace "$@"
+      exec ${config.modules.development.python.packageManagerRunCommand} \
+        --from mempalace mempalace "$@"
     '';
   };
 
@@ -40,8 +40,8 @@ let
     name = "mempalace-mcp";
 
     text = ''
-      exec ${config.modules.development.python.packageManagerCommand} tool \
-        run --from mempalace mempalace-mcp "$@"
+      exec ${config.modules.development.python.packageManagerRunCommand} \
+        --from mempalace mempalace-mcp "$@"
     '';
   };
 
