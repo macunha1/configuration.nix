@@ -40,6 +40,18 @@ let
   awesomeLuaSearchArgs = concatMapStringsSep " \\\n             " (
     module: ''--search "${module.out}/share/lua/${lua.luaversion}"''
   ) awesomeLuaModules;
+
+  screenlock = pkgs.writeShellApplication {
+    name = "screenlock.sh";
+    runtimeInputs = with pkgs; [
+      coreutils
+      ffmpeg
+      gawk
+      i3lock
+      xdpyinfo
+    ];
+    text = builtins.readFile ../../../bin/screenlock.sh;
+  };
 in
 {
   options.modules.desktop = {
@@ -68,8 +80,6 @@ in
     };
 
     user.packages = with pkgs; [
-      i3lock # screenlock.sh requires i3lock
-
       # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
       # i.e. Implements the equivalent of
       #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
@@ -94,13 +104,18 @@ in
       lockCmd = "screenlock.sh";
     };
 
+    home.file.".local/bin/screenlock.sh" = {
+      source = "${screenlock}/bin/screenlock.sh";
+      force = true;
+    };
+
     home.configFile."awesome" = {
       source = pkgs.fetchFromGitHub {
         owner = "macunha1";
         repo = "aweswm";
 
-        rev = "95719817bcb3a30d8fe9b91dd277110a3c6e7b2a";
-        sha256 = "sha256-ig+/xkId+jZFfzMluuoUeerPDifJPiwAmXjsv8v1WNw=";
+        rev = "0a8c25d4a46f7b9c1b6fc018fc4709ccd8ece385";
+        sha256 = "sha256-k92nHYFhC3HSDCIITftdGGK7k9JidItJFXGOMWL5R14=";
 
         fetchSubmodules = true;
       };

@@ -27,7 +27,7 @@
 
     systemd-boot = {
       enable = lib.mkDefault true;
-      configurationLimit = lib.mkDefault 10;
+      configurationLimit = lib.mkDefault 5;
     };
   };
 

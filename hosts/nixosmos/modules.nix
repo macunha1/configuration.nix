@@ -9,10 +9,7 @@
 {
   modules = {
     agents = {
-      code = {
-        claude.enable = true;
-        codex.enable = true;
-      };
+      code.codex.enable = true;
 
       mcp = {
         codegraphcontext.enable = true;
@@ -25,6 +22,7 @@
     hardware = {
       audio.enable = true;
       bluetooth.enable = true;
+
       video = {
         enable = true;
         support32Bit.enable = true;
@@ -38,7 +36,10 @@
 
       terminal = {
         default = "alacritty";
-        alacritty.enable = true;
+        alacritty = {
+          enable = true;
+          font.size = 10.0;
+        };
       };
 
       applications = {
@@ -89,31 +90,16 @@
         enable = true;
         languageServer.enable = true;
       };
-
-      android = {
-        enable = true;
-        path = "/data/1/opt/android";
-        includeBinToPath = true;
-      };
-
-      flutter = {
-        enable = false;
-        path = "/data/1/opt/flutter";
-      };
     };
 
     media = {
-      spotify = {
+      spotify.daemon = {
         enable = true;
 
-        daemon = {
-          enable = true;
-
-          settings = {
-            global = {
-              username = "22l46w473dznfqimcwcetx4sa";
-              password_cmd = "pass show spotify/macunha";
-            };
+        settings = {
+          global = {
+            username = "22l46w473dznfqimcwcetx4sa";
+            password_cmd = "pass show spotify/macunha";
           };
         };
       };
@@ -125,12 +111,6 @@
       kubernetes = {
         enable = true;
         helm.enable = true;
-      };
-
-      vagrant = {
-        enable = true;
-        home = "/data/1/opt/vagrant";
-        provider = "libvirt";
       };
 
       ansible.enable = true;
@@ -146,7 +126,6 @@
       pass.enable = true;
       gnupg.enable = true;
       direnv.enable = true;
-      asdf.enable = true;
     };
 
     virtualization = {

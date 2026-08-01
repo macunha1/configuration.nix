@@ -25,7 +25,7 @@
 
   services.xserver.xkb = {
     layout = "us";
-    variant = "intl";
+    variant = "";
   };
 
   time.timeZone = "Etc/UTC";

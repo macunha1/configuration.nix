@@ -21,7 +21,7 @@ in
   options.modules.media.spotify = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
     };
 
     daemon = {

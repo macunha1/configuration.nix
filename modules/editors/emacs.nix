@@ -2,7 +2,7 @@
 #
 # Emacs + Doom configuration, with Evil activated, after all Vim <3
 #
-# Linux: emacs-pgtk (pure GTK3, Wayland-native).
+# Linux: regular GTK Emacs for the X11 session used by the desktop.
 # Darwin: stock GNU Emacs from Nix, with native compilation enabled.
 #
 # Doom Emacs is NOT managed here -- clone it manually:
@@ -130,8 +130,8 @@ in
         [
           binutils # native-comp needs 'as', provided by binutils
 
-          # Emacs 29+ with Native Compilation and Pure GTK3 (pgtk) for Wayland
-          ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.vterm ]))
+          # Emacs 29+ with Native Compilation and GTK/X11 support.
+          ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.vterm ]))
 
         ]
         ++ sharedDeps
@@ -143,6 +143,22 @@ in
         ];
 
       environment.shellAliases = emacsAliases;
+
+      home-manager.users.${config.user.name}.home.file.".local/share/applications/emacs.desktop".text = ''
+        [Desktop Entry]
+        Name=Emacs
+        GenericName=Doom Emacs
+        Comment=Edit text with Doom Emacs
+        MimeType=text/english;text/plain;text/x-makefile;text/x-c++hdr;text/x-c++src;text/x-chdr;text/x-csrc;text/x-java;text/x-moc;text/x-pascal;text/x-tcl;text/x-tex;application/x-shellscript;text/x-c;text/c++
+        Exec=/etc/profiles/per-user/${config.user.name}/bin/emacs --init-directory /home/${config.user.name}/.config/emacs %F
+        TryExec=/etc/profiles/per-user/${config.user.name}/bin/emacs
+        Icon=emacs
+        Type=Application
+        Terminal=false
+        Categories=Development;TextEditor;
+        StartupNotify=true
+        StartupWMClass=Emacs
+      '';
 
       fonts.packages = emacsIconFontPackages;
     })

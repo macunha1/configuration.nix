@@ -25,8 +25,27 @@
 
   services.xserver.xkb = {
     layout = "us";
-    variant = "intl";
+    variant = "";
   };
+
+  # DP-4 is the main display on the left. HDMI-0 is the physically vertical
+  # display on the right and needs a counter-clockwise rotation (-90 degrees,
+  # equivalent to +270 degrees).
+  services.xserver.displayManager.sessionCommands = ''
+    rotate_output() {
+      output="$1"
+      rotation="$2"
+
+      if ${pkgs.xrandr}/bin/xrandr --query | ${pkgs.gawk}/bin/awk -v output="$output" \
+        '$1 == output && $2 == "connected" { found = 1 } END { exit !found }'; then
+        ${pkgs.xrandr}/bin/xrandr --output "$output" --rotate "$rotation" || true
+      fi
+    }
+
+    rotate_output DP-4 normal
+    rotate_output HDMI-0 left
+    unset -f rotate_output
+  '';
 
   time.timeZone = "Etc/UTC";
   user.extraGroups = [ "networkmanager" ];

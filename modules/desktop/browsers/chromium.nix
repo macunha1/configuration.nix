@@ -22,9 +22,36 @@ with lib;
   };
 
   config = mkIf config.modules.desktop.browsers.chromium.enable {
+    fonts.packages = [ pkgs.source-code-pro ];
+
+    programs.chromium = {
+      enable = true;
+      extraOpts = {
+        DefaultZoomFactor = 1.25;
+        DefaultFontSize = 20;
+        DefaultFixedFontSize = 16;
+        PasswordManagerEnabled = false;
+      };
+      initialPrefs = {
+        webkit.webprefs = {
+          standard_font_family = "Source Code Pro";
+          sans_serif_font_family = "Source Code Pro";
+          serif_font_family = "Source Code Pro";
+          fixed_font_family = "Source Code Pro";
+          default_font_size = 20;
+          default_fixed_font_size = 16;
+        };
+      };
+    };
+
     user.packages = with pkgs; [ chromium ];
 
-    # TODO: Include portable and reusable Chromium configuration
-    # home.home.file = { };
+    home-manager.users.${config.user.name}.programs.chromium = {
+      enable = true;
+      extensions = [
+        "eimadpbcbfnmbkopoojfekhnkhdbieeh" # Dark Reader
+        "kioklelcojgbjoljlilalgdcppkiioge" # Void Theme
+      ];
+    };
   };
 }

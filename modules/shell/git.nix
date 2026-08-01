@@ -3,8 +3,8 @@
 # A god-send in terms of software version control.
 #
 # Both platforms share a single gitSettings attrset.
-# Linux  -> lib.generators.toGitINI serialises it to an INI file via home.configFile.
-# Darwin -> programs.git.settings consumes the attrset directly.
+# Both platforms -> Home Manager's programs.git consumes the shared attrset and
+# merges machine-local settings/includes from the private Home Manager config.
 
 {
   config,
@@ -17,12 +17,7 @@
 with lib;
 
 let
-  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
-  # Import the generator directly in that case.
-  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
-    generatedFileWarning
-    shellExports
-    ;
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; })) shellExports;
 
   inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
     platformEnv
@@ -186,21 +181,25 @@ in
       '';
     })
 
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      home.configFile."git/config".text =
-        generatedFileWarning { file = ./git.nix; } + generators.toGitINI gitSettings;
-
-      environment.shellAliases = gitAliases;
-    })
-
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
+    # Home Manager merges this with machine-local programs.git settings and
+    # includes. This keeps Linux and Darwin on one configuration path.
+    (if isDarwin then {
       programs.git = {
         enable = true;
         settings = gitSettings;
       };
+    } else {
+      home-manager.users.${config.user.name}.programs.git = {
+        enable = true;
+        settings = gitSettings;
+      };
+    })
 
+    (optionalAttrs (!isDarwin) {
+      environment.shellAliases = gitAliases;
+    })
+
+    (optionalAttrs isDarwin {
       modules.shell.zsh.aliases = gitAliases;
     })
 

@@ -19,7 +19,19 @@ with lib;
   };
 
   config = mkIf config.modules.desktop.enable {
+    # Enable the dconf service used by the user-level desktop preferences.
+    programs.dconf.enable = true;
+
     services = {
+      # X resources take precedence over XCURSOR_THEME for many X11 clients.
+      # Apply the cursor theme during session startup so the window manager and
+      # applications agree on the same cursor set.
+      xserver.displayManager.sessionCommands = mkAfter ''
+        printf '%s\n' \
+          'Xcursor.theme: Adwaita' \
+          'Xcursor.size: 24' | ${pkgs.xrdb}/bin/xrdb -merge
+      '';
+
       displayManager.ly = {
         enable = true;
         x11Support = true;
@@ -33,6 +45,7 @@ with lib;
     };
 
     user.packages = with pkgs; [
+      adwaita-icon-theme
       pcmanfm # lightweight file manager
       xfce4-panel # system trail
 
@@ -43,6 +56,14 @@ with lib;
       feh # Simple image viewer
       xclip # clipboard access from terminal
     ];
+
+    environment.variables = {
+      # Keep GTK applications, including the lightweight file manager, dark.
+      GTK_THEME = "Adwaita:dark";
+      XCURSOR_THEME = "Adwaita";
+      XCURSOR_SIZE = "24";
+      XCURSOR_PATH = mkForce "${pkgs.adwaita-icon-theme}/share/icons";
+    };
 
   };
 }

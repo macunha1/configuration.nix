@@ -143,7 +143,7 @@
                   ;;
                 Linux)
                   nixos_host="''${NIXOS_HOST:-''${HOST:-$(hostname)}}"
-                  exec nixos-rebuild --flake "$flake#$nixos_host" --fast switch
+                    exec nixos-rebuild --flake "$flake#$nixos_host" --impure switch
                   ;;
                 *)
                   printf 'Unsupported OS: %s\n' "$system_name" >&2

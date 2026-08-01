@@ -45,6 +45,17 @@ let
         };
       }
     ]
+    ++ optionals config.modules.agents.plugins.context-mode.enable [
+      {
+        name = "context-mode";
+        command = "${config.home.profileDirectory}/bin/context-mode";
+        env = {
+          CONTEXT_MODE_CONFIG_HOME = config.modules.agents.plugins.context-mode.configHome;
+          CONTEXT_MODE_DATA_HOME = config.modules.agents.plugins.context-mode.dataHome;
+          CONTEXT_MODE_CACHE_HOME = config.modules.agents.plugins.context-mode.cacheHome;
+        };
+      }
+    ]
     ++ optionals config.modules.agents.mcp.codegraphcontext.enable [
       {
         name = "CodeGraphContext";
@@ -176,7 +187,7 @@ in
       darwinTarget = "both";
     })
 
-    (mkIf
+    (optionalAttrs
       (
         isDarwin
         && (config.modules.agents.mcp.mempalace.enable || config.modules.agents.mcp.codegraphcontext.enable)

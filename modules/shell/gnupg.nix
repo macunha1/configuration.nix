@@ -43,7 +43,6 @@ let
 
   gnupgPackages = with pkgs; [
     gnupg
-    gpgme
   ];
 
   gnupgEnvVars = {
@@ -56,6 +55,7 @@ let
     ${generatedFileWarning { file = ./gnupg.nix; }}
     default-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
     max-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
+    allow-loopback-pinentry
     pinentry-program ${config.modules.shell.gnupg.pinentry}/bin/pinentry
   '';
 in

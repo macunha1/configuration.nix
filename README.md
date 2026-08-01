@@ -106,6 +106,12 @@ The generic install target detects the current OS:
 make install
 ```
 
+On Linux, this activates the configuration with `nixos-rebuild switch`. Use
+`make install-nixos NIXOS_HOST=<name> MOUNT_PATH=/mnt` only when installing
+into a mounted target filesystem from a NixOS installer environment. Linux
+targets invoke `sudo` automatically; macOS uses the normal user-level Home
+Manager activation.
+
 ## Module Conventions
 
 Modules should keep shared knowledge in local attrsets and use the repo helpers

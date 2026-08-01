@@ -5,6 +5,12 @@ SYSTEM := $(shell uname -s)
 DEFAULT_CONFIG_USER := $(shell id -un)
 DEFAULT_NIXOS_HOST := nixosmos
 
+ifeq ($(SYSTEM),Linux)
+ROOT_CMD := sudo -E
+else
+ROOT_CMD :=
+endif
+
 # Public, fork-friendly knobs.
 # Override these when your flake output names differ from your local account.
 ifneq ($(origin USER),undefined)
@@ -25,7 +31,8 @@ HOME_CONFIG ?= $(CONFIG_USER)
 USER ?= $(CONFIG_USER)
 HOST ?= $(NIXOS_HOST)
 
-# When running a NixOS ISO, use /mnt as the root path.
+# Install into the live system by default.  Installer environments can point
+# this at the mounted target filesystem with MOUNT_PATH=/mnt.
 # Ref: https://nixos.org/manual/nixos/stable/#sec-installation-installing
 MOUNT_PATH ?= /
 
@@ -38,6 +45,7 @@ NIX_CONFIG_QUIET := warn-dirty = false
 ACTIVATE_APP := $(DOTFILES)\#activate
 
 NIXOS_FLAKE := $(DOTFILES)\#$(NIXOS_HOST)
+NIXOS_INSTALL_FLAKE := path:$(DOTFILES)\#$(NIXOS_HOST)
 NIXOS_CONFIG := nixosConfigurations.$(NIXOS_HOST)
 NIXOS_SYSTEM_BUILD := config.system.build.toplevel
 NIXOS_TOPLEVEL := $(DOTFILES)\#$(NIXOS_CONFIG).$(NIXOS_SYSTEM_BUILD)
@@ -52,7 +60,7 @@ help:
 	@printf '%s\n' ''
 	@printf '%s\n' 'Install targets:'
 	@printf '%s\n' \
-		'  install         Detect OS and install the matching configuration'
+		'  install         Detect OS and activate the matching configuration'
 	@printf '%s\n' \
 		'  activate        Activate the matching NixOS/Home Manager config'
 	@printf '%s\n' \
@@ -88,7 +96,7 @@ build:
 install:
 	@case "$(SYSTEM)" in \
 		Darwin) $(MAKE) activate ;; \
-		Linux) $(MAKE) install-nixos ;; \
+		Linux) $(MAKE) activate ;; \
 		*) printf 'Unsupported OS: %s\n' "$(SYSTEM)" >&2; exit 1 ;; \
 	esac
 
@@ -100,11 +108,11 @@ activate:
 		HOME_CONFIG="$(HOME_CONFIG)" \
 		NIXOS_HOST="$(NIXOS_HOST)" \
 		HOST="$(NIXOS_HOST)" \
-		$(NIX) run $(NIX_FLAGS) "$(ACTIVATE_APP)"
+		$(ROOT_CMD) $(NIX) run $(NIX_FLAGS) "$(ACTIVATE_APP)"
 
-install-nixos: build
-	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
-		$(NIXOS_INSTALL) --root "$(MOUNT_PATH)" --system ./result
+install-nixos:
+	@$(ROOT_CMD) env CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
+		$(NIXOS_INSTALL) --root "$(MOUNT_PATH)" --flake "$(NIXOS_INSTALL_FLAKE)" --impure
 
 install-darwin: activate
 

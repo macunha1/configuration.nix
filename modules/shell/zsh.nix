@@ -40,6 +40,10 @@ let
     stow # GNU Stow, symlink manager
     jq # JSON for the shell
     fastfetch # system info banner (neofetch successor)
+
+    ffmpeg
+    pkgs."poppler-utils" # pdftoppm and other PDF conversion utilities
+
     keychain # SSH/GPG agent lifecycle manager
     sops # encrypted secrets editor
   ];
@@ -101,7 +105,9 @@ let
   '';
 
   zshAliasLines = concatStringsSep "\n" (
-    mapAttrsToList (n: v: "alias '${n}'='${v}'") config.modules.shell.zsh.aliases
+    mapAttrsToList (n: v: "alias '${n}'='${v}'") (
+      config.modules.shell.zsh.aliases // config.programs.zsh.shellAliases
+    )
   );
 
   zshInitText = ''
@@ -174,6 +180,14 @@ let
     bindkey '^Q' push-line
     bindkey '^[[3~' delete-char
     [[ -n "''${terminfo[kdch1]}" ]] && bindkey "''${terminfo[kdch1]}" delete-char
+
+    # Alacritty emits CSI 1;5D/C for Ctrl+Left/Right. Bind both the explicit
+    # xterm sequences and terminfo variants so word movement also works over
+    # compatible terminals and SSH sessions.
+    bindkey '^[[1;5D' backward-word
+    bindkey '^[[1;5C' forward-word
+    [[ -n "''${terminfo[kLFT5]}" ]] && bindkey "''${terminfo[kLFT5]}" backward-word
+    [[ -n "''${terminfo[kRIT5]}" ]] && bindkey "''${terminfo[kRIT5]}" forward-word
 
     ${optionalString runCompinit zshCompletionInit}
     autoload -U +X bashcompinit && bashcompinit

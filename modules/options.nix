@@ -4,6 +4,7 @@
   config,
   options,
   lib,
+  pkgs,
   home-manager,
   ...
 }:
@@ -32,7 +33,8 @@ let
       "steam-original"
       "steam-run"
       "steam-unwrapped"
-    ];
+    ]
+    ;
 
   enabledUnfreePackagePrefixes = optionals config.modules.hardware.video.nvidia.enable [
     "cuda"
@@ -40,6 +42,7 @@ let
   ];
 
   unfreePolicyEnabled = enabledUnfreePackages != [ ] || enabledUnfreePackagePrefixes != [ ];
+  privateHomeManagerConfig = "/home/${config.user.name}/.config/home-manager/local.nix";
 in
 {
   options = with types; {
@@ -83,6 +86,16 @@ in
   };
 
   config = {
+    # Keep the rollback window bounded independently of store garbage
+    # collection. This retains the five newest NixOS system generations.
+    system.activationScripts.nixosGenerationRetention = {
+      text = ''
+        ${config.nix.package}/bin/nix-env \
+          --delete-generations +5 \
+          --profile /nix/var/nix/profiles/system
+      '';
+    };
+
     user = {
       description = "Default user account";
       extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
@@ -109,6 +122,13 @@ in
       wheelNeedsPassword = false; # YOLO
     };
 
+    # Keep the root account unavailable for direct logins. Administrative
+    # access must go through the configured wheel user and sudo instead.
+    users.users.root = {
+      hashedPassword = "!";
+      shell = "${pkgs.shadow}/bin/nologin";
+    };
+
     # Install user packages to /etc/profiles instead. Necessary for
     # nixos-rebuild build-vm to work.
     home-manager = {
@@ -117,6 +137,11 @@ in
       # Creating convenience aliases for home-manager, as only a subset of
       # capabilities is accessed and configured in this repository.
       users.${config.user.name} = {
+        # Keep machine-local Home Manager settings outside this repository.
+        # NixOS hosts use the Linux personal config; Darwin has its own
+        # standalone entry point and never imports this file.
+        imports = optional (builtins.pathExists privateHomeManagerConfig) privateHomeManagerConfig;
+
         home = {
           file = mkAliasDefinitions options.home.file;
           # Necessary for home-manager to work with flakes, otherwise it will

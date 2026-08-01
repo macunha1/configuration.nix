@@ -1,0 +1,99 @@
+# Shared Alacritty overrides for Linux and macOS.
+# Unspecified options intentionally use Alacritty's built-in defaults.
+
+[window.padding]
+x = 2
+y = 2
+
+[scrolling]
+history = 500
+
+[font]
+size = {font.size}
+
+[font.normal]
+family = {font.family}
+
+[font.bold]
+family = {font.family}
+
+[font.italic]
+family = {font.family}
+
+[colors.primary]
+background = "#000000"
+foreground = "#FFFFFF"
+
+[colors.cursor]
+text = "#FFFFFF"
+cursor = "#F9F5D7"
+
+[colors.normal]
+black = "#000000"
+red = "#F6019D"
+green = "#4DEEDD"
+yellow = "#00FCF8"
+blue = "#00AAF9"
+magenta = "#FC71FF"
+cyan = "#00FCF8"
+white = "#949C94"
+
+[colors.bright]
+black = "#666666"
+red = "#F6019D"
+green = "#00FFBB"
+yellow = "#00FFBB"
+blue = "#00FCF8"
+magenta = "#FC71FF"
+cyan = "#4DEEDD"
+white = "#FFFFFF"
+
+[bell]
+animation = "EaseOutExpo"
+duration = 0
+
+[[mouse.bindings]]
+mouse = "Middle"
+action = "PasteSelection"
+
+[selection]
+semantic_escape_chars = ",│`|:\"'' ()[]{}<>"
+
+[cursor]
+style = "Beam"
+unfocused_hollow = true
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+action = "ClearLogNotice"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+chars = "\u000c"
+
+[[keyboard.bindings]]
+key = "N"
+mods = "Alt"
+chars = "\u001bN"
+
+[[keyboard.bindings]]
+key = "P"
+mods = "Alt"
+chars = "\u001bP"
+
+[[keyboard.bindings]]
+key = "X"
+mods = "Alt"
+chars = "\u001bX"
+
+[[keyboard.bindings]]
+key = "Y"
+mods = "Alt"
+chars = "\u001bY"
+
+[[keyboard.bindings]]
+key = "Semicolon"
+mods = "Alt"
+chars = "\u001b;"

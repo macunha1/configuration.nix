@@ -12,6 +12,11 @@
 
   time.timeZone = "Etc/UTC";
 
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
+
   nix = {
     settings.max-jobs = lib.mkDefault 4;
 

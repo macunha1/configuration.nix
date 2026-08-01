@@ -27,10 +27,16 @@ let
     inherit config isDarwin;
   };
 
+  pythonRuntimeEnv = optionalString (!isDarwin) ''
+    export LD_LIBRARY_PATH="${makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  '';
+
   codegraphcontextPackage = pkgs.writeShellApplication {
     name = "codegraphcontext";
+    runtimeInputs = [ pkgs.redis ];
 
     text = ''
+      ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from "${config.modules.agents.mcp.codegraphcontext.source}" \
         codegraphcontext "$@"
@@ -39,8 +45,10 @@ let
 
   cgcPackage = pkgs.writeShellApplication {
     name = "cgc";
+    runtimeInputs = [ pkgs.redis ];
 
     text = ''
+      ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from "${config.modules.agents.mcp.codegraphcontext.source}" \
         cgc "$@"
@@ -99,6 +107,13 @@ in
     {
       modules.development.python.enable = true;
     }
+
+    # CodeGraphContext's redislite dependency starts a bundled generic Linux
+    # redis-server binary instead of resolving redis-server from PATH. NixOS
+    # needs nix-ld to execute that binary.
+    (optionalAttrs (!isDarwin) {
+      programs.nix-ld.enable = true;
+    })
 
     (platformPackages {
       inherit isDarwin;

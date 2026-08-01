@@ -27,10 +27,15 @@ let
     inherit config isDarwin;
   };
 
+  pythonRuntimeEnv = optionalString (!isDarwin) ''
+    export LD_LIBRARY_PATH="${makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  '';
+
   mempalacePackage = pkgs.writeShellApplication {
     name = "mempalace";
 
     text = ''
+      ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from mempalace mempalace "$@"
     '';
@@ -40,6 +45,7 @@ let
     name = "mempalace-mcp";
 
     text = ''
+      ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from mempalace mempalace-mcp "$@"
     '';

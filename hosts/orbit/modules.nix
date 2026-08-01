@@ -13,7 +13,10 @@
 
       terminal = {
         default = "alacritty";
-        alacritty.enable = true;
+        alacritty = {
+          enable = true;
+          font.size = 10.0;
+        };
       };
 
       applications = {
