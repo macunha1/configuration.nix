@@ -41,6 +41,10 @@
       python.enable = true;
       rust.enable = true;
       go.enable = true;
+      lua = {
+        enable = true;
+        jit.enable = true;
+      };
     };
 
     media = {

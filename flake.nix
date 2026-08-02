@@ -47,6 +47,8 @@
 
     # Extras
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+
+    awesomewm-screenlock-plugin.url = "github:macunha1/awesomewm-screenlock-plugin";
   };
 
   outputs =

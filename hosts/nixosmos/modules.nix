@@ -73,6 +73,7 @@
 
       lua = {
         enable = true;
+        jit.enable = true;
         languageServer.enable = true;
       };
 

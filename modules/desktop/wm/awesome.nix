@@ -9,6 +9,7 @@
   options,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -26,10 +27,15 @@ let
 
   luaPackages = if luaJitEnabled then pkgs.luajitPackages else pkgs.luaPackages;
 
-  awesome = pkgs.awesome.override {
-    gtk3Support = true;
-    inherit lua;
+  aweswm = pkgs.fetchFromGitHub {
+    owner = "macunha1";
+    repo = "aweswm";
+    rev = "51b19d8c4802cde4d5a3891ea2afbfd7bb20b2d4";
+    hash = "sha256-hE2ssU6/WoBP3Qm5gGlne9CH2LfpOxPGWL4Qc1ecTKM=";
+    fetchSubmodules = true;
   };
+
+  awesomewmScreenlockPlugin = inputs.awesomewm-screenlock-plugin.packages.${pkgs.system}.default;
 
   awesomeLuaModules = optional config.modules.hardware.audio.enable (
     pkgs.my.lua-dbus-proxy.override {
@@ -41,17 +47,6 @@ let
     module: ''--search "${module.out}/share/lua/${lua.luaversion}"''
   ) awesomeLuaModules;
 
-  screenlock = pkgs.writeShellApplication {
-    name = "screenlock.sh";
-    runtimeInputs = with pkgs; [
-      coreutils
-      ffmpeg
-      gawk
-      i3lock
-      xdpyinfo
-    ];
-    text = builtins.readFile ../../../bin/screenlock.sh;
-  };
 in
 {
   options.modules.desktop = {
@@ -67,19 +62,22 @@ in
   };
 
   config = mkIf config.modules.desktop.awesomewm.enable {
+    security.pam.services.xlock.enable = true;
+
     services = {
       picom.enable = config.modules.desktop.compton.enable;
       displayManager.defaultSession = "none+awesome";
       xserver = {
         windowManager.awesome = {
           enable = true;
-          package = awesome;
+          package = pkgs.awesome.override { inherit lua; };
           luaModules = awesomeLuaModules;
         };
       };
     };
 
     user.packages = with pkgs; [
+      awesomewmScreenlockPlugin
       # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
       # i.e. Implements the equivalent of
       #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
@@ -87,9 +85,9 @@ in
         #!${stdenv.shell}
         ${generatedFileWarning { file = ./awesome.nix; }}
         ${if awesomeLuaSearchArgs == "" then ''
-          exec ${awesome}/bin/awesome "$@"
+          exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
         '' else ''
-          exec ${awesome}/bin/awesome \
+          exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
           ${awesomeLuaSearchArgs} \
           "$@"
         ''}
@@ -101,25 +99,10 @@ in
 
     home-manager.users.${config.user.name}.services.screen-locker = {
       inactiveInterval = 10;
-      lockCmd = "screenlock.sh";
+      lockCmd = "${pkgs.awesome.override { inherit lua; }}/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
     };
 
-    home.file.".local/bin/screenlock.sh" = {
-      source = "${screenlock}/bin/screenlock.sh";
-      force = true;
-    };
-
-    home.configFile."awesome" = {
-      source = pkgs.fetchFromGitHub {
-        owner = "macunha1";
-        repo = "aweswm";
-
-        rev = "0a8c25d4a46f7b9c1b6fc018fc4709ccd8ece385";
-        sha256 = "sha256-k92nHYFhC3HSDCIITftdGGK7k9JidItJFXGOMWL5R14=";
-
-        fetchSubmodules = true;
-      };
-    };
+    home.configFile."awesome".source = aweswm;
 
   };
 }

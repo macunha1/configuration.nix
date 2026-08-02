@@ -187,17 +187,19 @@ in
       darwinTarget = "both";
     })
 
-    (optionalAttrs
-      (
-        isDarwin
-        && (config.modules.agents.mcp.mempalace.enable || config.modules.agents.mcp.codegraphcontext.enable)
-      )
-      {
-        home.activation.updateCodexMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          run ${codexMcpConfigUpdater}/bin/update-codex-mcp-config \
-            ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
-        '';
-      }
-    )
+    (optionalAttrs isDarwin (
+      mkIf
+        (
+          config.modules.agents.mcp.mempalace.enable
+          || config.modules.agents.plugins.context-mode.enable
+          || config.modules.agents.mcp.codegraphcontext.enable
+        )
+        {
+          home.activation.updateCodexMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            run ${codexMcpConfigUpdater}/bin/update-codex-mcp-config \
+              ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
+          '';
+        }
+    ))
   ]);
 }
