@@ -30,14 +30,16 @@ let
   aweswm = pkgs.fetchFromGitHub {
     owner = "macunha1";
     repo = "aweswm";
-    rev = "51b19d8c4802cde4d5a3891ea2afbfd7bb20b2d4";
-    hash = "sha256-hE2ssU6/WoBP3Qm5gGlne9CH2LfpOxPGWL4Qc1ecTKM=";
+    rev = "1c45c12a0d48a885500ec332a3622ab837213937";
+    hash = "sha256-Qzlbzgr0GMoYfXbpR95X6ofnxFvQGKsOqUtXTPZtgt4=";
     fetchSubmodules = true;
   };
 
   awesomewmScreenlockPlugin = inputs.awesomewm-screenlock-plugin.packages.${pkgs.system}.default;
 
-  awesomeLuaModules = optional config.modules.hardware.audio.enable (
+  awesomeLuaModules = [
+    awesomewmScreenlockPlugin
+  ] ++ optional config.modules.hardware.audio.enable (
     pkgs.my.lua-dbus-proxy.override {
       inherit lua luaPackages;
     }
@@ -97,9 +99,15 @@ in
       wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
     ];
 
-    home-manager.users.${config.user.name}.services.screen-locker = {
-      inactiveInterval = 10;
-      lockCmd = "${pkgs.awesome.override { inherit lua; }}/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+    home-manager.users.${config.user.name} = {
+      services.screen-locker = {
+        enable = true;
+        inactiveInterval = 10;
+        lockCmd = "${pkgs.awesome.override { inherit lua; }}/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+      };
+
+      home.file.".local/share/awesomewm-screenlock-plugin".source =
+        awesomewmScreenlockPlugin;
     };
 
     home.configFile."awesome".source = aweswm;
