@@ -77,6 +77,7 @@ with inputs;
     coreutils
     git
     vim
+    nixfmt
     gnumake
     unzip
     inetutils # telnet, hostname, ping and etc

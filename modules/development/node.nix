@@ -58,24 +58,14 @@ let
     BUN_INSTALL = xdg.shell.data "bun";
     BUN_INSTALL_GLOBAL_DIR = xdg.shell.data "bun/install/global";
     BUN_INSTALL_BIN = xdg.shell.data "bun/bin";
+    BUN_INSTALL_CACHE_DIR = xdg.shell.cache "bun/install/cache";
   };
 
   # npm config file - same content on both platforms; only the option differs.
   npmConfigText = ''
     ${generatedFileWarning { file = ./node.nix; }}
-    cache=${xdg.shell.cache "npm/cache"}
-    prefix=${xdg.shell.data "npm"}
-  '';
-
-  # Bun global config - same content on both platforms; only the option differs.
-  bunConfigText = ''
-    ${generatedFileWarning { file = ./node.nix; }}
-    [install]
-    globalDir = "${xdg.shell.data "bun/install/global"}"
-    globalBinDir = "${xdg.shell.data "bun/bin"}"
-
-    [install.cache]
-    dir = "${xdg.shell.cache "bun/install/cache"}"
+    cache=''${XDG_CACHE_HOME}/npm/cache
+    prefix=''${XDG_DATA_HOME}/npm
   '';
 in
 {
@@ -158,14 +148,6 @@ in
           inherit shellExports;
           envVars = bunEnvVars;
           darwinTarget = "zsh";
-        })
-
-        (optionalAttrs (!isDarwin) {
-          home.configFile.".bunfig.toml".text = bunConfigText;
-        })
-
-        (optionalAttrs isDarwin {
-          xdg.configFile.".bunfig.toml".text = bunConfigText;
         })
       ])
     )

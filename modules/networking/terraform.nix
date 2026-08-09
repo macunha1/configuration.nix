@@ -43,14 +43,13 @@ let
 
   terraformEnvVars = {
     TF_CLI_CONFIG_FILE = xdg.shell.config "terraform/rc.hcl";
+    TF_PLUGIN_CACHE_DIR = xdg.shell.cache "terraform/plugins";
   };
 
   # Terraform rc.hcl - same content on both platforms.
   # Disables telemetry and sets a shared plugin cache to avoid re-downloading.
   terraformRcText = ''
     ${generatedFileWarning { file = ./terraform.nix; }}
-
-    plugin_cache_dir = "${xdg.shell.cache "terraform/plugins"}"
 
     disable_checkpoint           = true
     disable_checkpoint_signature = true
