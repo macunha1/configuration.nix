@@ -67,7 +67,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = asdfEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
 
     # Both platforms: source asdf init when zsh is enabled.

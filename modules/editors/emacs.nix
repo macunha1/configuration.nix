@@ -82,7 +82,7 @@ in
     (platformPath {
       inherit config isDarwin;
       paths = [ (xdg.concrete.config "emacs/bin") ];
-      darwinTarget = "zsh";
+      target = "zsh";
     })
 
     # Linux (NixOS)

@@ -4,9 +4,6 @@
 # After all, everybody wants to be Google (look at Kubernetes raising
 # popularity). Let's see how it goes.
 #
-# Linux: user.packages + env = gcpEnvVars.
-# Darwin: home.packages + home.sessionVariables = gcpEnvVars.
-
 {
   config,
   options,
@@ -48,8 +45,8 @@ let
 
   # XDG-compliant GCP paths — same values on both platforms.
   gcpEnvVars = {
-    BOTO_CONFIG = xdg.shell.config "boto/config"; # gsutil / Python boto config
-    CLOUDSDK_CONFIG = xdg.shell.config "gcloud";
+    BOTO_CONFIG = xdg.concrete.config "boto/config"; # gsutil / Python boto config
+    CLOUDSDK_CONFIG = xdg.concrete.config "gcloud";
 
     # Cloud SDK is managed by Nix. Keep gcloud from recommending mutable
     # component-manager updates such as `gcloud components update`.
@@ -88,7 +85,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = gcpEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
   ]);
 }

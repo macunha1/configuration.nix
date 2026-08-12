@@ -37,8 +37,8 @@ let
   # XDG-compliant Go paths - same values on both platforms.
   goEnvVars = {
     GOPATH = config.modules.development.go.path;
-    GOMODCACHE = xdg.shell.cache "go/mod";
-    GOCACHE = xdg.shell.cache "go-build";
+    GOMODCACHE = xdg.concrete.cache "go/mod";
+    GOCACHE = xdg.concrete.cache "go-build";
   };
 in
 {
@@ -72,19 +72,13 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = goEnvVars;
-      darwinTarget = "both";
-    })
-
-    (mkIf (config.modules.shell.zsh.enable && config.modules.development.go.includeBinToPath) {
-      modules.shell.zsh.env = ''
-        export PATH="${goBinPath}:$PATH"
-      '';
+      target = "both";
     })
 
     (mkIf config.modules.development.go.includeBinToPath (platformPath {
       inherit config isDarwin;
       paths = [ goBinPath ];
-      darwinTarget = "session";
+      target = "both";
     }))
 
     (mkIf config.modules.development.go.languageServer.enable (platformPackages {

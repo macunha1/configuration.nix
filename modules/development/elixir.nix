@@ -70,7 +70,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = elixirEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
   ]);
 }

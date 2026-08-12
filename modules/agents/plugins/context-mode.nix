@@ -88,7 +88,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = contextModeEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
   ]);
 }

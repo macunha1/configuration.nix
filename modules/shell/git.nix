@@ -183,17 +183,22 @@ in
 
     # Home Manager merges this with machine-local programs.git settings and
     # includes. This keeps Linux and Darwin on one configuration path.
-    (if isDarwin then {
-      programs.git = {
-        enable = true;
-        settings = gitSettings;
-      };
-    } else {
-      home-manager.users.${config.user.name}.programs.git = {
-        enable = true;
-        settings = gitSettings;
-      };
-    })
+    (
+      if isDarwin then
+        {
+          programs.git = {
+            enable = true;
+            settings = gitSettings;
+          };
+        }
+      else
+        {
+          home-manager.users.${config.user.name}.programs.git = {
+            enable = true;
+            settings = gitSettings;
+          };
+        }
+    )
 
     (optionalAttrs (!isDarwin) {
       environment.shellAliases = gitAliases;
@@ -214,7 +219,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = gitEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
   ]);
 }

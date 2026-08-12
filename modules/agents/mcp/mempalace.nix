@@ -28,7 +28,9 @@ let
   };
 
   pythonRuntimeEnv = optionalString (!isDarwin) ''
-    export LD_LIBRARY_PATH="${makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    export LD_LIBRARY_PATH="${
+      makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]
+    }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   '';
 
   mempalacePackage = pkgs.writeShellApplication {
@@ -88,7 +90,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = mempalaceEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
   ]);
 }

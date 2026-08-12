@@ -220,12 +220,11 @@ in
       };
     })
 
-    # Mirror Linux env.TMUX_* assignments into Darwin env.zsh.
     (platformEnv {
       inherit config isDarwin;
       inherit shellExports;
       envVars = tmuxEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
   ]);
 }

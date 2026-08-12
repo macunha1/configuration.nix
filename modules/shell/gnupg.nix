@@ -118,13 +118,12 @@ in
       packages = gnupgPackages;
     })
 
-    # home.sessionVariables does not expand shell-variable references at write time,
-    # so Darwin writes GNUPGHOME into env.zsh while NixOS uses the env option.
+    # GNUPGHOME contains a shell-variable reference, so render it through ZSH.
     (platformEnv {
       inherit config isDarwin;
       inherit shellExports;
       envVars = gnupgEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
   ]);
 }

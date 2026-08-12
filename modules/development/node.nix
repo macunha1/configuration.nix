@@ -2,9 +2,6 @@
 #
 # JavaScript everywhere. The V8 runtime that escaped the browser.
 #
-# Linux: user.packages + env = nodeEnvVars + home.configFile."npm/config".
-# Darwin: home.packages + modules.shell.zsh.env = nodeEnvVars + xdg.configFile."npm/config".
-#
 # Bun package-manager support is gated by modules.development.node.bun.enable.
 
 {
@@ -106,7 +103,7 @@ in
         inherit config isDarwin;
         inherit shellExports;
         envVars = nodeEnvVars;
-        darwinTarget = "zsh";
+        target = "zsh";
       })
 
       (optionalAttrs (!isDarwin) {
@@ -131,8 +128,8 @@ in
       )
       (platformPath {
         inherit config isDarwin;
-        paths = [ "$BUN_INSTALL_BIN" ];
-        darwinTarget = "zsh";
+        paths = [ (xdg.concrete.data "bun/bin") ];
+        target = "both";
       })
     )
 
@@ -147,7 +144,7 @@ in
           inherit config isDarwin;
           inherit shellExports;
           envVars = bunEnvVars;
-          darwinTarget = "zsh";
+          target = "zsh";
         })
       ])
     )

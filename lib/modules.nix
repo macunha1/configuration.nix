@@ -21,6 +21,24 @@ let
   mapFilterAttrs =
     pred: f: attrs:
     filterAttrs pred (lib.mapAttrs' f attrs);
+
+  platformTargets = {
+    session = {
+      darwinSession = true;
+      zsh = false;
+    };
+    zsh = {
+      darwinSession = false;
+      zsh = true;
+    };
+    both = {
+      darwinSession = true;
+      zsh = true;
+    };
+  };
+
+  resolvePlatformTarget =
+    target: platformTargets.${target} or (throw "Unsupported platform target: ${target}");
 in
 rec {
   mapModules =
@@ -78,71 +96,49 @@ rec {
       isDarwin,
       envVars,
       shellExports ? null,
-      darwinTarget ? "session",
+      target ? "session",
     }:
-    optionalAttrs (!isDarwin) { env = envVars; }
-    // optionalAttrs isDarwin (
-      if darwinTarget == "zsh" then
-        lib.mkIf config.modules.shell.zsh.enable {
-          modules.shell.zsh.env =
-            if shellExports == null then
-              throw "platformEnv with darwinTarget = \"zsh\" requires shellExports"
-            else
-              shellExports envVars;
-        }
-      else if darwinTarget == "session" then
-        {
-          home.sessionVariables = envVars;
-        }
-      else if darwinTarget == "both" then
-        lib.mkMerge [
-          {
-            home.sessionVariables = envVars;
-          }
-          (lib.mkIf config.modules.shell.zsh.enable {
-            modules.shell.zsh.env =
-              if shellExports == null then
-                throw "platformEnv with darwinTarget = \"both\" requires shellExports"
-              else
-                shellExports envVars;
-          })
-        ]
-      else
-        throw "Unsupported Darwin environment target: ${darwinTarget}"
-    );
+    let
+      resolvedTarget = resolvePlatformTarget target;
+    in
+    lib.mkMerge [
+      (optionalAttrs (!isDarwin) { env = envVars; })
+
+      (optionalAttrs (isDarwin && resolvedTarget.darwinSession) {
+        home.sessionVariables = envVars;
+      })
+
+      (lib.mkIf (resolvedTarget.zsh && config.modules.shell.zsh.enable) {
+        modules.shell.zsh.env =
+          if shellExports == null then
+            throw "platformEnv with a ZSH target requires shellExports"
+          else
+            shellExports envVars;
+      })
+    ];
 
   platformPath =
     {
       config,
       isDarwin,
       paths,
-      darwinTarget ? "session",
+      target ? "session",
     }:
     let
       zshPathExports = lib.concatStringsSep "\n" (
         map (path: ''export PATH="${toString path}:$PATH"'') paths
       );
+      resolvedTarget = resolvePlatformTarget target;
     in
-    optionalAttrs (!isDarwin) { env.PATH = paths; }
-    // optionalAttrs isDarwin (
-      if darwinTarget == "zsh" then
-        lib.mkIf config.modules.shell.zsh.enable {
-          modules.shell.zsh.env = zshPathExports;
-        }
-      else if darwinTarget == "session" then
-        {
-          home.sessionPath = paths;
-        }
-      else if darwinTarget == "both" then
-        lib.mkMerge [
-          {
-            home.sessionPath = paths;
-          }
-          (lib.mkIf config.modules.shell.zsh.enable {
-            modules.shell.zsh.env = zshPathExports;
-          })
-        ]
-      else
-        throw "Unsupported Darwin PATH target: ${darwinTarget}"
-    );
+    lib.mkMerge [
+      (optionalAttrs (!isDarwin) { env.PATH = paths; })
+
+      (optionalAttrs (isDarwin && resolvedTarget.darwinSession) {
+        home.sessionPath = paths;
+      })
+
+      (lib.mkIf (resolvedTarget.zsh && config.modules.shell.zsh.enable) {
+        modules.shell.zsh.env = zshPathExports;
+      })
+    ];
 }

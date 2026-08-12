@@ -4,9 +4,6 @@
 # and store secrets locally. In-a-nutshell: a wrapper for 'gpg' with directory
 # management for the encrypted content.
 #
-# Linux: user.packages + env.PASSWORD_STORE_DIR.
-# Darwin: home.packages + modules.shell.zsh.env.
-
 {
   config,
   options,
@@ -64,7 +61,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = passEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
   ]);
 }

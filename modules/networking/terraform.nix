@@ -42,8 +42,8 @@ let
   };
 
   terraformEnvVars = {
-    TF_CLI_CONFIG_FILE = xdg.shell.config "terraform/rc.hcl";
-    TF_PLUGIN_CACHE_DIR = xdg.shell.cache "terraform/plugins";
+    TF_CLI_CONFIG_FILE = xdg.concrete.config "terraform/rc.hcl";
+    TF_PLUGIN_CACHE_DIR = xdg.concrete.cache "terraform/plugins";
   };
 
   # Terraform rc.hcl - same content on both platforms.
@@ -203,7 +203,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = terraformEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
 
     (optionalAttrs (!isDarwin) {

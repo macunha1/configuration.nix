@@ -3,9 +3,6 @@
 # Next generation of C/C++ performatic system's programming language.
 # Rust, oh Rust, the world is not ready for you yet.
 #
-# Linux: user.packages + env = rustEnvVars.
-# Darwin: home.packages + home.sessionVariables = rustEnvVars.
-
 {
   config,
   options,
@@ -49,6 +46,9 @@ let
       pkgs.rustup;
 
   rustPackages = with pkgs; [
+    llvmPackages.libclang.lib # libclang shared library used by bindgen-based crates
+    llvmPackages.llvm.dev # llvm-config and LLVM development metadata
+
     nasm # assembler (used by some Rust crates with C interop)
     rustupPackage # toolchain manager (installs stable/nightly via rustup)
     zlib # compression library linked by many crates
@@ -58,7 +58,10 @@ let
   rustEnvVars = {
     RUSTUP_HOME = "${config.modules.development.rust.path}/up";
     CARGO_HOME = "${config.modules.development.rust.path}/cargo";
-    CARGO_TARGET_DIR = "$CARGO_HOME/target"; # shared build cache across projects
+    CARGO_TARGET_DIR = "${config.modules.development.rust.path}/cargo/target";
+
+    LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+    LLVM_CONFIG_PATH = "${pkgs.llvmPackages.llvm.dev}/bin/llvm-config";
   };
 in
 {
@@ -96,7 +99,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = rustEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
 
     (mkIf config.modules.development.rust.languageServer.enable (platformPackages {
@@ -106,8 +109,8 @@ in
 
     (mkIf config.modules.development.rust.includeBinToPath (platformPath {
       inherit config isDarwin;
-      paths = [ "$CARGO_HOME/bin" ];
-      darwinTarget = "session";
+      paths = [ "${config.modules.development.rust.path}/cargo/bin" ];
+      target = "both";
     }))
   ]);
 }

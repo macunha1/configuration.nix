@@ -184,7 +184,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = codexEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
 
     (optionalAttrs isDarwin (

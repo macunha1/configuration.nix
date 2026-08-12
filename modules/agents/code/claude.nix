@@ -59,7 +59,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = claudeEnvVars;
-      darwinTarget = "both";
+      target = "both";
     })
   ]);
 }

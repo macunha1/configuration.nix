@@ -7,9 +7,6 @@
 # You can see the reflection of this fail-fast approach in the APIs. Consistency
 # is unexistent.
 #
-# Linux: user.packages + env = awsEnvVars.
-# Darwin: home.packages + modules.shell.zsh.env = awsEnvVars.
-
 {
   config,
   options,
@@ -77,7 +74,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = awsEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
 
     (mkIf config.modules.networking.aws.iamAuthenticator.enable (platformPackages {

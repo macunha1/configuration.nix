@@ -108,7 +108,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = pythonEnvVars;
-      darwinTarget = "zsh";
+      target = "zsh";
     })
 
     (mkIf config.modules.development.python.languageServer.enable (platformPackages {
