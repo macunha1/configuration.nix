@@ -45,7 +45,6 @@ let
   nodeEnvVars = {
     NPM_CONFIG_USERCONFIG = xdg.shell.config "npm/config";
     NPM_CONFIG_CACHE = xdg.shell.cache "npm/cache";
-    NPM_CONFIG_TMP = xdg.shell.cache "npm/temp";
     NPM_CONFIG_PREFIX = xdg.shell.data "npm"; # global install target
     NODE_REPL_HISTORY = xdg.shell.config "node/repl_history";
   };

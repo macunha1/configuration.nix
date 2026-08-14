@@ -39,7 +39,7 @@ let
     text = ''
       ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
-        --from mempalace mempalace "$@"
+        --from mempalace==3.7.0 mempalace "$@"
     '';
   };
 
@@ -49,7 +49,7 @@ let
     text = ''
       ${pythonRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
-        --from mempalace mempalace-mcp "$@"
+        --from mempalace==3.7.0 mempalace-mcp "$@"
     '';
   };
 

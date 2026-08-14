@@ -35,11 +35,13 @@ let
     fetchSubmodules = true;
   };
 
-  awesomewmScreenlockPlugin = inputs.awesomewm-screenlock-plugin.packages.${pkgs.system}.default;
+  awesomewmScreenlockPlugin =
+    inputs.awesomewm-screenlock-plugin.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   awesomeLuaModules = [
     awesomewmScreenlockPlugin
-  ] ++ optional config.modules.hardware.audio.enable (
+  ]
+  ++ optional config.modules.hardware.audio.enable (
     pkgs.my.lua-dbus-proxy.override {
       inherit lua luaPackages;
     }
@@ -78,36 +80,44 @@ in
       };
     };
 
-    user.packages = with pkgs; [
-      awesomewmScreenlockPlugin
-      # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
-      # i.e. Implements the equivalent of
-      #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
-      (writeScriptBin "awm" ''
-        #!${stdenv.shell}
-        ${generatedFileWarning { file = ./awesome.nix; }}
-        ${if awesomeLuaSearchArgs == "" then ''
-          exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
-        '' else ''
-          exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
-          ${awesomeLuaSearchArgs} \
-          "$@"
-        ''}
-      '')
-    ]
-    ++ optionals config.modules.hardware.audio.enable [
-      wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
-    ];
+    user.packages =
+      with pkgs;
+      [
+        awesomewmScreenlockPlugin
+        # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
+        # i.e. Implements the equivalent of
+        #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
+        (writeScriptBin "awm" ''
+          #!${stdenv.shell}
+          ${generatedFileWarning { file = ./awesome.nix; }}
+          ${
+            if awesomeLuaSearchArgs == "" then
+              ''
+                exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
+              ''
+            else
+              ''
+                exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
+                ${awesomeLuaSearchArgs} \
+                "$@"
+              ''
+          }
+        '')
+      ]
+      ++ optionals config.modules.hardware.audio.enable [
+        wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
+      ];
 
     home-manager.users.${config.user.name} = {
       services.screen-locker = {
         enable = true;
         inactiveInterval = 10;
-        lockCmd = "${pkgs.awesome.override { inherit lua; }}/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+        lockCmd = "${
+          pkgs.awesome.override { inherit lua; }
+        }/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
       };
 
-      home.file.".local/share/awesomewm-screenlock-plugin".source =
-        awesomewmScreenlockPlugin;
+      home.file.".local/share/awesomewm-screenlock-plugin".source = awesomewmScreenlockPlugin;
     };
 
     home.configFile."awesome".source = aweswm;

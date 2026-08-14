@@ -1,36 +1,46 @@
 { nixlib }:
 let
 
-  maybeImport = obj:
-    if (builtins.isPath obj || builtins.isString obj) then import obj else obj;
+  maybeImport = obj: if (builtins.isPath obj || builtins.isString obj) then import obj else obj;
 
-  maybeCallTest = pkgs: obj:
-    if nixlib.lib.isFunction obj then pkgs.callPackage obj { } else obj;
+  maybeCallTest = pkgs: obj: if nixlib.lib.isFunction obj then pkgs.callPackage obj { } else obj;
 
-  mkTest = host: test:
+  mkTest =
+    host: test:
     let
       pkgs = host._module.args.pkgs;
-      nixosTesting =
-        (import "${toString pkgs.path}/nixos/lib/testing-python.nix" {
+      nixosTesting = (
+        import "${toString pkgs.path}/nixos/lib/testing-python.nix" {
           inherit pkgs;
-          inherit (pkgs) system;
+          system = pkgs.stdenv.hostPlatform.system;
           inherit (nixlib) specialArgs;
           extraConfigurations = host._module.args.modules;
-        });
-    in nixosTesting.makeTest (maybeCallTest pkgs (maybeImport test));
+        }
+      );
+    in
+    nixosTesting.makeTest (maybeCallTest pkgs (maybeImport test));
 
   allProfilesTest = {
     name = "allProfiles";
 
-    machine = { suites ? null, ... }: {
-      imports = let
-        allProfiles =
-          nixlib.foldl (lhs: rhs: lhs ++ rhs) [ ] (builtins.attrValues suites);
-      in allProfiles;
-    };
+    machine =
+      {
+        suites ? null,
+        ...
+      }:
+      {
+        imports =
+          let
+            allProfiles = nixlib.foldl (lhs: rhs: lhs ++ rhs) [ ] (builtins.attrValues suites);
+          in
+          allProfiles;
+      };
 
     testScript = ''
       machines[0].systemctl("is-system-running --wait")
     '';
   };
-in { inherit mkTest allProfilesTest; }
+in
+{
+  inherit mkTest allProfilesTest;
+}
