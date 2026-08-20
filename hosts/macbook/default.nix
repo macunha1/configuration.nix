@@ -1,7 +1,7 @@
 # hosts/macbook/default.nix -- standalone home-manager entry point for macOS
 #
 # Imports the shared modules/* files directly. Each module guards Linux-only
-# options with optionalAttrs (!pkgs.stdenv.isDarwin) and provides Darwin-native
+# options with optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) and provides Darwin-native
 # programs.* config in the isDarwin branch.
 #
 # Activation:

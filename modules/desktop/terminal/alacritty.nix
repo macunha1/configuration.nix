@@ -7,7 +7,7 @@
   config,
   lib,
   pkgs,
-  isDarwin ? pkgs.stdenv.isDarwin,
+  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
@@ -48,16 +48,17 @@ with lib.my;
       # Alacritty fills omitted settings from its built-in defaults. Keep one
       # current-format file shared by Linux and macOS.
       home.configFile."alacritty/alacritty.toml" = {
-        text = replaceStrings
-          [
-            "{font.size}"
-            "{font.family}"
-          ]
-          [
-            (toString config.modules.desktop.terminal.alacritty.font.size)
-            (builtins.toJSON config.modules.desktop.terminal.alacritty.font.family)
-          ]
-          (builtins.readFile "${configDir}/alacritty/alacritty.toml");
+        text =
+          replaceStrings
+            [
+              "{font.size}"
+              "{font.family}"
+            ]
+            [
+              (toString config.modules.desktop.terminal.alacritty.font.size)
+              (builtins.toJSON config.modules.desktop.terminal.alacritty.font.family)
+            ]
+            (builtins.readFile "${configDir}/alacritty/alacritty.toml");
         force = true;
       };
     }

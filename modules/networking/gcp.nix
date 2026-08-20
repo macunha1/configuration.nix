@@ -9,7 +9,7 @@
   options,
   lib,
   pkgs,
-  isDarwin ? pkgs.stdenv.isDarwin,
+  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
@@ -29,8 +29,8 @@ let
     inherit config isDarwin;
   };
 
-  pinnedGoogleCloudSdkVersion = "570.0.0";
-  pinnedGkeGcloudAuthPluginVersion = "0.5.15";
+  pinnedGoogleCloudSdkVersion = "579.0.0";
+  pinnedGkeGcloudAuthPluginVersion = "0.5.18";
 
   googleCloudSdk = pkgs.google-cloud-sdk;
   gkeGcloudAuthPlugin = googleCloudSdk.components.gke-gcloud-auth-plugin;

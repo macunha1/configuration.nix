@@ -8,7 +8,7 @@
   options,
   lib,
   pkgs,
-  isDarwin ? pkgs.stdenv.isDarwin,
+  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 

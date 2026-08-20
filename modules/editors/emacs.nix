@@ -14,7 +14,7 @@
   config,
   lib,
   pkgs,
-  isDarwin ? pkgs.stdenv.isDarwin,
+  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
@@ -38,14 +38,6 @@ let
     fd # fast file indexer (projectile / consult)
 
     # Doom module dependencies
-    # :checkers spell
-    (aspellWithDicts (
-      ds: with ds; [
-        en
-        en-computers
-        en-science
-      ]
-    ))
     # :tools lookup & :lang org +roam
     sqlite
     # :tools editorconfig

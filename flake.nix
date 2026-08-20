@@ -84,7 +84,6 @@
         allowUnfreePredicate =
           pkg:
           builtins.elem (lib.getName pkg) [
-            "aspell-dict-en-science"
             "claude-code"
             "terraform-bin"
           ];

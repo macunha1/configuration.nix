@@ -15,8 +15,7 @@ let
   xdg = xdgPaths { inherit config; };
 
   enabledUnfreePackages =
-    optionals config.modules.editors.emacs.enable [ "aspell-dict-en-science" ]
-    ++ optionals config.modules.agents.code.claude.enable [ "claude-code" ]
+    optionals config.modules.agents.code.claude.enable [ "claude-code" ]
     ++ optionals config.modules.networking.terraform.enable [ "terraform-bin" ]
     ++ optionals config.modules.networking.vagrant.enable [ "vagrant" ]
     ++ optionals config.modules.hardware.video.nvidia.enable [
@@ -33,8 +32,7 @@ let
       "steam-original"
       "steam-run"
       "steam-unwrapped"
-    ]
-    ;
+    ];
 
   enabledUnfreePackagePrefixes = optionals config.modules.hardware.video.nvidia.enable [
     "cuda"
