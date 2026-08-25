@@ -6,14 +6,12 @@
 # Tmux multi panel, background sessions that you detach and attach and the
 # multiplexer are god sends.
 #
-# Linux: wrapper script to force XDG config path + TPM plugin manager.
-#        tmux.conf generated from Nix; shared variables below keep both platforms in sync.
+# Linux: tmux.conf and Nix-pinned plugins managed declaratively.
 #
-# Darwin: programs.tmux managed declaratively by home-manager (no TPM needed).
+# Darwin: programs.tmux and the same Nix-pinned plugins managed by Home Manager.
 
 {
   config,
-  options,
   pkgs,
   lib,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -21,37 +19,44 @@
 }:
 
 with lib;
-with (lib.my or { });
 
 let
   # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     generatedFileWarning
-    shellExports
     ;
 
-  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
-    platformEnv
-    platformPackages
-    ;
-
-  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
-    inherit config isDarwin;
+  tmuxPlugins = {
+    inherit (pkgs.tmuxPlugins)
+      resurrect
+      sensible
+      sysstat
+      ;
   };
+
+  pluginScript = name: "${tmuxPlugins.${name}}/share/tmux-plugins/${name}/${name}.tmux";
 
   tmuxAliases = {
     t = "tmux";
   };
 
-  tmuxEnvVars = {
-    TMUX_HOME = xdg.concrete.config "tmux";
-    TMUX_PLUGIN_MANAGER_PATH = xdg.concrete.config "tmux/plugins";
-  };
-
-  # Display and style settings not exposed as programs.tmux declarative options.
-  # Applied via extraConfig on Darwin; included verbatim in tmux.conf on Linux.
+  # Keep final tmux behavior identical after platform-specific module defaults
+  # and tmux-sensible have been applied.
   sharedOptions = ''
+    set -g default-terminal "screen-256color"
+    set -g base-index 1
+    set -g pane-base-index 1
+
+    set -g status-keys vi
+    set -g mode-keys vi
+    set -g clock-mode-style 24
+
+    set -s escape-time 0
+    set -g history-limit 10000
+    set -g focus-events on
+    set -wg aggressive-resize on
+
     set -g status on
     set -g status-interval 8
     set -g status-justify centre
@@ -73,13 +78,9 @@ let
     set -g @sysstat_mem_view_tmpl 'RAM: #{mem.used} / #{mem.total}'
   '';
 
-  # Status bar left/right content - kept separate because sysstat.tmux
+  # Status bar left/right content. Keep this separate because sysstat.tmux
   # string-replaces #{sysstat_cpu}/#{sysstat_mem} in status-right at load
   # time; those options must already be set before the plugin runs.
-  #
-  # On Darwin, placing this in the sysstat plugin's extraConfig guarantees
-  # it lands before the run-shell line. On Linux, TPM runs all plugins last
-  # so ordering within the config file does not matter.
   statusConfig = ''
     set -g status-right-length 100
     set -g status-right "#[fg=colour14][ #{sysstat_cpu} | #{sysstat_mem} | %H:%M %A %d/%m/%Y ]"
@@ -116,6 +117,8 @@ let
     bind-key -T copy-mode-vi V send-keys -X select-line
     bind-key -T copy-mode-vi y send-keys -X copy-pipe '${clipCmd}'
   '';
+
+  resurrectConfig = "set -g @resurrect-strategy-nvim 'session'";
 in
 {
   options.modules.shell.tmux = {
@@ -129,52 +132,25 @@ in
 
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [
-        # Since Tmux doesn't support XDG spec, we force it with a wrapper
-        (writeScriptBin "tmux" ''
-          #!${stdenv.shell}
-          ${generatedFileWarning { file = ./tmux.nix; }}
-          exec ${tmux}/bin/tmux -f "$TMUX_HOME/tmux.conf" "$@"
-        '')
-      ];
+      user.packages = [ pkgs.tmux ];
 
       environment.shellAliases = tmuxAliases;
 
-      # Following path from https://github.com/tmux-plugins/tpm
-      home.configFile."tmux/plugins/tpm" = {
-        source = pkgs.fetchFromGitHub {
-          owner = "tmux-plugins";
-          repo = "tpm";
-          rev = "v3.0.0";
-          sha256 = "18q5j92fzmxwg8g9mzgdi5klfzcz0z01gr8q2y9hi4h4n864r059";
-        };
-      };
-
       home.configFile."tmux/tmux.conf".text = ''
         ${generatedFileWarning { file = ./tmux.nix; }}
-        # Plugins - TPM installs these on first run (prefix + I)
-        set -g @tpm_plugins '\
-          tmux-plugins/tpm \
-          tmux-plugins/tmux-sensible \
-          samoshkin/tmux-plugin-sysstat \
-          tmux-plugins/tmux-resurrect \
-        '
 
-        set -g default-terminal "screen-256color"
-        set -g base-index 1
-        set -g pane-base-index 1
+        run-shell "${pluginScript "sensible"}"
 
-        set -g mode-keys vi
-
+        ${sharedOptions}
         ${sysstatConfig}
         ${statusConfig}
-        ${sharedOptions}
         ${vimAwareNavigation}
         ${splitBindings}
         ${copyModeBindings "xclip -i -selection clipboard"}
 
-        # Initialize TPM - must be the last line
-        run -b "${xdg.shell.config "tmux/plugins/tpm/tpm"}"
+        run-shell "${pluginScript "sysstat"}"
+        ${resurrectConfig}
+        run-shell "${pluginScript "resurrect"}"
       '';
     })
 
@@ -184,18 +160,11 @@ in
 
       programs.tmux = {
         enable = true;
-        sensibleOnTop = true; # tmux-sensible: sane defaults first
-        baseIndex = 1; # windows and panes start at 1, not 0
-        clock24 = true;
-        escapeTime = 0; # no delay after Escape (important for Vim/Emacs)
-        historyLimit = 10000;
-        keyMode = "vi";
-        terminal = "screen-256color";
+        sensibleOnTop = true;
 
-        plugins = with pkgs.tmuxPlugins; [
-          sensible
+        plugins = [
           {
-            plugin = sysstat; # samoshkin/tmux-plugin-sysstat
+            plugin = tmuxPlugins.sysstat;
             #
             # statusConfig must come before sysstat.tmux runs: the plugin
             # string-replaces #{sysstat_cpu}/#{sysstat_mem} in status-right
@@ -206,8 +175,8 @@ in
             '';
           }
           {
-            plugin = resurrect; # persist sessions across restarts
-            extraConfig = "set -g @resurrect-strategy-nvim 'session'";
+            plugin = tmuxPlugins.resurrect;
+            extraConfig = resurrectConfig;
           }
         ];
 
@@ -218,13 +187,6 @@ in
           ${copyModeBindings "pbcopy"}
         '';
       };
-    })
-
-    (platformEnv {
-      inherit config isDarwin;
-      inherit shellExports;
-      envVars = tmuxEnvVars;
-      target = "zsh";
     })
   ]);
 }
