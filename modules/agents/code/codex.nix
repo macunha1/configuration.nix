@@ -5,6 +5,7 @@
 {
   config,
   options,
+  inputs,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -18,14 +19,21 @@ let
     shellExports
     ;
 
-  inherit (lib.my or (import ../../../lib/modules.nix { inherit lib; }))
+  inherit (lib.my or (import ../../../lib/modules/utils.nix { inherit lib; }))
     platformEnv
     platformPackages
+    ;
+
+  inherit (lib.my or (import ../../../lib/modules/agents/mcp.nix { inherit lib; }))
+    managedMcpServerNames
+    mkMcpServers
     ;
 
   xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
     inherit config isDarwin;
   };
+
+  homeManagerLib = inputs.home-manager.lib.hm;
 
   codexPackages = with pkgs; [
     codex
@@ -35,67 +43,70 @@ let
     CODEX_HOME = config.modules.agents.code.codex.configHome;
   };
 
-  codexMcpServers =
-    optionals config.modules.agents.mcp.mempalace.enable [
-      {
-        name = "mempalace";
-        command = "${config.home.profileDirectory}/bin/mempalace-mcp";
-        env = {
-          MEMPALACE_PALACE_PATH = config.modules.agents.mcp.mempalace.palacePath;
-        };
-      }
-    ]
-    ++ optionals config.modules.agents.plugins.context-mode.enable [
-      {
-        name = "context-mode";
-        command = "${config.home.profileDirectory}/bin/context-mode";
-        env = {
-          CONTEXT_MODE_CONFIG_HOME = config.modules.agents.plugins.context-mode.configHome;
-          CONTEXT_MODE_DATA_HOME = config.modules.agents.plugins.context-mode.dataHome;
-          CONTEXT_MODE_CACHE_HOME = config.modules.agents.plugins.context-mode.cacheHome;
-        };
-      }
-    ]
-    ++ optionals config.modules.agents.mcp.codegraphcontext.enable [
-      {
-        name = "CodeGraphContext";
-        command = "${config.home.profileDirectory}/bin/codegraphcontext";
-        args = [
-          "mcp"
-          "start"
-        ];
-        env = {
-          DEFAULT_DATABASE = "falkordb";
-          CGC_CONFIG_DIR = config.modules.agents.mcp.codegraphcontext.configHome;
-          CGC_DATA_DIR = config.modules.agents.mcp.codegraphcontext.dataHome;
-          CGC_CACHE_DIR = config.modules.agents.mcp.codegraphcontext.cacheHome;
-          FALKORDB_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb";
-          FALKORDB_SOCKET_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb.sock";
-          LOG_FILE_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/cgc.log";
-          DEBUG_LOG_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/debug.log";
-        };
-      }
-    ];
+  userProfileDirectory =
+    if isDarwin then config.home.profileDirectory else "/etc/profiles/per-user/${config.user.name}";
+
+  pythonMcpStartup = {
+    required = true;
+    startup_timeout_sec = 60;
+  };
+
+  sharedMcpServers = mkMcpServers {
+    inherit config;
+    profileDirectory = userProfileDirectory;
+  };
+
+  codexMcpServers = map (
+    server:
+    if
+      elem server.name [
+        "mempalace"
+        "CodeGraphContext"
+      ]
+    then
+      pythonMcpStartup // server
+    else
+      server
+  ) sharedMcpServers;
 
   codexMcpServersJson = pkgs.writeText "codex-mcp-servers.json" (builtins.toJSON codexMcpServers);
+  managedMcpServerNamesJson = pkgs.writeText "codex-managed-mcp-server-names.json" (
+    builtins.toJSON managedMcpServerNames
+  );
 
   codexMcpConfigUpdater = pkgs.writeShellApplication {
     name = "update-codex-mcp-config";
     runtimeInputs = [ pkgs.python3 ];
 
     text = ''
-      python3 - "$1" "${codexMcpServersJson}" <<'PY'
+      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" <<'PY'
       import json
+      import os
       import sys
       from pathlib import Path
 
-      config_path = Path(sys.argv[1])
+      def expand_xdg_path(value):
+          xdg_defaults = {
+              "XDG_CACHE_HOME": Path.home() / ".cache",
+              "XDG_CONFIG_HOME": Path.home() / ".config",
+              "XDG_DATA_HOME": Path.home() / ".local/share",
+              "XDG_STATE_HOME": Path.home() / ".local/state",
+          }
+
+          for variable, default in xdg_defaults.items():
+              value = value.replace(f"''${variable}", os.environ.get(variable, str(default)))
+
+          return value
+
+      config_path = Path(expand_xdg_path(sys.argv[1]))
       servers = json.loads(Path(sys.argv[2]).read_text())
-      server_names = {server["name"] for server in servers}
+      managed_server_names = set(json.loads(Path(sys.argv[3]).read_text()))
 
       def toml_value(value):
           if isinstance(value, bool):
               return "true" if value else "false"
+          if isinstance(value, str):
+              value = expand_xdg_path(value)
           return json.dumps(value)
 
       def section_name(line):
@@ -107,7 +118,7 @@ let
       def managed_section(section):
           return any(
               section == f"mcp_servers.{name}" or section == f"mcp_servers.{name}.env"
-              for name in server_names
+              for name in managed_server_names
           )
 
       lines = []
@@ -159,6 +170,11 @@ let
       PY
     '';
   };
+
+  codexMcpConfigActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
+    run ${codexMcpConfigUpdater}/bin/update-codex-mcp-config \
+      ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
+  '';
 in
 {
   options.modules.agents.code.codex = {
@@ -187,19 +203,14 @@ in
       target = "both";
     })
 
-    (optionalAttrs isDarwin (
-      mkIf
-        (
-          config.modules.agents.mcp.mempalace.enable
-          || config.modules.agents.plugins.context-mode.enable
-          || config.modules.agents.mcp.codegraphcontext.enable
-        )
+    (
+      if isDarwin then
+        { home.activation.updateCodexMcpConfig = codexMcpConfigActivation; }
+      else
         {
-          home.activation.updateCodexMcpConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            run ${codexMcpConfigUpdater}/bin/update-codex-mcp-config \
-              ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
-          '';
+          home-manager.users.${config.user.name}.home.activation.updateCodexMcpConfig =
+            codexMcpConfigActivation;
         }
-    ))
+    )
   ]);
 }

@@ -24,7 +24,7 @@ let
     shellExports
     ;
 
-  inherit (lib.my or (import ../../lib/modules.nix { inherit lib; }))
+  inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
     platformEnv
     ;
 

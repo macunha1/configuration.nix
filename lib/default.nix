@@ -4,7 +4,7 @@ let
   inherit (lib) makeExtensible attrValues foldr;
   inherit (modules) mapModules;
 
-  modules = import ./modules.nix {
+  modules = import ./modules/utils.nix {
     inherit lib;
   };
 
