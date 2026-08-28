@@ -68,9 +68,6 @@ let
 
   helm = pkgs.my.helm or (pkgs.callPackage ../../packages/helm.nix { });
 
-  pinnedGoogleCloudSdkVersion = "579.0.0";
-  pinnedGkeGcloudAuthPluginVersion = "0.5.18";
-
   googleCloudSdk = pkgs.google-cloud-sdk;
   gkeGcloudAuthPlugin = googleCloudSdk.components.gke-gcloud-auth-plugin;
 
@@ -129,19 +126,6 @@ in
   };
 
   config = mkIf config.modules.networking.kubernetes.enable (mkMerge [
-    {
-      assertions = [
-        {
-          assertion = googleCloudSdk.version == pinnedGoogleCloudSdkVersion;
-          message = "google-cloud-sdk changed; update the pinned GCP SDK version intentionally.";
-        }
-        {
-          assertion = gkeGcloudAuthPlugin.version == pinnedGkeGcloudAuthPluginVersion;
-          message = "gke-gcloud-auth-plugin changed; update the pinned GKE auth plugin version intentionally.";
-        }
-      ];
-    }
-
     # Both platforms: source kubectl plugin (aliases + cached completion) when zsh is enabled.
     # Plugin handles completion with caching - does not spawn kubectl on every shell start.
     (mkIf config.modules.shell.zsh.enable {

@@ -82,7 +82,7 @@ in
 
     source = mkOption {
       type = types.str;
-      default = "git+https://github.com/macunha1/CodeGraphContext@b49dd07d5cf1b80212757c09c83bf0a23f116cbd";
+      default = "git+https://github.com/macunha1/CodeGraphContext@306745228cf7a219b484c316d3bd06c9c2497e5a";
       description = "Pinned Python package source for the CodeGraphContext fork.";
     };
 
