@@ -1,0 +1,53 @@
+# config/home-manager/local.nix.example
+#
+# This file documents the machine-local Home Manager overrides shared by
+# Darwin and Linux. The real file lives outside the flake at
+# ~/.config/home-manager/local.nix so private values cannot be committed with
+# this repository.
+#
+# Setup on a new machine:
+#
+#   mkdir -p ~/.config/home-manager
+#   cp config/home-manager/local.nix.example ~/.config/home-manager/local.nix
+#   # edit ~/.config/home-manager/local.nix with your values
+#
+# Evaluate the flake with --impure so Nix can read the file from outside the
+# repository.
+
+{ lib, pkgs, ... }:
+
+{
+  modules.editors.emacs.doom = {
+    identity = {
+      fullName = "Example User";
+      email = "example@macunha.com";
+    };
+
+    org.cryptKey = "1ABC234EXAMPLE5678";
+  };
+
+  programs.git = {
+    settings = {
+      commit.gpgsign = true;
+      gpg.program = lib.getExe pkgs.gnupg;
+      init.defaultBranch = "master";
+
+      url = {
+        "git@gitlab.com:YourOrg" = {
+          insteadOf = "https://gitlab.com/YourOrg";
+        };
+      };
+    };
+
+    includes = [
+      {
+        condition = "gitdir:~/Workspace/gitlab.com/YourOrg/";
+        path = "~/.config/git/configs/work";
+      }
+      {
+        condition = "gitdir:~/Workspace/github.com/youruser/";
+        path = "~/.config/git/configs/personal";
+      }
+    ];
+  };
+}

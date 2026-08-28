@@ -1,4 +1,4 @@
-# options.nix -- parameters and convience setup
+# options.nix -- parameters and convenience setup
 
 {
   config,
@@ -136,8 +136,8 @@ in
       # capabilities is accessed and configured in this repository.
       users.${config.user.name} = {
         # Keep machine-local Home Manager settings outside this repository.
-        # NixOS hosts use the Linux personal config; Darwin has its own
-        # standalone entry point and never imports this file.
+        # Darwin's standalone entry point independently imports the same
+        # machine-local Home Manager path for its own user.
         imports = optional (builtins.pathExists privateHomeManagerConfig) privateHomeManagerConfig;
 
         home = {

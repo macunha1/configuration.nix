@@ -9,34 +9,12 @@
 with lib;
 
 let
-  fontPackages = with pkgs; [
-    powerline-fonts
-    source-code-pro
-  ];
+  sourceCodePro = import ../../lib/fonts/source-code-pro.nix { inherit pkgs; };
 
-  sourceCodeProFontFiles = [
-    "SourceCodePro-Black.otf"
-    "SourceCodePro-BlackIt.otf"
-    "SourceCodePro-Bold.otf"
-    "SourceCodePro-BoldIt.otf"
-    "SourceCodePro-ExtraLight.otf"
-    "SourceCodePro-ExtraLightIt.otf"
-    "SourceCodePro-It.otf"
-    "SourceCodePro-Light.otf"
-    "SourceCodePro-LightIt.otf"
-    "SourceCodePro-Medium.otf"
-    "SourceCodePro-MediumIt.otf"
-    "SourceCodePro-Regular.otf"
-    "SourceCodePro-Semibold.otf"
-    "SourceCodePro-SemiboldIt.otf"
+  fontPackages = [
+    pkgs.powerline-fonts
+    sourceCodePro.package
   ];
-
-  sourceCodeProHomeFontLinks = builtins.listToAttrs (
-    map (fontFile: {
-      name = "Library/Fonts/${fontFile}";
-      value.source = "${pkgs.source-code-pro}/share/fonts/opentype/${fontFile}";
-    }) sourceCodeProFontFiles
-  );
 in
 {
   options.modules.desktop.fonts = {
@@ -53,13 +31,13 @@ in
         enableGhostscriptFonts = true;
 
         packages = fontPackages;
-        fontconfig.defaultFonts.monospace = [ "Source Code Pro" ];
+        fontconfig.defaultFonts.monospace = [ sourceCodePro.family ];
       };
     })
 
     (optionalAttrs isDarwin {
       home.packages = fontPackages;
-      home.file = sourceCodeProHomeFontLinks;
+      home.file = sourceCodePro.darwinHomeFiles;
     })
   ]);
 }

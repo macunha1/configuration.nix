@@ -47,6 +47,14 @@
 
     # Extras
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    doom-emacs = {
+      url = "github:doomemacs/doomemacs/6ba99cb50cddc4441963a0ef68f971112ab4807e";
+      flake = false;
+    };
+    doom-emacs-modules = {
+      url = "github:doomemacs/modules/28f09d8afe81fa47ab83020b072f0dfa2f79dbdb";
+      flake = false;
+    };
 
     awesomewm-screenlock-plugin.url = "github:macunha1/awesomewm-screenlock-plugin";
   };

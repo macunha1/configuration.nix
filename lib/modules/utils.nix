@@ -39,6 +39,10 @@ let
 
   resolvePlatformTarget =
     target: platformTargets.${target} or (throw "Unsupported platform target: ${target}");
+
+  # A sibling `<name>.nix` owns the public module entrypoint while `<name>/`
+  # remains available for its private implementation files.
+  hasSiblingModuleEntrypoint = dir: name: pathExists "${toString dir}/${name}.nix";
 in
 rec {
   mapModules =
@@ -48,7 +52,7 @@ rec {
       let
         path = "${toString dir}/${n}";
       in
-      if v == "directory" && pathExists "${path}/default.nix" then
+      if v == "directory" && !hasSiblingModuleEntrypoint dir n && pathExists "${path}/default.nix" then
         nameValuePair n (fn path)
       else if v == "regular" && n != "default.nix" && hasSuffix ".nix" n then
         nameValuePair (removeSuffix ".nix" n) (fn path)
@@ -63,7 +67,7 @@ rec {
       let
         path = "${toString dir}/${n}";
       in
-      if v == "directory" then
+      if v == "directory" && !hasSiblingModuleEntrypoint dir n then
         nameValuePair n (mapModulesRec path fn)
       else if v == "regular" && n != "default.nix" && hasSuffix ".nix" n then
         nameValuePair (removeSuffix ".nix" n) (fn path)
@@ -75,7 +79,9 @@ rec {
     dir: fn:
     let
       dirs = mapAttrsToList (k: _: "${dir}/${k}") (
-        filterAttrs (n: v: v == "directory" && !(hasPrefix "_" n)) (readDir dir)
+        filterAttrs (n: v: v == "directory" && !(hasPrefix "_" n) && !hasSiblingModuleEntrypoint dir n) (
+          readDir dir
+        )
       );
       files = attrValues (mapModules dir id);
       paths = files ++ concatLists (map (d: mapModulesRec' d id) dirs);
