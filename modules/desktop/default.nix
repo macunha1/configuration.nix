@@ -10,6 +10,42 @@
 }:
 
 with lib;
+let
+  screenshotOutput = ''
+    screenshot_directory="''${XDG_PICTURES_DIR:-$HOME/Pictures}"
+    mkdir -p "$screenshot_directory"
+    screenshot_path="$screenshot_directory/screenshot-$(date +%Y-%m-%d_%H-%M-%S).png"
+  '';
+
+  screenshotFull = pkgs.writeShellApplication {
+    name = "screenshot-full";
+    runtimeInputs = with pkgs; [
+      coreutils
+      shotgun
+    ];
+    text = ''
+      ${screenshotOutput}
+      exec shotgun "$screenshot_path"
+    '';
+  };
+
+  screenshotRegion = pkgs.writeShellApplication {
+    name = "screenshot-region";
+    runtimeInputs = with pkgs; [
+      coreutils
+      shotgun
+      slop
+    ];
+    text = ''
+      if ! screenshot_geometry="$(slop --format '%g')"; then
+        exit 0
+      fi
+
+      ${screenshotOutput}
+      exec shotgun --geometry "$screenshot_geometry" "$screenshot_path"
+    '';
+  };
+in
 {
   options.modules.desktop = {
     enable = mkOption {
@@ -49,9 +85,11 @@ with lib;
       pcmanfm # lightweight file manager
       xfce4-panel # system trail
 
-      # Screenshooters
-      scrot # Lightweight screenshooter
-      xfce4-screenshooter
+      # Screenshot capture
+      shotgun
+      slop
+      screenshotFull
+      screenshotRegion
 
       feh # Simple image viewer
       xclip # clipboard access from terminal
