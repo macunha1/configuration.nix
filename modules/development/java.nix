@@ -71,7 +71,7 @@ in
         inherit config isDarwin;
         inherit shellExports;
         envVars = gradleEnvVars;
-        target = "zsh";
+        target = "both";
       })
     ]))
   ]);

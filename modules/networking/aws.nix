@@ -74,7 +74,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = awsEnvVars;
-      target = "zsh";
+      target = "both";
     })
 
     (mkIf config.modules.networking.aws.iamAuthenticator.enable (platformPackages {

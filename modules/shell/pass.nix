@@ -61,7 +61,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = passEnvVars;
-      target = "zsh";
+      target = "both";
     })
   ]);
 }

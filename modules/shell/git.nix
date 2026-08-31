@@ -219,7 +219,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = gitEnvVars;
-      target = "zsh";
+      target = "both";
     })
   ]);
 }

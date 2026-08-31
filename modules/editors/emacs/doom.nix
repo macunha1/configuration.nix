@@ -43,7 +43,7 @@ let
     XDG_STATE_HOME = homeManagerConfig.xdg.stateHome;
   };
 
-  doomIdentityOptions = {
+  doomPrivateOptions = {
     identity = {
       fullName = mkOption {
         type = types.str;
@@ -63,13 +63,27 @@ let
       default = "1ABC234EXAMPLE5678";
       description = "OpenPGP key ID used by Org Crypt.";
     };
+
+    projectile.importTargets = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = ''
+        Directories and glob patterns from which Projectile should import projects.
+        Directories are searched recursively, while glob matches are treated as
+        exact project candidates.
+      '';
+    };
   };
 
-  doomIdentity =
+  doomPrivateConfig =
     if isDarwin then
       config.modules.editors.emacs.doom
     else
       config.home-manager.users.${config.user.name}.modules.editors.emacs.doom;
+
+  doomProjectileImportTargets = "(${
+    concatMapStringsSep " " builtins.toJSON doomPrivateConfig.projectile.importTargets
+  })";
 
   doomFramework = pkgs.runCommand "doom-emacs" { } ''
     mkdir -p "$out/sources"
@@ -83,6 +97,17 @@ let
     # environment, while the wrapper and activation use DOOMLOCALDIR directly.
     rm -rf "$out/.local"
     ln -s ${escapeShellArg doomEnvironment.DOOMLOCALDIR} "$out/.local"
+
+    ${optionalString isDarwin ''
+      mv "$out/early-init.el" "$out/early-init.doom.el"
+      cp ${
+        pkgs.replaceVars ../../../config/emacs/doom/darwin/early-init.el {
+          environmentFile = "${homeManagerConfig.xdg.configHome}/environment.d/emacs.sh";
+          gccMajorVersion = pkgs.my.emacs-plus-darwin.gccMajorVersion;
+          homebrewBin = "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/bin";
+        }
+      } "$out/early-init.el"
+    ''}
   '';
 
   enabled = condition: name: {
@@ -228,6 +253,7 @@ let
           config.modules.development.rust.languageServer.enable
         )
         (always "sh")
+        (always "yaml")
       ];
     }
     {
@@ -274,8 +300,8 @@ let
       file = ./doom.nix;
       comment = ";;";
     }}
-    (setq user-full-name ${builtins.toJSON doomIdentity.identity.fullName}
-          user-mail-address ${builtins.toJSON doomIdentity.identity.email}
+    (setq user-full-name ${builtins.toJSON doomPrivateConfig.identity.fullName}
+          user-mail-address ${builtins.toJSON doomPrivateConfig.identity.email}
           doom-font
           (font-spec :family ${builtins.toJSON config.modules.editors.emacs.font.family}
                      :size ${toString config.modules.editors.emacs.font.size}))
@@ -284,6 +310,40 @@ let
     (setq custom-file (expand-file-name "custom.el" doom-state-dir))
 
     ${builtins.readFile ../../../config/emacs/doom/config.el}
+
+    (after! projectile
+      (defun mc/projectile--add-project (directory)
+        "Add DIRECTORY when it is itself a Projectile project root."
+        (when (file-directory-p directory)
+          (let* ((directory (file-name-as-directory (file-truename directory)))
+                 (project-root (projectile-project-root directory)))
+            (when (and project-root (file-equal-p directory project-root))
+              (projectile-add-known-project directory)
+              t))))
+
+      (defun mc/projectile--import-project-tree (directory visited)
+        "Import projects below DIRECTORY, avoiding paths in VISITED."
+        (when (file-directory-p directory)
+          (let ((directory (file-name-as-directory (file-truename directory))))
+            (unless (gethash directory visited)
+              (puthash directory t visited)
+              (unless (mc/projectile--add-project directory)
+                (dolist (child (directory-files directory t "\\`[^.]" t))
+                  (when (file-directory-p child)
+                    (mc/projectile--import-project-tree child visited))))))))
+
+      (defun mc/projectile-import-projects (&optional targets)
+        "Import Projectile projects from directory and glob TARGETS."
+        (let ((visited (make-hash-table :test #'equal)))
+          (dolist (target (or targets '()))
+            (let ((target (expand-file-name target)))
+              (if (string-match-p "[][?*]" target)
+                  (dolist (candidate (file-expand-wildcards target t))
+                    (mc/projectile--add-project candidate))
+                (mc/projectile--import-project-tree target visited))))))
+
+      (mc/projectile-import-projects
+       '${doomProjectileImportTargets}))
 
     ${optionalString config.modules.development.python.enable ''
       ;; Keep the existing autopep8 behavior while Doom owns Apheleia lifecycle.
@@ -330,7 +390,7 @@ let
       file = ./doom.nix;
       comment = ";;";
     }}
-    (setq org-crypt-key ${builtins.toJSON doomIdentity.org.cryptKey})
+    (setq org-crypt-key ${builtins.toJSON doomPrivateConfig.org.cryptKey})
 
     ${builtins.readFile ../../../config/emacs/doom/org.el}
   '';
@@ -363,6 +423,23 @@ let
     pkgs.prettier
   ];
 
+  doomSyncCommands =
+    if isDarwin then
+      {
+        cmp = "/usr/bin/cmp";
+        install = "/usr/bin/install";
+        mkdir = "/bin/mkdir";
+      }
+    else
+      {
+        cmp = "${pkgs.coreutils}/bin/cmp";
+        install = "${pkgs.coreutils}/bin/install";
+        mkdir = "${pkgs.coreutils}/bin/mkdir";
+      };
+
+  # Emacs+'s native compiler invokes Apple's assembler by its unqualified name.
+  doomSyncSystemPath = optionalString isDarwin ":/usr/bin:/bin";
+
   doomIconFontPackages = with pkgs; [
     nerd-fonts.symbols-only
     emacs-all-the-icons-fonts
@@ -374,7 +451,7 @@ let
     emacs=${config.modules.editors.emacs.package}
   '';
 
-  doomSyncActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
+  doomSyncActivation = homeManagerLib.dag.entryAfter [ "installPackages" ] ''
     ${shellExports doomEnvironment}
     export EMACS="${config.modules.editors.emacs.package}/bin/emacs"
     export PATH="${
@@ -386,10 +463,10 @@ let
         ++ doomPackages
         ++ doomNodePackages
       )
-    }:$PATH"
+    }${doomSyncSystemPath}:$PATH"
 
     doomSyncState="$XDG_STATE_HOME/doom/nix-sync-fingerprint"
-    if ! ${pkgs.coreutils}/bin/cmp --silent ${doomSyncFingerprint} "$doomSyncState" \
+    if ! ${doomSyncCommands.cmp} -s ${doomSyncFingerprint} "$doomSyncState" \
       || [ ! -s "$DOOMLOCALDIR/cache/profiles._default.el" ] \
       || [ ! -s "$DOOMPROFILELOADFILE" ]; then
       echo "Synchronizing the Nix-managed Doom configuration"
@@ -403,7 +480,8 @@ let
         fi
       fi
 
-      run ${pkgs.coreutils}/bin/install -D -m 0600 \
+      run ${doomSyncCommands.mkdir} -p "$XDG_STATE_HOME/doom"
+      run ${doomSyncCommands.install} -m 0600 \
         ${doomSyncFingerprint} "$doomSyncState"
     fi
   '';
@@ -417,13 +495,13 @@ in
       description = "Whether to install the pinned Doom framework and render its configuration.";
     };
   }
-  // doomIdentityOptions;
+  // doomPrivateOptions;
 
   config = mkMerge [
     (optionalAttrs (!isDarwin) {
       home-manager.users.${config.user.name}.imports = [
         {
-          options.modules.editors.emacs.doom = doomIdentityOptions;
+          options.modules.editors.emacs.doom = doomPrivateOptions;
         }
       ];
     })
@@ -443,7 +521,7 @@ in
       (platformPath {
         inherit config isDarwin;
         paths = [ (xdg.concrete.config "emacs/bin") ];
-        target = "zsh";
+        target = "both";
       })
       (optionalAttrs (!isDarwin) {
         systemd.services."home-manager-${config.user.name}".serviceConfig.TimeoutStartSec = mkForce "30m";
@@ -528,6 +606,47 @@ in
           xdg.configFile = {
             "emacs".source = doomFramework;
             "doom".source = doomConfiguration;
+            "environment.d/emacs.sh".text =
+              let
+                baseEnvironmentNames = [
+                  "XDG_BIN_HOME"
+                  "XDG_CACHE_HOME"
+                  "XDG_CONFIG_HOME"
+                  "XDG_DATA_HOME"
+                  "XDG_STATE_HOME"
+                ];
+                sessionVariables = homeManagerConfig.home.sessionVariables;
+              in
+              ''
+                #!/bin/sh
+                ${generatedFileWarning { file = ./doom.nix; }}
+                ${shellExports (filterAttrs (name: _: elem name baseEnvironmentNames) sessionVariables)}
+                ${shellExports (removeAttrs sessionVariables baseEnvironmentNames)}
+                export PATH=${
+                  escapeShellArg (
+                    concatStringsSep ":" (
+                      unique (
+                        [
+                          "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/bin"
+                          "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/sbin"
+                        ]
+                        ++ map toString homeManagerConfig.home.sessionPath
+                        ++ [
+                          xdg.concrete.binHome
+                          "${homeManagerConfig.home.profileDirectory}/bin"
+                          "/nix/var/nix/profiles/default/bin"
+                          "/usr/local/bin"
+                          "/usr/bin"
+                          "/bin"
+                          "/usr/sbin"
+                          "/sbin"
+                        ]
+                      )
+                    )
+                  )
+                }
+                exec /usr/bin/env -0
+              '';
           };
 
           home.activation.syncDoom = doomSyncActivation;

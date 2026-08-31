@@ -64,7 +64,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = vimEnvVars;
-      target = "zsh";
+      target = "both";
     })
 
     # Linux (NixOS)

@@ -17,6 +17,8 @@ let
   version = "30.2-260";
   emacsVersion = "30.2";
   buildNumber = "260";
+  gccMajorVersion = "16";
+  homebrewPrefix = if stdenvNoCC.hostPlatform.isAarch64 then "/opt/homebrew" else "/usr/local";
 
   platform =
     {
@@ -69,7 +71,11 @@ stdenvNoCC.mkDerivation {
     cp -R "Emacs.app" "$out/Applications/"
     cp -R "Emacs Client.app" "$out/Applications/"
 
-    makeWrapper "$out/Applications/Emacs.app/Contents/MacOS/Emacs" "$out/bin/emacs"
+    # The bundled libgccjit retains its build-time Homebrew prefix. Resolve the
+    # active GCC runtime so native compilation survives formula upgrades.
+    makeWrapper "$out/Applications/Emacs.app/Contents/MacOS/Emacs" "$out/bin/emacs" \
+      --prefix PATH : "${homebrewPrefix}/bin:/usr/bin:/bin" \
+      --run 'emacsGccRuntime="$(gcc-${gccMajorVersion} -print-file-name=libemutls_w.a 2>/dev/null || true)"; if [ -f "$emacsGccRuntime" ]; then export LIBRARY_PATH="''${emacsGccRuntime%/*}''${LIBRARY_PATH:+:$LIBRARY_PATH}"; fi; unset emacsGccRuntime'
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/emacsclient" "$out/bin/emacsclient"
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/ebrowse" "$out/bin/ebrowse"
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/etags" "$out/bin/etags"
@@ -84,7 +90,13 @@ stdenvNoCC.mkDerivation {
   '';
 
   passthru = {
-    inherit buildNumber emacsVersion darwinMajorVersion;
+    inherit
+      buildNumber
+      darwinMajorVersion
+      emacsVersion
+      gccMajorVersion
+      homebrewPrefix
+      ;
     cask = "d12frosted/emacs-plus/emacs-plus-app";
   };
 

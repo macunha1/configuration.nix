@@ -102,7 +102,7 @@ in
         inherit config isDarwin;
         inherit shellExports;
         envVars = nodeEnvVars;
-        target = "zsh";
+        target = "both";
       })
 
       (optionalAttrs (!isDarwin) {
@@ -143,7 +143,7 @@ in
           inherit config isDarwin;
           inherit shellExports;
           envVars = bunEnvVars;
-          target = "zsh";
+          target = "both";
         })
       ])
     )

@@ -61,6 +61,7 @@
     };
 
     networking = {
+      ansible.enable = true;
       gcp.enable = true;
 
       kubernetes = {

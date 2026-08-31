@@ -118,12 +118,12 @@ in
       packages = gnupgPackages;
     })
 
-    # GNUPGHOME contains a shell-variable reference, so render it through ZSH.
+    # GNUPGHOME contains a shell-variable reference, so render it through a shell.
     (platformEnv {
       inherit config isDarwin;
       inherit shellExports;
       envVars = gnupgEnvVars;
-      target = "zsh";
+      target = "both";
     })
   ]);
 }

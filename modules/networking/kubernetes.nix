@@ -143,7 +143,7 @@ in
       inherit config isDarwin;
       inherit shellExports;
       envVars = kubeEnvVars // kubernetesEnvVars;
-      target = "zsh";
+      target = "both";
     })
 
     # Linux (NixOS)
