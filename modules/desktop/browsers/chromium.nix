@@ -31,6 +31,28 @@ with lib;
         DefaultFontSize = 20;
         DefaultFixedFontSize = 16;
         PasswordManagerEnabled = false;
+
+        # Disable Chromium AI features for a Google-free setup. Individual
+        # features can be enabled on demand if desired.
+        AIModeSettings = 1;
+        AutofillPredictionSettings = 2;
+        AutomatedPasswordChangeSettings = 2;
+        BuiltInAIAPIsEnabled = false;
+        ChromeSuggestionsSettings = 1;
+        CreateThemesSettings = 2;
+        DevToolsGenAiSettings = 2;
+        GeminiActOnWebSettings = 1;
+        GeminiSettings = 1;
+        GeminiSparkSettings = 1;
+        GenAILocalFoundationalModelSettings = 1;
+        HelpMeWriteSettings = 2;
+        HistorySearchSettings = 2;
+        SearchContentSharingSettings = 1;
+        SmartTabSharingSettings = 1;
+        TabCompareSettings = 2;
+        ThirdPartyAiChatSettings = 1;
+        TranslatorAPIAllowed = false;
+        VoiceTypingSettings = 2;
       };
       initialPrefs = {
         webkit.webprefs = {
