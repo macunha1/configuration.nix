@@ -8,7 +8,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,

@@ -3,11 +3,9 @@
 # The powerful GPU-accelerated terminal fully written in Rust. Flawless!
 
 {
-  options,
   config,
   lib,
   pkgs,
-  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 

@@ -5,12 +5,8 @@
 # Relative search for terminal. Hit Ctrl+R, type something close to what you
 # think it is and VOI'LÁ!
 #
-# Linux: fzf fetched from GitHub and sourced manually in zsh/init.zsh.
-# Darwin: programs.fzf managed declaratively by home-manager.
-
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -20,9 +16,12 @@
 with lib;
 
 let
-  xdg = (lib.my or (import ../../lib/paths.nix { inherit lib; })).xdgPaths {
-    inherit config isDarwin;
-  };
+  inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; })) shellExports;
+
+  inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
+    platformEnv
+    platformPackages
+    ;
 
   # Color palette shared between Linux (FZF_DEFAULT_OPTS) and Darwin (programs.fzf.colors).
   fzfColors = {
@@ -38,6 +37,12 @@ let
     "spinner" = "14"; # loading spinner: bright cyan
     "header" = "14"; # header line: bright cyan
   };
+
+  fzfEnvVars = {
+    FZF_DEFAULT_OPTS = escapeShellArgs (
+      mapAttrsToList (name: value: "--color=${name}:${value}") fzfColors
+    );
+  };
 in
 {
   options.modules.shell.fzf = {
@@ -48,39 +53,23 @@ in
   };
 
   config = mkIf config.modules.shell.fzf.enable (mkMerge [
-
-    # Linux (NixOS)
-    (optionalAttrs (!isDarwin) {
-      user.packages = with pkgs; [
-        fzf # fuzzy-finder all the things
-      ];
-
-      home.dataFile."fzf" = {
-        source = pkgs.fetchFromGitHub {
-          owner = "junegunn";
-          repo = "fzf";
-          rev = "0.22.0";
-          sha256 = "0n0cy5q2r3dm1a3ivlzrv9c5d11awxlqim5b9x8zc85dlr73n35l";
-        };
-      };
-
-      env.FZF_HOME = xdg.shell.data "fzf";
-      env.FZF_DEFAULT_OPTS = escapeShellArgs (mapAttrsToList (k: v: "--color=${k}:${v}") fzfColors);
-
-      # Autocompletion + key-bindings for ZSH
-      modules.shell.zsh.init = mkIf config.modules.shell.zsh.enable ''
-        source "${xdg.shell.data "fzf/shell/completion.zsh"}"
-        source "${xdg.shell.data "fzf/shell/key-bindings.zsh"}"
-      '';
+    (platformPackages {
+      inherit isDarwin;
+      packages = [ pkgs.fzf ];
     })
 
-    # Darwin (MacOS)
-    (optionalAttrs isDarwin {
-      programs.fzf = {
-        enable = true;
-        enableZshIntegration = true;
-        colors = fzfColors;
-      };
+    (platformEnv {
+      inherit config isDarwin;
+      inherit shellExports;
+      envVars = fzfEnvVars;
+      target = "both";
+    })
+
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.init = ''
+        source "${pkgs.fzf}/share/fzf/completion.zsh"
+        source "${pkgs.fzf}/share/fzf/key-bindings.zsh"
+      '';
     })
   ]);
 }

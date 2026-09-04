@@ -6,8 +6,6 @@
 
 {
   config,
-  home-manager,
-  options,
   lib,
   pkgs,
   ...

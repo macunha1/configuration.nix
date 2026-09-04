@@ -6,7 +6,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   inputs,
@@ -65,62 +64,73 @@ in
     };
   };
 
-  config = mkIf config.modules.desktop.awesomewm.enable {
-    security.pam.services.xlock.enable = true;
+  config = mkMerge [
+    {
+      assertions = [
+        {
+          assertion = !config.modules.desktop.awesomewm.enable || config.modules.desktop.enable;
+          message = "modules.desktop.awesomewm requires modules.desktop.enable";
+        }
+      ];
+    }
 
-    services = {
-      picom.enable = config.modules.desktop.compton.enable;
-      displayManager.defaultSession = "none+awesome";
-      xserver = {
-        windowManager.awesome = {
-          enable = true;
-          package = pkgs.awesome.override { inherit lua; };
-          luaModules = awesomeLuaModules;
+    (mkIf config.modules.desktop.awesomewm.enable {
+      security.pam.services.xlock.enable = true;
+
+      services = {
+        picom.enable = config.modules.desktop.compton.enable;
+        displayManager.defaultSession = "none+awesome";
+        xserver = {
+          windowManager.awesome = {
+            enable = true;
+            package = pkgs.awesome.override { inherit lua; };
+            luaModules = awesomeLuaModules;
+          };
         };
       };
-    };
 
-    user.packages =
-      with pkgs;
-      [
-        awesomewmScreenlockPlugin
-        # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
-        # i.e. Implements the equivalent of
-        #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
-        (writeScriptBin "awm" ''
-          #!${stdenv.shell}
-          ${generatedFileWarning { file = ./awesome.nix; }}
-          ${
-            if awesomeLuaSearchArgs == "" then
-              ''
-                exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
-              ''
-            else
-              ''
-                exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
-                ${awesomeLuaSearchArgs} \
-                "$@"
-              ''
-          }
-        '')
-      ]
-      ++ optionals config.modules.hardware.audio.enable [
-        wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
-      ];
+      user.packages =
+        with pkgs;
+        [
+          awesomewmScreenlockPlugin
+          # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
+          # i.e. Implements the equivalent of
+          #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
+          (writeScriptBin "awm" ''
+            #!${stdenv.shell}
+            ${generatedFileWarning { file = ./awesome.nix; }}
+            ${
+              if awesomeLuaSearchArgs == "" then
+                ''
+                  exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
+                ''
+              else
+                ''
+                  exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
+                  ${awesomeLuaSearchArgs} \
+                  "$@"
+                ''
+            }
+          '')
+        ]
+        ++ optionals config.modules.hardware.audio.enable [
+          wireplumber # wpexec runs WirePlumber Lua API scripts from Awesome keybindings
+        ];
 
-    home-manager.users.${config.user.name} = {
-      services.screen-locker = {
-        enable = true;
-        inactiveInterval = 10;
-        lockCmd = "${
-          pkgs.awesome.override { inherit lua; }
-        }/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+      home-manager.users.${config.user.name} = {
+        services.screen-locker = {
+          enable = true;
+          inactiveInterval = 10;
+          lockCmd = "${
+            pkgs.awesome.override { inherit lua; }
+          }/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+        };
+
+        home.file.".local/share/awesomewm-screenlock-plugin".source = awesomewmScreenlockPlugin;
       };
 
-      home.file.".local/share/awesomewm-screenlock-plugin".source = awesomewmScreenlockPlugin;
-    };
+      home.configFile."awesome".source = aweswm;
 
-    home.configFile."awesome".source = aweswm;
-
-  };
+    })
+  ];
 }

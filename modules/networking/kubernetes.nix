@@ -11,7 +11,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -52,8 +51,7 @@ let
     };
 
   kubernetesPackages =
-    [ ]
-    ++ optional config.modules.networking.kubernetes.helm.enable helm
+    optional config.modules.networking.kubernetes.helm.enable helm
     ++ optional config.modules.networking.kubernetes.kops.enable kops
     # GKE exec auth must be available whenever kubectl is managed here. If the
     # GCP module is enabled, it installs this same component-bearing SDK.
@@ -66,7 +64,7 @@ let
          --cache-dir "$KUBECACHE" "$@"
   '';
 
-  helm = pkgs.my.helm or (pkgs.callPackage ../../packages/helm.nix { });
+  helm = pkgs.kubernetes-helm;
 
   googleCloudSdk = pkgs.google-cloud-sdk;
   gkeGcloudAuthPlugin = googleCloudSdk.components.gke-gcloud-auth-plugin;
@@ -76,14 +74,14 @@ let
   ];
 
   kops = pkgs.kops.overrideAttrs (
-    finalAttrs: previousAttrs: {
-      version = "1.35.1";
+    finalAttrs: _previousAttrs: {
+      version = "1.36.0";
 
       src = pkgs.fetchFromGitHub {
         owner = "kubernetes";
         repo = "kops";
         rev = "v${finalAttrs.version}";
-        hash = "sha256-v2oudbdzbeEr4dlEgEs0+TqBqdmdhnlzwcrEt6BTLXk=";
+        hash = "sha256-KNTASwYkIUqRlXxhwiemTqyGepDCEC1dwjHAf19bRlw=";
       };
 
       ldflags = [

@@ -7,7 +7,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   ...

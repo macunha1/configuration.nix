@@ -1,5 +1,4 @@
 {
-  self ? null,
   lib,
   ...
 }:

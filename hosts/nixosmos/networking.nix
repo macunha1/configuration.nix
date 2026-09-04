@@ -1,34 +1,36 @@
-{ config, pkgs, ... }:
+_:
 
 {
-  networking.hostName = "nixosmos";
-  networking.networkmanager.enable = true;
+  networking = {
+    hostName = "nixosmos";
+    networkmanager.enable = true;
 
-  networking.nameservers = [
-    # CloudFlare DNS
-    "1.1.1.1"
+    nameservers = [
+      # CloudFlare DNS
+      "1.1.1.1"
 
-    # Google DNS (fallback)
-    "8.8.8.8"
-  ];
+      # Google DNS (fallback)
+      "8.8.8.8"
+    ];
 
-  # DHCP
-  networking.useDHCP = false; # DEPRECATED: therefore, explicitly set to false
-  networking.interfaces = {
-    # Per-interface useDHCP is the new black
-    enp0s31f6.useDHCP = true;
-    wlp4s0.useDHCP = true;
-  };
+    # DHCP
+    useDHCP = false; # DEPRECATED: therefore, explicitly set to false
+    interfaces = {
+      # Per-interface useDHCP is the new black
+      enp0s31f6.useDHCP = true;
+      wlp4s0.useDHCP = true;
+    };
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+    # Configure network proxy if necessary
+    # proxy.default = "http://user:password@proxy:port/";
+    # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  networking.firewall = {
-    enable = true;
-    checkReversePath = false;
+    firewall = {
+      enable = true;
+      checkReversePath = false;
 
-    # allowedUDPPorts = [ ... ];
-    # allowedTCPPorts = [ ... ];
+      # allowedUDPPorts = [ ... ];
+      # allowedTCPPorts = [ ... ];
+    };
   };
 }

@@ -1,28 +1,33 @@
 # hosts/nixosmos/boot.nix -- Boot Configuration (GRUB)
 
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
-  boot.initrd = {
-    availableKernelModules =
-      [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot = {
+    initrd = {
+      availableKernelModules = [
+        "xhci_pci"
+        "ahci"
+        "usbhid"
+        "usb_storage"
+        "sd_mod"
+      ];
+      kernelModules = [ ];
+    };
 
-    kernelModules = [ ];
-  };
+    # Use the latest kernel
+    kernelPackages = pkgs.linuxPackages_latest;
+    kernelModules = [ "kvm-intel" ];
+    extraModulePackages = [ ];
 
-  # Use the latest kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+    loader = {
+      efi.canTouchEfiVariables = lib.mkDefault true;
 
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
-
-  boot.loader = {
-    efi.canTouchEfiVariables = lib.mkDefault true;
-
-    # Inherit the default boot loader: systemd
-    systemd-boot = {
-      enable = lib.mkDefault true;
-      configurationLimit = lib.mkDefault 5;
+      # Inherit the default boot loader: systemd
+      systemd-boot = {
+        enable = lib.mkDefault true;
+        configurationLimit = lib.mkDefault 5;
+      };
     };
   };
 }

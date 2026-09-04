@@ -6,7 +6,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -30,7 +29,7 @@ let
   };
 
   pythonPackageManagers = {
-    uv = pkgs.uv;
+    inherit (pkgs) uv;
   };
 
   pythonPackageManagerPackage =

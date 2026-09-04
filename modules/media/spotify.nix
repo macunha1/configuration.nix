@@ -7,8 +7,6 @@
 
 {
   config,
-  home-manager,
-  options,
   lib,
   pkgs,
   ...
@@ -62,7 +60,7 @@ in
       home-manager.users.${config.user.name}.services.spotifyd = {
         enable = true;
 
-        package = (pkgs.spotifyd.override { withMpris = true; });
+        package = pkgs.spotifyd.override { withMpris = true; };
         settings = config.modules.media.spotify.daemon.settings;
       };
     })

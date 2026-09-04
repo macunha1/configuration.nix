@@ -5,7 +5,6 @@
 # base dir spec) path
 
 {
-  options,
   config,
   lib,
   pkgs,

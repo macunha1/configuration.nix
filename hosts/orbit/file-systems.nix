@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+_:
 
 # File system mount points
 # Implementing the default spec from https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4

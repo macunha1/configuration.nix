@@ -593,15 +593,18 @@ in
           );
         in
         {
-          home.packages = [
-            pkgs.fontconfig
-            pkgs.pngpaste
-          ]
-          ++ doomPackages
-          ++ doomNodePackages
-          ++ doomIconFontPackages;
+          home = {
+            packages = [
+              pkgs.fontconfig
+              pkgs.pngpaste
+            ]
+            ++ doomPackages
+            ++ doomNodePackages
+            ++ doomIconFontPackages;
 
-          home.file = emacsIconFontLinks;
+            file = emacsIconFontLinks;
+            activation.syncDoom = doomSyncActivation;
+          };
 
           xdg.configFile = {
             "emacs".source = doomFramework;
@@ -648,8 +651,6 @@ in
                 exec /usr/bin/env -0
               '';
           };
-
-          home.activation.syncDoom = doomSyncActivation;
         }
       ))
     ]))

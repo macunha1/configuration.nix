@@ -8,14 +8,12 @@
 # using cloud, as you might as well order a Domino's pizza using Terraform.
 # Ref: https://github.com/ndmckinley/terraform-provider-dominos
 #
-# NOTE: This module won't install Terraform due to the highly inconsistent
-# amount of versions available (and in use) on the market. Instead, version
-# managers with support for Terraform are encouraged, either "tfenv" or
-# "asdf" with direnv integrated.
+# This module owns one stable Terraform version across configured machines.
+# Add project-scoped multi-version support only when a real compatibility need
+# justifies the extra state and maintenance boundary.
 
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -161,6 +159,7 @@ let
       return 1
     }
 
+    ${pkgs.coreutils}/bin/install -d -m 0700 -- "$TF_PLUGIN_CACHE_DIR"
     terraform_command_loads_tokens "$@" && load_terraform_tokens
     exec ${terraformBin}/bin/terraform "$@"
   '';

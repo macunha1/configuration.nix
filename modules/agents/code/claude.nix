@@ -48,6 +48,7 @@ let
 
   sharedMcpServers = mkMcpServers {
     inherit config;
+    contextModePlatform = "claude-code";
     profileDirectory = userProfileDirectory;
   };
 

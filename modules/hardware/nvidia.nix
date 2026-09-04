@@ -6,7 +6,6 @@
 # models significantly faster than on CPU.
 
 {
-  options,
   config,
   lib,
   pkgs,

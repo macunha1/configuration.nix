@@ -1,7 +1,6 @@
 {
   inputs,
   lib,
-  pkgs,
   ...
 }:
 
@@ -14,8 +13,6 @@ let
     path:
     attrs@{
       system ? defaultSystem,
-      ignoredHosts ? [ ],
-      hostSystemOverrides ? { },
       nixpkgsConfig ? { },
       nixpkgsOverlays ? [ ],
       ...
@@ -35,7 +32,7 @@ let
           networking.hostName = mkDefault (removeSuffix ".nix" (baseNameOf path));
         }
         (filterAttrs (
-          n: v:
+          n: _v:
           !elem n [
             "system"
             "ignoredHosts"
@@ -56,8 +53,6 @@ in
       system ? defaultSystem,
       ignoredHosts ? [ ],
       hostSystemOverrides ? { },
-      nixpkgsConfig ? { },
-      nixpkgsOverlays ? [ ],
       ...
     }:
     filterAttrs (hostName: _: !(elem hostName ignoredHosts)) (

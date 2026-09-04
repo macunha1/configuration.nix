@@ -1,4 +1,4 @@
-{ config, lib, pkgs, options, ... }:
+_:
 
 {
   modules = {
@@ -9,6 +9,7 @@
     };
 
     desktop = {
+      enable = true;
       awesomewm.enable = true;
 
       terminal = {
@@ -76,7 +77,6 @@
     shell = {
       git.enable = true;
       zsh.enable = true;
-      asdf.enable = true;
       direnv.enable = true;
       fzf.enable = true;
       gnupg.enable = true;

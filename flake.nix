@@ -21,18 +21,12 @@
 
     nixlib.url = "github:nix-community/nixpkgs.lib";
 
-    latest.url = "github:nixos/nixpkgs/nixos-unstable";
-    blank.url = "github:divnix/blank";
-
     # NixOS Hardware contain hardware-specific configurations (e.g. MacOS Wi-Fi
     # drivers, proprietary notebook battery Kernel modules, etc) that helps
     # speeding up the NixOS setup on some machines.
     #
     nixos-hardware.url = "github:nixos/nixos-hardware";
     nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
-
-    deploy.url = "github:serokell/deploy-rs";
-    deploy.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixlib";
@@ -63,7 +57,6 @@
     {
       self,
       nixpkgs,
-      nixlib,
       home-manager,
       flake-parts,
       ...
@@ -97,8 +90,6 @@
           ];
       };
 
-      tests = import ./tests;
-
       mkConfiguredPkgs =
         system: config: extraOverlays:
         import nixpkgs {
@@ -116,7 +107,7 @@
       ];
 
       lib = nixpkgs.lib.extend (
-        self: super: {
+        self: _super: {
           # Use nice convenient functions developed by @hlissner
           # Ref: https://github.com/hlissner/dotfiles/tree/804011f53826c226cbf7e0acd8002087a223051d/lib
           my = import ./lib {
@@ -168,7 +159,22 @@
             program = "${activate}/bin/activate";
             meta.description = "Activate the local NixOS or standalone Home Manager configuration";
           };
-          packages = mapModules ./packages (p: pkgs.callPackage p { });
+          packages = builtins.removeAttrs (mapModules ./packages (p: pkgs.callPackage p { })) (
+            lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [ "emacs-plus-darwin" ]
+          );
+
+          checks.configuration-evaluation = pkgs.writeText "configuration-evaluation" (
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (
+                name: host:
+                "${name}: ${builtins.unsafeDiscardStringContext host.config.system.build.toplevel.drvPath}"
+              ) self.nixosConfigurations
+              ++ [
+                "mcunha: ${builtins.unsafeDiscardStringContext self.homeConfigurations.mcunha.activationPackage.drvPath}"
+              ]
+            )
+            + "\n"
+          );
           devShells.default = import ./shell.nix { inherit pkgs; };
         };
 
@@ -176,7 +182,7 @@
         lib = lib.my;
 
         overlays = {
-          default = final: prev: {
+          default = _final: prev: {
             my = self.packages.${prev.stdenv.hostPlatform.system or defaultLinuxSystem};
           };
         }

@@ -1,10 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  options,
-  ...
-}:
+_:
 
 {
   modules = {
@@ -44,6 +38,7 @@
 
       applications = {
         calibre.enable = true;
+        freecad.enable = true;
         redshift.enable = true;
         rofi.enable = true;
         qmk.enable = true;

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, options, ... }:
+_:
 
 {
   modules = {
@@ -93,7 +93,6 @@
       pass.enable = true;
       gnupg.enable = true;
       direnv.enable = true;
-      asdf.enable = true;
     };
 
     virtualization = {

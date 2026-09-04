@@ -13,6 +13,7 @@ in
   mkMcpServers =
     {
       config,
+      contextModePlatform,
       profileDirectory,
     }:
     optionals config.modules.agents.mcp.mempalace.enable [
@@ -29,9 +30,11 @@ in
         name = "context-mode";
         command = "${profileDirectory}/bin/context-mode";
         env = {
-          CONTEXT_MODE_CONFIG_HOME = config.modules.agents.plugins.context-mode.configHome;
-          CONTEXT_MODE_DATA_HOME = config.modules.agents.plugins.context-mode.dataHome;
-          CONTEXT_MODE_CACHE_HOME = config.modules.agents.plugins.context-mode.cacheHome;
+          CONTEXT_MODE_DIR = config.modules.agents.plugins.context-mode.storageHome;
+          CONTEXT_MODE_DATA_DIR = builtins.dirOf (
+            toString config.modules.agents.plugins.context-mode.storageHome
+          );
+          CONTEXT_MODE_PLATFORM = contextModePlatform;
         };
       }
     ]

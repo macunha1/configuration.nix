@@ -53,9 +53,10 @@ let
   ];
 
   contextModeEnvVars = {
-    CONTEXT_MODE_CONFIG_HOME = config.modules.agents.plugins.context-mode.configHome;
-    CONTEXT_MODE_DATA_HOME = config.modules.agents.plugins.context-mode.dataHome;
-    CONTEXT_MODE_CACHE_HOME = config.modules.agents.plugins.context-mode.cacheHome;
+    CONTEXT_MODE_DIR = config.modules.agents.plugins.context-mode.storageHome;
+    CONTEXT_MODE_DATA_DIR = builtins.dirOf (
+      toString config.modules.agents.plugins.context-mode.storageHome
+    );
   };
 in
 {
@@ -65,22 +66,10 @@ in
       default = false;
     };
 
-    configHome = mkOption {
+    storageHome = mkOption {
       type = with types; either str path;
-      default = xdg.concrete.config "context-mode";
-      description = "Context Mode configuration directory.";
-    };
-
-    dataHome = mkOption {
-      type = with types; either str path;
-      default = xdg.concrete.data "context-mode";
-      description = "Context Mode data directory.";
-    };
-
-    cacheHome = mkOption {
-      type = with types; either str path;
-      default = xdg.concrete.cache "context-mode";
-      description = "Context Mode cache directory.";
+      default = xdg.concrete.config "agents/context-mode";
+      description = "Shared Context Mode configuration and storage directory.";
     };
   };
 

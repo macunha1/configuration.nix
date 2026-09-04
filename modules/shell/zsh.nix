@@ -7,7 +7,6 @@
 
 {
   config,
-  options,
   pkgs,
   lib,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -225,9 +224,7 @@ in
           path
           (listOf (either str path))
         ]);
-        apply = mapAttrs (
-          n: v: if isList v then concatMapStringsSep ":" (x: toString x) v else (toString v)
-        );
+        apply = mapAttrs (_n: v: if isList v then concatMapStringsSep ":" toString v else (toString v));
         default = { };
         description = "Shell aliases written into zsh/init.zsh on both platforms.";
       };

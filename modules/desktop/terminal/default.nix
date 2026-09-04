@@ -2,9 +2,7 @@
 
 {
   config,
-  options,
   lib,
-  pkgs,
   ...
 }:
 

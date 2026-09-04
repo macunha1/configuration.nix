@@ -6,7 +6,6 @@
 #
 {
   config,
-  options,
   pkgs,
   lib,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,

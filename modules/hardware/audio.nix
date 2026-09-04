@@ -4,7 +4,6 @@
 # through services.pipewire.pulse.
 
 {
-  options,
   config,
   lib,
   pkgs,

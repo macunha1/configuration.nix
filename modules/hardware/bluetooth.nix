@@ -5,7 +5,6 @@
 # focused into enabling audio-related features.
 
 {
-  options,
   config,
   lib,
   pkgs,

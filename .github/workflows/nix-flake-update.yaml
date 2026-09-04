@@ -3,17 +3,17 @@ name: Nix Flake Update
 
 on:
   workflow_dispatch:
-#   schedule:
-#     - cron: "0 0 * * Sat"
+  schedule:
+    - cron: "0 0 * * Sat"
 
 jobs:
   flake-update:
     runs-on: self-hosted
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v15
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
@@ -24,14 +24,14 @@ jobs:
         run: make update
 
       - name: SSH | Load deploy key to SSH Agent
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: |
             ${{ secrets.GIT_REPO_SSH_KEY }}
 
       - name: Git | Import GPG key to sign commits
         id: git_import_gpg
-        uses: crazy-max/ghaction-import-gpg@v4
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GH_ACTIONS_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GH_ACTIONS_GPG_PASSPHRASE }}
@@ -46,15 +46,9 @@ jobs:
           git config --local user.email "${{ steps.git_import_gpg.outputs.email }}"
           git config --local user.name "${{ steps.git_import_gpg.outputs.name }}"
           git config --local user.signingkey "${{ steps.git_import_gpg.outputs.keyid }}"
-          git config --local url.ssh://git@github.com/.insteadOf https://github.com/
-
-          GIT_BRANCH_NAME=autoupdate-$(date +'%Y%m%d')
-          git checkout -b ${GIT_BRANCH_NAME}
+          GIT_BRANCH_NAME="autoupdate-${GITHUB_RUN_ID}"
+          git checkout -b "${GIT_BRANCH_NAME}"
 
           git add -A
           git commit -S -m "chore(flake): [auto] Updating Flake Lock"
-          git push origin ${GIT_BRANCH_NAME}
-
-          # Clean up so next execution won't fail on checkout trying to pull
-          # through SSH
-          rm -f ${GITHUB_WORKSPACE}/.git/config
+          git push "git@github.com:${GITHUB_REPOSITORY}.git" "${GIT_BRANCH_NAME}"

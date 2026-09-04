@@ -5,7 +5,6 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
   ...
@@ -20,9 +19,12 @@ with lib;
   };
 
   config = mkIf config.modules.desktop.applications.qmk.enable {
-    user.packages = with pkgs; [
-      qmk
-      qmk-udev-rules
+    user.packages = [
+      (pkgs.qmk.override {
+        # AVRDUDE documentation pulls in a broken TeX/PyQt5 build on Python 3.14.
+        avrdude = pkgs.avrdude.override { docSupport = false; };
+      })
+      pkgs.qmk-udev-rules
     ];
   };
 }

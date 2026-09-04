@@ -6,7 +6,7 @@ DEFAULT_CONFIG_USER := $(shell id -un)
 DEFAULT_NIXOS_HOST := nixosmos
 
 ifeq ($(SYSTEM),Linux)
-ROOT_CMD := sudo -E
+ROOT_CMD := sudo -H -E
 else
 ROOT_CMD :=
 endif
