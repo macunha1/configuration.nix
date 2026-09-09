@@ -41,7 +41,13 @@ NIX_FLAGS := --no-warn-dirty
 NIX_SHELL := nix-shell
 NIXOS_INSTALL := nixos-install
 NIXOS_REBUILD := nixos-rebuild
-NIX_CONFIG_QUIET := warn-dirty = false
+
+define NIX_CONFIG
+warn-dirty = false
+flake-registry =
+endef
+export NIX_CONFIG
+
 ACTIVATE_APP := $(DOTFILES)\#activate
 
 NIXOS_FLAKE := $(DOTFILES)\#$(NIXOS_HOST)
@@ -101,8 +107,7 @@ install:
 	esac
 
 activate:
-	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
-		FLAKE="$(DOTFILES)" \
+	@FLAKE="$(DOTFILES)" \
 		CONFIG_USER="$(CONFIG_USER)" \
 		USER="$(CONFIG_USER)" \
 		HOME_CONFIG="$(HOME_CONFIG)" \
@@ -121,16 +126,14 @@ switch: activate
 upgrade: update switch
 
 rollback:
-	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
-		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --rollback --fast switch
+	@$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" --rollback --fast switch
 
 gc:
 	@sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +1
 	@nix-collect-garbage -d
 
 vm:
-	@NIX_CONFIG='$(NIX_CONFIG_QUIET)' \
-		$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" vm
+	@$(NIXOS_REBUILD) --flake "$(NIXOS_FLAKE)" vm
 
 clean:
 	@unlink result

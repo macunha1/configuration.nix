@@ -13,6 +13,7 @@
 
   nixConfig = {
     extra-experimental-features = "nix-command flakes";
+    flake-registry = "";
   };
 
   inputs = {
@@ -128,7 +129,9 @@
 
           activate = pkgs.writeShellApplication {
             name = "activate";
-            runtimeInputs = [ pkgs.nix ];
+            runtimeInputs = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+              (pkgs.callPackage (inputs.home-manager + "/home-manager") { path = inputs.home-manager; })
+            ];
             text = ''
               set -eu
 
@@ -138,8 +141,7 @@
               case "$system_name" in
                 Darwin)
                   home_config="''${HOME_CONFIG:-''${CONFIG_USER:-''${USER:-mcunha}}}"
-                  exec nix run --no-warn-dirty nixpkgs#home-manager -- \
-                    switch --flake "$flake#$home_config" --impure
+                  exec home-manager switch --flake "$flake#$home_config" --impure
                   ;;
                 Linux)
                   nixos_host="''${NIXOS_HOST:-''${HOST:-$(hostname)}}"

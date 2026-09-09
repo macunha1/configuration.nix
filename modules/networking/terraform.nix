@@ -151,7 +151,7 @@ let
       command="$(terraform_subcommand "$@")" || return 1
 
       case "''${command}" in
-        apply|destroy|force-unlock|get|import|init|login|logout|output|plan|providers|refresh|state|taint|test|untaint|workspace)
+        apply|console|destroy|force-unlock|get|import|init|login|logout|output|plan|providers|refresh|state|taint|test|untaint|workspace)
           return 0
           ;;
       esac

@@ -46,6 +46,7 @@ with inputs;
           "nix-command"
           "flakes"
         ];
+        flake-registry = "";
         sandbox = true;
         auto-optimise-store = true;
 

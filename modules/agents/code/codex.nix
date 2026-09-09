@@ -101,6 +101,12 @@ let
   managedMcpServerNamesJson = pkgs.writeText "codex-managed-mcp-server-names.json" (
     builtins.toJSON managedMcpServerNames
   );
+  codexSettingsJson = pkgs.writeText "codex-settings.json" (
+    builtins.toJSON {
+      inherit (config.modules.agents.code.codex) model;
+      model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
+    }
+  );
   codexContextModeHooksJson = pkgs.writeText "codex-context-mode-hooks.json" (
     builtins.toJSON codexContextModeHooks
   );
@@ -113,7 +119,7 @@ let
     runtimeInputs = [ pkgs.python3 ];
 
     text = ''
-      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" <<'PY'
+      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" "${codexSettingsJson}" <<'PY'
       import json
       import os
       import sys
@@ -135,6 +141,7 @@ let
       config_path = Path(expand_xdg_path(sys.argv[1]))
       servers = json.loads(Path(sys.argv[2]).read_text())
       managed_server_names = set(json.loads(Path(sys.argv[3]).read_text()))
+      settings = json.loads(Path(sys.argv[4]).read_text())
 
       def toml_value(value):
           if isinstance(value, bool):
@@ -191,6 +198,31 @@ let
           else:
               lines[setting_index] = rendered
 
+      def ensure_top_level_setting(lines, setting_name, value):
+          first_section_index = next(
+              (index for index, line in enumerate(lines) if section_name(line) is not None),
+              len(lines),
+          )
+          setting_index = next(
+              (
+                  index
+                  for index in range(first_section_index)
+                  if "=" in lines[index]
+                  and lines[index].split("=", 1)[0].strip() == setting_name
+              ),
+              None,
+          )
+          rendered = f"{setting_name} = {toml_value(value)}"
+
+          if setting_index is not None:
+              lines[setting_index] = rendered
+              return
+
+          insertion_index = first_section_index
+          while insertion_index > 0 and lines[insertion_index - 1] == "":
+              insertion_index -= 1
+          lines.insert(insertion_index, rendered)
+
       lines = []
       if config_path.exists():
           current_section = None
@@ -207,6 +239,9 @@ let
 
           while lines and lines[-1] == "":
               lines.pop()
+
+      for setting_name, value in settings.items():
+          ensure_top_level_setting(lines, setting_name, value)
 
       ensure_boolean_setting(lines, "features", "hooks", True)
 
@@ -347,6 +382,24 @@ in
       type = with types; either str path;
       default = xdg.concrete.config "codex";
       description = "Codex XDG configuration directory.";
+    };
+
+    model = mkOption {
+      type = types.str;
+      default = "gpt-5.6-sol";
+      description = "Default Codex model.";
+    };
+
+    modelReasoningEffort = mkOption {
+      type = types.enum [
+        "minimal"
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+      ];
+      default = "high";
+      description = "Default Codex model reasoning effort.";
     };
   };
 

@@ -19,6 +19,12 @@
 }:
 
 let
+  # Give the flake source a derivation context before Home Manager serializes
+  # it into generated session scripts.
+  dotfilesSource = pkgs.runCommandLocal "dotfiles" { source = ../..; } ''
+    ln -s "$source" "$out"
+  '';
+
   # Machine-local overrides live outside the flake so they are never committed.
   #
   # Requires: home-manager switch --flake .#mcunha --impure
@@ -72,10 +78,14 @@ in
       nixfmt-tree
     ];
 
-    sessionVariables.DOTFILES = toString ../..;
+    sessionVariables.DOTFILES = "${dotfilesSource}";
   };
 
   programs.home-manager.enable = true;
+
+  # The upstream option-doc generator discards source string contexts, which
+  # current Nix versions warn about while evaluating the default manpage.
+  manual.manpages.enable = false;
 
   xdg = {
     enable = true;
