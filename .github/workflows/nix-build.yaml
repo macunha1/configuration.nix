@@ -3,8 +3,10 @@ name: Nix Build
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
+  schedule:
+    # GitHub cron cannot express a rolling 10-day interval, so use a stable
+    # calendar approximation without running twice across month boundaries.
+    - cron: "0 0 1,11,21 * *"
 
 jobs:
   tests:
@@ -12,12 +14,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+      - uses: wimpysworld/nothing-but-nix@v10
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-            substituters = https://nrdxp.cachix.org https://nix-community.cachix.org
-            trusted-public-keys = nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+            extra-substituters = https://nrdxp.cachix.org https://nix-community.cachix.org
+            extra-trusted-public-keys = nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
       - name: Nix | Check Flake
         run: make check

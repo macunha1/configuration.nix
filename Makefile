@@ -38,7 +38,6 @@ MOUNT_PATH ?= /
 
 NIX := nix
 NIX_FLAGS := --no-warn-dirty
-NIX_SHELL := nix-shell
 NIXOS_INSTALL := nixos-install
 NIXOS_REBUILD := nixos-rebuild
 
@@ -89,15 +88,14 @@ help:
 	@printf '%s\n' '  clean           Remove ./result'
 
 update:
-	@$(NIX_SHELL) --run "nix flake update $(NIX_FLAGS)"
+	@$(NIX) flake update $(NIX_FLAGS)
 
 check:
-	@$(NIX_SHELL) --run "nix flake check $(NIX_FLAGS)"
+	@$(NIX) flake check $(NIX_FLAGS)
 
 build:
 	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
-		$(NIX_SHELL) --run \
-			"nix build $(NIX_FLAGS) --impure $(NIXOS_TOPLEVEL)"
+		$(NIX) build $(NIX_FLAGS) --impure $(NIXOS_TOPLEVEL)
 
 install:
 	@case "$(SYSTEM)" in \
