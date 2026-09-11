@@ -35,11 +35,11 @@ let
     awscli # AWS CLI v1
   ];
 
-  # XDG-compliant AWS credential paths - same values on both platforms.
+  # XDG-compliant AWS paths; concrete on Darwin, shell-expanded on Linux.
   awsEnvVars = {
-    AWS_CONFIG_FILE = xdg.shell.config "aws/config";
-    AWS_SHARED_CREDENTIALS_FILE = xdg.shell.config "aws/credentials";
-    BOTO_CONFIG = xdg.shell.config "boto/config"; # Python boto2/boto3
+    AWS_CONFIG_FILE = xdg.concrete.config "aws/config";
+    AWS_SHARED_CREDENTIALS_FILE = xdg.concrete.config "aws/credentials";
+    BOTO_CONFIG = xdg.concrete.config "boto/config"; # Python boto2/boto3
   };
 in
 {

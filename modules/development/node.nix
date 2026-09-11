@@ -40,20 +40,20 @@ let
     bun # JavaScript runtime, package manager, bundler, and test runner
   ];
 
-  # XDG-compliant npm paths - same values on both platforms.
+  # XDG-compliant npm paths; concrete on Darwin, shell-expanded on Linux.
   nodeEnvVars = {
-    NPM_CONFIG_USERCONFIG = xdg.shell.config "npm/config";
-    NPM_CONFIG_CACHE = xdg.shell.cache "npm/cache";
-    NPM_CONFIG_PREFIX = xdg.shell.data "npm"; # global install target
-    NODE_REPL_HISTORY = xdg.shell.config "node/repl_history";
+    NPM_CONFIG_USERCONFIG = xdg.concrete.config "npm/config";
+    NPM_CONFIG_CACHE = xdg.concrete.cache "npm/cache";
+    NPM_CONFIG_PREFIX = xdg.concrete.data "npm"; # global install target
+    NODE_REPL_HISTORY = xdg.concrete.config "node/repl_history";
   };
 
-  # XDG-compliant Bun paths - same values on both platforms.
+  # XDG-compliant Bun paths; concrete on Darwin, shell-expanded on Linux.
   bunEnvVars = {
-    BUN_INSTALL = xdg.shell.data "bun";
-    BUN_INSTALL_GLOBAL_DIR = xdg.shell.data "bun/install/global";
-    BUN_INSTALL_BIN = xdg.shell.data "bun/bin";
-    BUN_INSTALL_CACHE_DIR = xdg.shell.cache "bun/install/cache";
+    BUN_INSTALL = xdg.concrete.data "bun";
+    BUN_INSTALL_GLOBAL_DIR = xdg.concrete.data "bun/install/global";
+    BUN_INSTALL_BIN = xdg.concrete.data "bun/bin";
+    BUN_INSTALL_CACHE_DIR = xdg.concrete.cache "bun/install/cache";
   };
 
   # npm config file - same content on both platforms; only the option differs.

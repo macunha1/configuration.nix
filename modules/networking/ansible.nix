@@ -40,12 +40,12 @@ let
       pkgs.molecule # test framework for Ansible roles
     ];
 
-  # XDG-compliant Ansible paths
+  # Home Manager needs concrete Darwin paths; Linux keeps the XDG shell paths.
   ansibleEnvVars = {
-    ANSIBLE_ROLES_PATH = xdg.shell.data "ansible/galaxy/roles";
-    ANSIBLE_COLLECTIONS_PATH = xdg.shell.data "ansible/galaxy/collections";
-    ANSIBLE_GALAXY_CACHE_DIR = xdg.shell.data "ansible/galaxy/cache";
-    ANSIBLE_GALAXY_TOKEN_PATH = xdg.shell.config "ansible/galaxy/token";
+    ANSIBLE_ROLES_PATH = xdg.concrete.data "ansible/galaxy/roles";
+    ANSIBLE_COLLECTIONS_PATH = xdg.concrete.data "ansible/galaxy/collections";
+    ANSIBLE_GALAXY_CACHE_DIR = xdg.concrete.data "ansible/galaxy/cache";
+    ANSIBLE_GALAXY_TOKEN_PATH = xdg.concrete.config "ansible/galaxy/token";
   };
 in
 {

@@ -32,12 +32,12 @@ let
     libxslt # required by Nokogiri XSLT support
   ];
 
-  # Bundler XDG compliance — same paths on both platforms.
+  # Bundler XDG paths; concrete on Darwin, shell-expanded on Linux.
   rubyEnvVars = {
-    BUNDLE_USER_HOME = xdg.shell.config "bundle";
-    BUNDLE_USER_CONFIG = xdg.shell.config "bundle/config";
-    BUNDLE_USER_CACHE = xdg.shell.cache "bundle/cache";
-    BUNDLE_USER_PLUGIN = xdg.shell.cache "bundle/plugin";
+    BUNDLE_USER_HOME = xdg.concrete.config "bundle";
+    BUNDLE_USER_CONFIG = xdg.concrete.config "bundle/config";
+    BUNDLE_USER_CACHE = xdg.concrete.cache "bundle/cache";
+    BUNDLE_USER_PLUGIN = xdg.concrete.cache "bundle/plugin";
   };
 in
 {

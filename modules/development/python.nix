@@ -47,13 +47,13 @@ let
     python3Packages.setuptools # distutils++
   ];
 
-  # XDG-compliant Python paths - shared by Linux env and generated ZSH.
+  # XDG-compliant Python paths; concrete on Darwin, shell-expanded on Linux.
   pythonEnvVars = {
-    PYTHONSTARTUP = xdg.shell.config "python/pythonrc";
-    PYTHON_EGG_CACHE = xdg.shell.cache "python-eggs";
-    FLAKE8_CONFIG_FILE = xdg.shell.config "flake8";
-    PIP_CONFIG_FILE = xdg.shell.config "pip/pip.conf";
-    PIP_LOG_FILE = xdg.shell.data "pip/log";
+    PYTHONSTARTUP = xdg.concrete.config "python/pythonrc";
+    PYTHON_EGG_CACHE = xdg.concrete.cache "python-eggs";
+    FLAKE8_CONFIG_FILE = xdg.concrete.config "flake8";
+    PIP_CONFIG_FILE = xdg.concrete.config "pip/pip.conf";
+    PIP_LOG_FILE = xdg.concrete.data "pip/log";
   };
 
   # Shell aliases - identical on both platforms; only the option name differs.

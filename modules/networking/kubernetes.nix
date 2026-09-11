@@ -36,10 +36,10 @@ let
     inherit config isDarwin;
   };
 
-  # XDG-compliant Kubernetes paths - shared by Linux env and generated ZSH.
+  # XDG-compliant Kubernetes paths; concrete on Darwin, shell-expanded on Linux.
   kubeEnvVars = {
-    KUBECONFIG = xdg.shell.config "kubectl/config";
-    KUBECACHE = xdg.shell.cache "kubectl/cache";
+    KUBECONFIG = xdg.concrete.config "kubectl/config";
+    KUBECACHE = xdg.concrete.cache "kubectl/cache";
   };
 
   kubernetesEnvVars =
@@ -47,7 +47,7 @@ let
       MINIKUBE_HOME = config.modules.networking.kubernetes.minikube.home;
     }
     // optionalAttrs config.modules.networking.kubernetes.helm.enable {
-      HELM_PLUGIN_DIR = xdg.shell.data "helm";
+      HELM_PLUGIN_DIR = xdg.concrete.data "helm";
     };
 
   kubernetesPackages =
