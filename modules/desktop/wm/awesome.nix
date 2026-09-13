@@ -29,8 +29,8 @@ let
   aweswm = pkgs.fetchFromGitHub {
     owner = "macunha1";
     repo = "aweswm";
-    rev = "5376404610da2d5aee217fc8a33ebc4cefd31e0b";
-    hash = "sha256-QIjORmm85425ukfNiu3ellJMj56yMfLndxEul0wxuNE=";
+    rev = "a555d1ba37b8a3cc31e3d3065c6a2b1ff5bf3498";
+    hash = "sha256-/Voi9ksj+RD1GkoaL3XUe2NZU7sGMjr2k4BO1w5Lkk4=";
     fetchSubmodules = true;
   };
 
