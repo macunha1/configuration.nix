@@ -180,6 +180,16 @@ let
     bindkey '^[[3~' delete-char
     [[ -n "''${terminfo[kdch1]}" ]] && bindkey "''${terminfo[kdch1]}" delete-char
 
+    # Home/End differ between Alacritty's normal/application cursor modes and
+    # Tmux's screen-compatible terminfo. Cover both explicit CSI forms and the
+    # active terminal's advertised sequence.
+    bindkey '^[[H' beginning-of-line
+    bindkey '^[[F' end-of-line
+    bindkey '^[[1~' beginning-of-line
+    bindkey '^[[4~' end-of-line
+    [[ -n "''${terminfo[khome]}" ]] && bindkey "''${terminfo[khome]}" beginning-of-line
+    [[ -n "''${terminfo[kend]}" ]] && bindkey "''${terminfo[kend]}" end-of-line
+
     # Alacritty emits CSI 1;5D/C for Ctrl+Left/Right. Bind both the explicit
     # xterm sequences and terminfo variants so word movement also works over
     # compatible terminals and SSH sessions.
