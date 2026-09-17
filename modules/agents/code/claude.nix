@@ -22,6 +22,7 @@ let
   inherit (lib.my or (import ../../../lib/modules/utils.nix { inherit lib; }))
     platformEnv
     platformPackages
+    platformPath
     ;
 
   inherit (lib.my or (import ../../../lib/modules/agents/mcp.nix { inherit lib; }))
@@ -35,11 +36,9 @@ let
 
   homeManagerLib = inputs.home-manager.lib.hm;
 
-  claudePackages = with pkgs; [
-    claude-code
-  ];
-
   claudeEnvVars = {
+    ANTHROPIC_MODEL = config.modules.agents.code.claude.model;
+    CLAUDE_CODE_EFFORT_LEVEL = config.modules.agents.code.claude.effortLevel;
     CLAUDE_CONFIG_DIR = config.modules.agents.code.claude.configHome;
   };
 
@@ -73,6 +72,29 @@ let
       inherit (config.modules.agents.code.claude) effortLevel model;
     }
   );
+
+  # Apply Nix defaults to fresh sessions. Resumed sessions restore their saved
+  # model unless the caller explicitly supplies --model. ANTHROPIC_MODEL also
+  # prevents restoration, including when inherited from the managed shell.
+  claudeLauncher = pkgs.writeShellScriptBin "claude" ''
+    export XDG_CONFIG_HOME="''${XDG_CONFIG_HOME:-$HOME/.config}"
+    ${shellExports claudeEnvVars}
+    model_args=(--model ${escapeShellArg config.modules.agents.code.claude.model})
+    for argument in "$@"; do
+      case "$argument" in
+        --) break ;;
+        --resume|--resume=*|-r|-r?*|--continue|-c)
+          model_args=()
+          unset ANTHROPIC_MODEL
+          break
+          ;;
+      esac
+    done
+    exec ${pkgs.claude-code}/bin/claude \
+      --settings ${claudeSettingsJson} \
+      "''${model_args[@]}" \
+      "$@"
+  '';
 
   claudeMcpConfigUpdater = pkgs.writeShellApplication {
     name = "update-claude-mcp-config";
@@ -206,7 +228,7 @@ in
     model = mkOption {
       type = types.str;
       default = "claude-sonnet-4-6";
-      description = "Default Claude Code model.";
+      description = "Claude Code model for fresh sessions; resumed sessions keep their saved model and --model can override either.";
     };
 
     effortLevel = mkOption {
@@ -217,14 +239,20 @@ in
         "xhigh"
       ];
       default = "high";
-      description = "Default Claude Code reasoning effort.";
+      description = "Claude Code reasoning effort applied at every managed launch.";
     };
   };
 
   config = mkIf config.modules.agents.code.claude.enable (mkMerge [
     (platformPackages {
       inherit isDarwin;
-      packages = claudePackages;
+      packages = [ claudeLauncher ];
+    })
+
+    (platformPath {
+      inherit config isDarwin;
+      paths = [ "${claudeLauncher}/bin" ];
+      target = "both";
     })
 
     (platformEnv {

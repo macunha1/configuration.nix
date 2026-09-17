@@ -171,6 +171,8 @@ let
   '';
 
   shellBindings = runCompinit: ''
+    # Keep Ctrl+Q available to ZLE even if a command restores terminal flow control.
+    unsetopt FLOW_CONTROL
     stty -ixon
 
     bindkey -e
