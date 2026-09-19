@@ -12,6 +12,11 @@
   ...
 }:
 with lib;
+let
+  chromiumPackage = pkgs.chromium.override {
+    commandLineArgs = "--disable-features=FedCm";
+  };
+in
 {
   options.modules.desktop.browsers.chromium = {
     enable = mkOption {
@@ -65,10 +70,11 @@ with lib;
       };
     };
 
-    user.packages = with pkgs; [ chromium ];
+    user.packages = [ chromiumPackage ];
 
     home-manager.users.${config.user.name}.programs.chromium = {
       enable = true;
+      package = chromiumPackage;
       extensions = [
         "eimadpbcbfnmbkopoojfekhnkhdbieeh" # Dark Reader
         "kioklelcojgbjoljlilalgdcppkiioge" # Void Theme

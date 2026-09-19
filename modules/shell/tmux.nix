@@ -57,11 +57,15 @@ let
     set -g focus-events on
     set -wg aggressive-resize on
 
-    set -g status on
+    set -g status 2
     set -g status-interval 8
     set -g status-justify centre
     set -g status-position top
     set -g status-style bg=black,fg=colour9
+    set -g status-format[1] ""
+
+    # Keep prompts below the top bar instead of drawing over it.
+    set -g message-line 1
 
     set -g pane-active-border-style bg=default,fg=colour14
     set -g pane-border-style bg=default,fg=colour9

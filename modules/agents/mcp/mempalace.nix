@@ -26,17 +26,26 @@ let
     inherit config isDarwin;
   };
 
+  homeManagerConfig = if isDarwin then config else config.home-manager.users.${config.user.name};
+
+  mempalaceConfigHome = "${homeManagerConfig.xdg.configHome}/mempalace";
+
   pythonRuntimeEnv = optionalString (!isDarwin) ''
     export LD_LIBRARY_PATH="${
       makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]
     }''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   '';
 
+  mempalaceRuntimeEnv = ''
+    ${pythonRuntimeEnv}
+    ${pkgs.coreutils}/bin/install -d -m 0700 ${escapeShellArg mempalaceConfigHome}
+  '';
+
   mempalacePackage = pkgs.writeShellApplication {
     name = "mempalace";
 
     text = ''
-      ${pythonRuntimeEnv}
+      ${mempalaceRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from mempalace==3.7.0 mempalace "$@"
     '';
@@ -46,7 +55,7 @@ let
     name = "mempalace-mcp";
 
     text = ''
-      ${pythonRuntimeEnv}
+      ${mempalaceRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
         --from mempalace==3.7.0 mempalace-mcp "$@"
     '';
@@ -78,6 +87,10 @@ in
   config = mkIf config.modules.agents.mcp.mempalace.enable (mkMerge [
     {
       modules.development.python.enable = true;
+
+      # MemPalace 3.7.0 hard-codes ~/.mempalace. Keep that compatibility path
+      # declarative while storing newly-created configuration under XDG.
+      home.file.".mempalace".source = homeManagerConfig.lib.file.mkOutOfStoreSymlink mempalaceConfigHome;
     }
 
     (platformPackages {
