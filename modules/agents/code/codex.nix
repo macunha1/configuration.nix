@@ -16,6 +16,7 @@ with lib;
 
 let
   inherit (lib.my or (import ../../../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
     shellExports
     ;
 
@@ -104,6 +105,7 @@ let
     builtins.toJSON {
       inherit (config.modules.agents.code.codex) model;
       model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
+      tui.theme = config.modules.agents.code.codex.theme;
     }
   );
   codexContextModeHooksJson = pkgs.writeText "codex-context-mode-hooks.json" (
@@ -113,12 +115,24 @@ let
     builtins.toJSON contextModeCodexHookCommands
   );
 
-  codexMcpConfigUpdater = pkgs.writeShellApplication {
-    name = "update-codex-mcp-config";
+  codexRetrowaveTheme = pkgs.writeText "retrowave.tmTheme" ''
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!--
+    ${generatedFileWarning {
+      file = ../../../config/codex/retrowave.tmTheme;
+      comment = "";
+    }}
+    -->
+    ${builtins.readFile ../../../config/codex/retrowave.tmTheme}
+  '';
+
+  codexConfigUpdater = pkgs.writeShellApplication {
+    name = "update-codex-config";
     runtimeInputs = [ pkgs.python3 ];
 
     text = ''
-      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" "${codexSettingsJson}" <<'PY'
+      ${generatedFileWarning { file = ./codex.nix; }}
+      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" "${codexSettingsJson}" "${codexRetrowaveTheme}" <<'PY'
       import json
       import os
       import sys
@@ -141,6 +155,7 @@ let
       servers = json.loads(Path(sys.argv[2]).read_text())
       managed_server_names = set(json.loads(Path(sys.argv[3]).read_text()))
       settings = json.loads(Path(sys.argv[4]).read_text())
+      theme_source_path = Path(sys.argv[5])
 
       def toml_value(value):
           if isinstance(value, bool):
@@ -161,12 +176,12 @@ let
               for name in managed_server_names
           )
 
-      def ensure_boolean_setting(lines, target_section, setting_name, value):
+      def ensure_section_setting(lines, target_section, setting_name, value):
           section_index = next(
               (index for index, line in enumerate(lines) if target_section == section_name(line)),
               None,
           )
-          rendered = f"{setting_name} = {'true' if value else 'false'}"
+          rendered = f"{setting_name} = {toml_value(value)}"
 
           if section_index is None:
               if lines:
@@ -240,9 +255,17 @@ let
               lines.pop()
 
       for setting_name, value in settings.items():
+          if isinstance(value, dict):
+              continue
           ensure_top_level_setting(lines, setting_name, value)
 
-      ensure_boolean_setting(lines, "features", "hooks", True)
+      ensure_section_setting(lines, "features", "hooks", True)
+
+      for target_section, section_settings in settings.items():
+          if not isinstance(section_settings, dict):
+              continue
+          for setting_name, value in section_settings.items():
+              ensure_section_setting(lines, target_section, setting_name, value)
 
       for server in servers:
           if lines:
@@ -273,6 +296,16 @@ let
 
       if current != desired:
           config_path.write_text(desired)
+
+      theme_path = config_path.parent / "themes" / "retrowave.tmTheme"
+      desired_theme = theme_source_path.read_text()
+      current_theme = theme_path.read_text() if theme_path.exists() else None
+
+      if current_theme != desired_theme:
+          theme_path.parent.mkdir(parents=True, exist_ok=True)
+          temporary_theme_path = theme_path.with_name(f".{theme_path.name}.tmp")
+          temporary_theme_path.write_text(desired_theme)
+          temporary_theme_path.replace(theme_path)
       PY
     '';
   };
@@ -282,6 +315,7 @@ let
     runtimeInputs = [ pkgs.python3 ];
 
     text = ''
+      ${generatedFileWarning { file = ./codex.nix; }}
       python3 - "$1" "${codexContextModeHooksJson}" "${contextModeCodexHookCommandsJson}" <<'PY'
       import json
       import os
@@ -363,8 +397,8 @@ let
     '';
   };
 
-  codexMcpConfigActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
-    run ${codexMcpConfigUpdater}/bin/update-codex-mcp-config \
+  codexConfigActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
+    run ${codexConfigUpdater}/bin/update-codex-config \
       ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
     run ${codexHooksConfigUpdater}/bin/update-codex-hooks-config \
       ${escapeShellArg "${config.modules.agents.code.codex.configHome}/hooks.json"}
@@ -400,6 +434,12 @@ in
       default = "high";
       description = "Default Codex model reasoning effort.";
     };
+
+    theme = mkOption {
+      type = types.str;
+      default = "retrowave";
+      description = "Codex syntax-highlighting theme.";
+    };
   };
 
   config = mkIf config.modules.agents.code.codex.enable (mkMerge [
@@ -417,11 +457,10 @@ in
 
     (
       if isDarwin then
-        { home.activation.updateCodexMcpConfig = codexMcpConfigActivation; }
+        { home.activation.updateCodexConfig = codexConfigActivation; }
       else
         {
-          home-manager.users.${config.user.name}.home.activation.updateCodexMcpConfig =
-            codexMcpConfigActivation;
+          home-manager.users.${config.user.name}.home.activation.updateCodexConfig = codexConfigActivation;
         }
     )
   ]);
