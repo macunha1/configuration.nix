@@ -1,11 +1,12 @@
 # packages/emacs-plus-darwin.nix -- https://github.com/d12frosted/homebrew-emacs-plus
 #
-# Pre-built macOS Emacs+ app bundle from the Homebrew cask release artifacts.
-# This intentionally avoids the regular Nix Emacs build because managed macOS
-# GateKeeper policy can kill every locally built Emacs binary.
+# Pre-built macOS Emacs+ app bundle from upstream release artifacts.
+# Nix owns its runtime dependencies so the integration stays self-contained.
 
 {
+  gcc,
   lib,
+  pkgs,
   stdenvNoCC,
   fetchurl,
   unzip,
@@ -14,11 +15,15 @@
 }:
 
 let
+  # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
+  # Import the generator directly in that case.
+  inherit (lib.my or (import ../lib/generators.nix { inherit lib pkgs; }))
+    generatedFileWarning
+    ;
+
   version = "30.2-260";
   emacsVersion = "30.2";
   buildNumber = "260";
-  gccMajorVersion = "16";
-  homebrewPrefix = if stdenvNoCC.hostPlatform.isAarch64 then "/opt/homebrew" else "/usr/local";
 
   platform =
     {
@@ -71,11 +76,16 @@ stdenvNoCC.mkDerivation {
     cp -R "Emacs.app" "$out/Applications/"
     cp -R "Emacs Client.app" "$out/Applications/"
 
-    # The bundled libgccjit retains its build-time Homebrew prefix. Resolve the
-    # active GCC runtime so native compilation survives formula upgrades.
+    # The bundled libgccjit needs GCC's Darwin runtime library. Resolve it from
+    # the Nix toolchain so native compilation does not depend on Homebrew.
     makeWrapper "$out/Applications/Emacs.app/Contents/MacOS/Emacs" "$out/bin/emacs" \
-      --prefix PATH : "${homebrewPrefix}/bin:/usr/bin:/bin" \
-      --run 'emacsGccRuntime="$(gcc-${gccMajorVersion} -print-file-name=libemutls_w.a 2>/dev/null || true)"; if [ -f "$emacsGccRuntime" ]; then export LIBRARY_PATH="''${emacsGccRuntime%/*}''${LIBRARY_PATH:+:$LIBRARY_PATH}"; fi; unset emacsGccRuntime'
+      --run ${
+        lib.escapeShellArg (generatedFileWarning {
+          file = ./emacs-plus-darwin.nix;
+        })
+      } \
+      --prefix PATH : "${lib.makeBinPath [ gcc ]}:/usr/bin:/bin" \
+      --run 'emacsGccRuntime="$("${lib.getExe gcc}" -print-file-name=libemutls_w.a 2>/dev/null || true)"; if [ -f "$emacsGccRuntime" ]; then export LIBRARY_PATH="''${emacsGccRuntime%/*}''${LIBRARY_PATH:+:$LIBRARY_PATH}"; fi; unset emacsGccRuntime'
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/emacsclient" "$out/bin/emacsclient"
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/ebrowse" "$out/bin/ebrowse"
     ln -s "$out/Applications/Emacs.app/Contents/MacOS/bin/etags" "$out/bin/etags"
@@ -94,8 +104,6 @@ stdenvNoCC.mkDerivation {
       buildNumber
       darwinMajorVersion
       emacsVersion
-      gccMajorVersion
-      homebrewPrefix
       ;
     cask = "d12frosted/emacs-plus/emacs-plus-app";
   };

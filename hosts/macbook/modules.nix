@@ -35,6 +35,8 @@ _:
     };
 
     development = {
+      cc.enable = true;
+
       python = {
         enable = true;
         languageServer.enable = true;

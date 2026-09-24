@@ -73,11 +73,6 @@ let
     ]) contextModeCodexHookCommands
   );
 
-  pythonMcpStartup = {
-    required = true;
-    startup_timeout_sec = 60;
-  };
-
   sharedMcpServers = mkMcpServers {
     inherit config;
     contextModePlatform = "codex";
@@ -92,7 +87,11 @@ let
         "CodeGraphContext"
       ]
     then
-      pythonMcpStartup // server
+      {
+        required = false;
+        startup_timeout_sec = 60;
+      }
+      // server
     else
       server
   ) sharedMcpServers;

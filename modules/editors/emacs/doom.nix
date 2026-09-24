@@ -32,6 +32,8 @@ let
 
   homeManagerConfig = if isDarwin then config else config.home-manager.users.${config.user.name};
 
+  darwinHomebrewPrefix = if pkgs.stdenv.hostPlatform.isAarch64 then "/opt/homebrew" else "/usr/local";
+
   doomEnvironment = {
     DOOMDIR = "${homeManagerConfig.xdg.configHome}/doom";
     DOOMLOCALDIR = "${homeManagerConfig.xdg.dataHome}/doom/local";
@@ -103,8 +105,9 @@ let
       cp ${
         pkgs.replaceVars ../../../config/emacs/doom/darwin/early-init.el {
           environmentFile = "${homeManagerConfig.xdg.configHome}/environment.d/emacs.sh";
-          gccMajorVersion = pkgs.my.emacs-plus-darwin.gccMajorVersion;
-          homebrewBin = "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/bin";
+          gccBin = "${getBin pkgs.gcc}/bin";
+          gccDriver = getExe pkgs.gcc;
+          homebrewBin = "${darwinHomebrewPrefix}/bin";
         }
       } "$out/early-init.el"
     ''}
@@ -460,6 +463,7 @@ let
           config.modules.editors.emacs.package
           pkgs.git
         ]
+        ++ optionals isDarwin [ pkgs.gcc ]
         ++ doomPackages
         ++ doomNodePackages
       )
@@ -630,8 +634,9 @@ in
                     concatStringsSep ":" (
                       unique (
                         [
-                          "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/bin"
-                          "${pkgs.my.emacs-plus-darwin.homebrewPrefix}/sbin"
+                          "${getBin pkgs.gcc}/bin"
+                          "${darwinHomebrewPrefix}/bin"
+                          "${darwinHomebrewPrefix}/sbin"
                         ]
                         ++ map toString homeManagerConfig.home.sessionPath
                         ++ [

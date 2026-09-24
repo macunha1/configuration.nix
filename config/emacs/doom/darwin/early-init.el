@@ -13,7 +13,8 @@
                       (string-match-p "\\`__HM_" name))
             (setenv name value)))))))
 
-(let* ((homebrew-bin "@homebrewBin@")
+(let* ((nix-gcc-bin "@gccBin@")
+       (homebrew-bin "@homebrewBin@")
        (current-path (getenv "PATH"))
        (path-directories
         (delete-dups
@@ -21,10 +22,10 @@
                  (append (and current-path
                               (split-string current-path ":" t))
                          exec-path
-                         (list homebrew-bin "/usr/bin" "/bin"))))))
+                         (list nix-gcc-bin homebrew-bin "/usr/bin" "/bin"))))))
   (setq exec-path path-directories)
   (setenv "PATH" (mapconcat #'identity path-directories ":"))
-  (let* ((gcc-driver (expand-file-name "gcc-@gccMajorVersion@" homebrew-bin))
+  (let* ((gcc-driver "@gccDriver@")
          (gcc-runtime
           (ignore-errors
             (car (process-lines gcc-driver "-print-file-name=libemutls_w.a")))))
