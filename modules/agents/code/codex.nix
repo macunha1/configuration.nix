@@ -105,7 +105,10 @@ let
     builtins.toJSON {
       inherit (config.modules.agents.code.codex) model;
       model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
-      tui.theme = config.modules.agents.code.codex.theme;
+      tui = {
+        alternate_screen = "never";
+        theme = config.modules.agents.code.codex.theme;
+      };
     }
   );
   codexContextModeHooksJson = pkgs.writeText "codex-context-mode-hooks.json" (
