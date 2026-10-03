@@ -97,7 +97,6 @@ _:
 
     virtualization = {
       kvm2.enable = true;
-      oci.enable = true;
     };
   };
 }

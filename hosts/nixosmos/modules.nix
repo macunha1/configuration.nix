@@ -125,8 +125,8 @@ _:
     };
 
     virtualization = {
+      containerd.enable = true;
       kvm2.enable = true;
-      oci.enable = true;
     };
   };
 }
