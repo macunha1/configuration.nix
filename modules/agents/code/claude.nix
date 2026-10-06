@@ -153,6 +153,7 @@ let
     '';
   };
 
+  # Merge only Nix-owned keys; preserve settings written by Claude itself.
   claudeSettingsUpdater = pkgs.writeShellApplication {
     name = "update-claude-settings";
     runtimeInputs = [ pkgs.python3 ];

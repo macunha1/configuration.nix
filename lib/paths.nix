@@ -42,6 +42,17 @@ rec {
       isDarwin ? false,
     }:
     let
+      homeDirectory =
+        if isDarwin then
+          config.home.homeDirectory
+        else
+          attrByPath [
+            "users"
+            "users"
+            config.user.name
+            "home"
+          ] "/home/${config.user.name}" config;
+
       concreteHomes =
         if isDarwin then
           {
@@ -51,10 +62,16 @@ rec {
               dataHome
               stateHome
               ;
-            binHome = "${config.home.homeDirectory}/.local/bin";
+            binHome = "${homeDirectory}/.local/bin";
           }
         else
-          shellHomes;
+          {
+            configHome = "${homeDirectory}/.config";
+            cacheHome = "${homeDirectory}/.cache";
+            dataHome = "${homeDirectory}/.local/share";
+            stateHome = "${homeDirectory}/.local/state";
+            binHome = "${homeDirectory}/.local/bin";
+          };
     in
     {
       shell = mkPathHelpers shellHomes;

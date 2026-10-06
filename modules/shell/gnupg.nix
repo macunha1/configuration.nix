@@ -6,8 +6,8 @@
 #
 # Linux: user.packages; gpg-agent wired through the NixOS home-manager proxy;
 #        gpg-agent.conf placed via home.configFile (custom NixOS option).
-# Darwin: home.packages; gpg-agent managed directly by home-manager services;
-#         gpg-agent.conf placed via xdg.configFile.
+# Darwin: home.packages; gpg-agent configured by home-manager services and
+#         started on demand by GnuPG; gpg-agent.conf placed via xdg.configFile.
 #
 # Both platforms: GNUPGHOME set to $XDG_CONFIG_HOME/gpg; same gpg-agent.conf
 # content (the pinentryPackage option is skipped in favour of the explicit
@@ -40,12 +40,14 @@ let
     inherit config isDarwin;
   };
 
+  gpgHome = xdg.concrete.config "gpg";
+
   gnupgPackages = with pkgs; [
     gnupg
   ];
 
   gnupgEnvVars = {
-    GNUPGHOME = xdg.concrete.config "gpg";
+    GNUPGHOME = gpgHome;
   };
 
   # gpg-agent configuration - same content on both platforms.
@@ -55,7 +57,7 @@ let
     default-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
     max-cache-ttl ${toString config.modules.shell.gnupg.cacheTTL}
     allow-loopback-pinentry
-    pinentry-program ${config.modules.shell.gnupg.pinentry}/bin/pinentry
+    pinentry-program ${lib.getExe config.modules.shell.gnupg.pinentry}
   '';
 in
 {
@@ -86,11 +88,15 @@ in
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
       # home-manager.users.* is the NixOS proxy for per-user home-manager options
-      home-manager.users.${config.user.name}.services.gpg-agent = {
-        enable = true;
-        enableSshSupport = config.modules.shell.gnupg.ssh.enable;
-        defaultCacheTtl = config.modules.shell.gnupg.cacheTTL;
-        maxCacheTtl = config.modules.shell.gnupg.cacheTTL;
+      home-manager.users.${config.user.name} = {
+        programs.gpg.homedir = gpgHome;
+
+        services.gpg-agent = {
+          enable = true;
+          enableSshSupport = config.modules.shell.gnupg.ssh.enable;
+          defaultCacheTtl = config.modules.shell.gnupg.cacheTTL;
+          maxCacheTtl = config.modules.shell.gnupg.cacheTTL;
+        };
       };
 
       # pinentryFlavor/pinentryPackage doesn't respect GNUPGHOME, so we write
@@ -101,12 +107,20 @@ in
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
+      # The service derives GNUPGHOME and its generated configuration from this path.
+      programs.gpg.homedir = gpgHome;
+
       services.gpg-agent = {
         enable = true;
         enableSshSupport = config.modules.shell.gnupg.ssh.enable;
         defaultCacheTtl = config.modules.shell.gnupg.cacheTTL;
         maxCacheTtl = config.modules.shell.gnupg.cacheTTL;
       };
+
+      # GnuPG owns its on-demand agent lifecycle. Home Manager's Darwin service
+      # backend would add a competing launchd job; retain its configuration and
+      # shell integration above, but do not install that backend.
+      launchd.agents.gpg-agent.enable = mkForce false;
 
       xdg.configFile."gpg/gpg-agent.conf".text = gpgAgentConf;
 
@@ -117,7 +131,7 @@ in
       packages = gnupgPackages;
     })
 
-    # GNUPGHOME contains a shell-variable reference, so render it through a shell.
+    # Export the same concrete home consumed by both service definitions.
     (platformEnv {
       inherit config isDarwin;
       inherit shellExports;
