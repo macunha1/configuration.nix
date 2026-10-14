@@ -51,7 +51,10 @@
       flake = false;
     };
 
-    awesomewm-screenlock-plugin.url = "github:macunha1/awesomewm-screenlock-plugin";
+    awesomewm-screenlock-plugin = {
+      url = "github:macunha1/awesomewm-screenlock-plugin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

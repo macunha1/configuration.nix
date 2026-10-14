@@ -89,7 +89,7 @@ in
 
       (mkIf config.modules.development.lua.languageServer.enable (platformPackages {
         inherit isDarwin;
-        packages = [ pkgs.luaPackages.lua-lsp ];
+        packages = [ pkgs.lua-language-server ];
       }))
 
       # Both platforms: prepend luarocks bin dir to PATH via zsh init.

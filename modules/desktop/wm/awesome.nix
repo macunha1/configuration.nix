@@ -20,11 +20,14 @@ let
     generatedFileWarning
     ;
 
-  luaJitEnabled = config.modules.development.lua.enable && config.modules.development.lua.jit.enable;
+  # Awesome and its screenlock plugin share one Lua ABI. The plugin installs
+  # its module for Lua 5.1, so keep the window manager on LuaJIT regardless of
+  # which interpreter the development module exposes to interactive shells.
+  awesomeLua = pkgs.luajit;
 
-  lua = if luaJitEnabled then pkgs.luajit else pkgs.lua;
+  awesomeLuaPackages = pkgs.luajitPackages;
 
-  luaPackages = if luaJitEnabled then pkgs.luajitPackages else pkgs.luaPackages;
+  awesomePackage = pkgs.awesome.override { lua5_2_compat = awesomeLua; };
 
   aweswm = pkgs.fetchFromGitHub {
     owner = "macunha1";
@@ -34,24 +37,21 @@ let
     fetchSubmodules = true;
   };
 
-  awesomewmScreenlockPlugin =
-    inputs.awesomewm-screenlock-plugin.packages.${pkgs.stdenv.hostPlatform.system}.default;
-
-  awesomeLuaModules = [
-    awesomewmScreenlockPlugin
-  ]
-  ++ optional config.modules.hardware.audio.enable (
+  awesomeLuaModules = optional config.modules.hardware.audio.enable (
     pkgs.my.lua-dbus-proxy.override {
-      inherit lua luaPackages;
+      lua = awesomeLua;
+      luaPackages = awesomeLuaPackages;
     }
   );
 
   awesomeLuaSearchArgs = concatMapStringsSep " \\\n             " (
-    module: ''--search "${module.out}/share/lua/${lua.luaversion}"''
-  ) awesomeLuaModules;
+    module: ''--search "${module.out}/share/lua/${awesomeLua.luaversion}"''
+  ) ([ config.services.awesomewm-screenlock.package ] ++ awesomeLuaModules);
 
 in
 {
+  imports = [ inputs.awesomewm-screenlock-plugin.nixosModules.default ];
+
   options.modules.desktop = {
     awesomewm.enable = mkOption {
       type = types.bool;
@@ -75,15 +75,14 @@ in
     }
 
     (mkIf config.modules.desktop.awesomewm.enable {
-      security.pam.services.xlock.enable = true;
-
       services = {
+        awesomewm-screenlock.enable = true;
         picom.enable = config.modules.desktop.compton.enable;
         displayManager.defaultSession = "none+awesome";
         xserver = {
           windowManager.awesome = {
             enable = true;
-            package = pkgs.awesome.override { inherit lua; };
+            package = awesomePackage;
             luaModules = awesomeLuaModules;
           };
         };
@@ -92,7 +91,6 @@ in
       user.packages =
         with pkgs;
         [
-          awesomewmScreenlockPlugin
           # Creates a custom AwesomeWM wrapper supporting "LUA_PATH" in startx,
           # i.e. Implements the equivalent of
           #      luaModules = [ lua-dbus-proxy ]; # in a non-DM world
@@ -102,11 +100,11 @@ in
             ${
               if awesomeLuaSearchArgs == "" then
                 ''
-                  exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome "$@"
+                  exec ${awesomePackage}/bin/awesome "$@"
                 ''
               else
                 ''
-                  exec ${pkgs.awesome.override { inherit lua; }}/bin/awesome \
+                  exec ${awesomePackage}/bin/awesome \
                   ${awesomeLuaSearchArgs} \
                   "$@"
                 ''
@@ -121,12 +119,11 @@ in
         services.screen-locker = {
           enable = true;
           inactiveInterval = 10;
-          lockCmd = "${
-            pkgs.awesome.override { inherit lua; }
-          }/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
+          lockCmd = "${awesomePackage}/bin/awesome-client 'require(\"awesomewm_screenlock\")():lock()'";
         };
 
-        home.file.".local/share/awesomewm-screenlock-plugin".source = awesomewmScreenlockPlugin;
+        home.file.".local/share/awesomewm-screenlock-plugin".source =
+          config.services.awesomewm-screenlock.package;
       };
 
       home.configFile."awesome".source = aweswm;
