@@ -20,6 +20,6 @@ with lib;
   };
 
   config = mkIf config.modules.desktop.applications.calibre.enable {
-    user.packages = [ pkgs.calibre ];
+    user.packages = [ (pkgs.calibre.override { speechSupport = false; }) ];
   };
 }

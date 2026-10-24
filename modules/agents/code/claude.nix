@@ -68,9 +68,63 @@ let
     builtins.toJSON managedMcpServerNames
   );
   claudeSettingsJson = pkgs.writeText "claude-settings.json" (
-    builtins.toJSON {
-      inherit (config.modules.agents.code.claude) effortLevel model;
-    }
+    builtins.toJSON (
+      {
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+        inherit (config.modules.agents.code.claude) effortLevel model;
+        enabledPlugins = {
+          "frontend-design@claude-plugins-official" = true;
+        }
+        // optionalAttrs config.modules.agents.plugins.context-mode.enable {
+          "context-mode@context-mode" = true;
+        }
+        // optionalAttrs config.modules.agents.mcp.mempalace.enable {
+          "mempalace@mempalace" = true;
+        }
+        //
+          optionalAttrs
+            (config.modules.development.go.enable && config.modules.development.go.languageServer.enable)
+            {
+              "gopls-lsp@claude-plugins-official" = true;
+            }
+        //
+          optionalAttrs
+            (config.modules.development.rust.enable && config.modules.development.rust.languageServer.enable)
+            {
+              "rust-analyzer-lsp@claude-plugins-official" = true;
+            };
+        extraKnownMarketplaces =
+          optionalAttrs config.modules.agents.plugins.context-mode.enable {
+            context-mode.source = {
+              source = "github";
+              repo = "mksglu/context-mode";
+            };
+          }
+          // optionalAttrs config.modules.agents.mcp.mempalace.enable {
+            mempalace.source = {
+              source = "github";
+              repo = "MemPalace/mempalace";
+            };
+          };
+        skipAutoPermissionPrompt = true;
+        tui = "default";
+      }
+      // optionalAttrs config.modules.shell.gnupg.enable {
+        sandbox = {
+          filesystem.allowWrite = [ (xdg.concrete.config "gpg") ];
+          network.allowUnixSockets = map (socket: "${xdg.concrete.config "gpg"}/${socket}") [
+            "S.gpg-agent"
+            "S.gpg-agent.extra"
+            "S.gpg-agent.browser"
+            "S.gpg-agent.ssh"
+            "S.scdaemon"
+          ];
+        };
+      }
+    )
   );
 
   # Apply Nix defaults to fresh sessions. Resumed sessions restore their saved
@@ -153,64 +207,9 @@ let
     '';
   };
 
-  # Merge only Nix-owned keys; preserve settings written by Claude itself.
-  claudeSettingsUpdater = pkgs.writeShellApplication {
-    name = "update-claude-settings";
-    runtimeInputs = [ pkgs.python3 ];
-
-    text = ''
-      python3 - "$1" "${claudeSettingsJson}" <<'PY'
-      import json
-      import os
-      import stat
-      import sys
-      from pathlib import Path
-
-      def expand_xdg_path(value):
-          xdg_defaults = {
-              "XDG_CACHE_HOME": Path.home() / ".cache",
-              "XDG_CONFIG_HOME": Path.home() / ".config",
-              "XDG_DATA_HOME": Path.home() / ".local/share",
-              "XDG_STATE_HOME": Path.home() / ".local/state",
-          }
-
-          for variable, default in xdg_defaults.items():
-              value = value.replace(f"''${variable}", os.environ.get(variable, str(default)))
-
-          return value
-
-      config_path = Path(expand_xdg_path(sys.argv[1]))
-      desired_settings = json.loads(Path(sys.argv[2]).read_text())
-
-      config_data = {}
-      if config_path.exists():
-          config_data = json.loads(config_path.read_text())
-          if not isinstance(config_data, dict):
-              raise ValueError(f"{config_path} must contain a JSON object")
-
-      config_data.update(desired_settings)
-
-      desired = json.dumps(config_data, indent=2) + "\n"
-      current = config_path.read_text() if config_path.exists() else None
-      if current != desired:
-          config_path.parent.mkdir(parents=True, exist_ok=True)
-          temporary_path = config_path.with_name(f".{config_path.name}.tmp")
-          temporary_path.write_text(desired)
-          if config_path.exists():
-              temporary_path.chmod(stat.S_IMODE(config_path.stat().st_mode))
-          temporary_path.replace(config_path)
-      PY
-    '';
-  };
-
   claudeMcpConfigActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
     run ${claudeMcpConfigUpdater}/bin/update-claude-mcp-config \
       ${escapeShellArg "${config.modules.agents.code.claude.configHome}/.claude.json"}
-  '';
-
-  claudeSettingsActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
-    run ${claudeSettingsUpdater}/bin/update-claude-settings \
-      ${escapeShellArg "${config.modules.agents.code.claude.configHome}/settings.json"}
   '';
 in
 {
@@ -266,17 +265,20 @@ in
     (
       if isDarwin then
         {
-          home.activation = {
-            updateClaudeMcpConfig = claudeMcpConfigActivation;
-            updateClaudeSettings = claudeSettingsActivation;
+          home.activation.updateClaudeMcpConfig = claudeMcpConfigActivation;
+          xdg.configFile."claude/settings.json" = {
+            force = true;
+            source = claudeSettingsJson;
           };
         }
       else
         {
-          home-manager.users.${config.user.name}.home.activation = {
-            updateClaudeMcpConfig = claudeMcpConfigActivation;
-            updateClaudeSettings = claudeSettingsActivation;
+          home.configFile."claude/settings.json" = {
+            force = true;
+            source = claudeSettingsJson;
           };
+          home-manager.users.${config.user.name}.home.activation.updateClaudeMcpConfig =
+            claudeMcpConfigActivation;
         }
     )
   ]);
