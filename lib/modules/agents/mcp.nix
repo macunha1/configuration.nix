@@ -46,16 +46,7 @@ in
           "mcp"
           "start"
         ];
-        env = {
-          DEFAULT_DATABASE = "falkordb";
-          CGC_CONFIG_DIR = config.modules.agents.mcp.codegraphcontext.configHome;
-          CGC_DATA_DIR = config.modules.agents.mcp.codegraphcontext.dataHome;
-          CGC_CACHE_DIR = config.modules.agents.mcp.codegraphcontext.cacheHome;
-          FALKORDB_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb";
-          FALKORDB_SOCKET_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb.sock";
-          LOG_FILE_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/cgc.log";
-          DEBUG_LOG_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/debug.log";
-        };
+        env = config.modules.agents.mcp.codegraphcontext.environment;
       }
     ];
 }

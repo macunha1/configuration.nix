@@ -45,7 +45,7 @@ let
     XDG_STATE_HOME = homeManagerConfig.xdg.stateHome;
   };
 
-  doomPrivateOptions = {
+  doomOptions = {
     identity = {
       fullName = mkOption {
         type = types.str;
@@ -66,6 +66,24 @@ let
       description = "OpenPGP key ID used by Org Crypt.";
     };
 
+    extraConfig = mkOption {
+      type = types.lines;
+      default = "";
+      description = "Additional Emacs Lisp appended to the generated Doom configuration.";
+    };
+
+    extraPackageDeclarations = mkOption {
+      type = types.lines;
+      default = "";
+      description = "Additional package declarations appended to Doom's generated packages.el.";
+    };
+
+    extraRuntimePackages = mkOption {
+      type = types.listOf types.package;
+      default = [ ];
+      description = "Additional runtime packages available to Doom Emacs and its synchronization command.";
+    };
+
     projectile.importTargets = mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -77,14 +95,14 @@ let
     };
   };
 
-  doomPrivateConfig =
+  doomConfig =
     if isDarwin then
       config.modules.editors.emacs.doom
     else
       config.home-manager.users.${config.user.name}.modules.editors.emacs.doom;
 
   doomProjectileImportTargets = "(${
-    concatMapStringsSep " " builtins.toJSON doomPrivateConfig.projectile.importTargets
+    concatMapStringsSep " " builtins.toJSON doomConfig.projectile.importTargets
   })";
 
   doomFramework = pkgs.runCommand "doom-emacs" { } ''
@@ -303,8 +321,8 @@ let
       file = ./doom.nix;
       comment = ";;";
     }}
-    (setq user-full-name ${builtins.toJSON doomPrivateConfig.identity.fullName}
-          user-mail-address ${builtins.toJSON doomPrivateConfig.identity.email}
+    (setq user-full-name ${builtins.toJSON doomConfig.identity.fullName}
+          user-mail-address ${builtins.toJSON doomConfig.identity.email}
           doom-font
           (font-spec :family ${builtins.toJSON config.modules.editors.emacs.font.family}
                      :size ${toString config.modules.editors.emacs.font.size}))
@@ -376,6 +394,7 @@ let
                   "Use tabs in Lua buffers."
                   (setq-local indent-tabs-mode t)))
     ''}
+    ${doomConfig.extraConfig}
   '';
 
   doomPackagesText = ''
@@ -385,6 +404,7 @@ let
       comment = ";;";
     }}
     ${builtins.readFile ../../../config/emacs/doom/packages.el}
+    ${doomConfig.extraPackageDeclarations}
   '';
 
   doomOrgText = ''
@@ -393,7 +413,7 @@ let
       file = ./doom.nix;
       comment = ";;";
     }}
-    (setq org-crypt-key ${builtins.toJSON doomPrivateConfig.org.cryptKey})
+    (setq org-crypt-key ${builtins.toJSON doomConfig.org.cryptKey})
 
     ${builtins.readFile ../../../config/emacs/doom/org.el}
   '';
@@ -408,19 +428,22 @@ let
       "$out/themes/doom-retrowave-theme.el"
   '';
 
-  doomPackages = with pkgs; [
-    (ripgrep.override { withPCRE2 = true; })
-    (aspellWithDicts (dictionaries: [ dictionaries.en ]))
-    editorconfig-core-c
-    fd
-    gnutls
-    gnupg
-    graphviz
-    pandoc
-    shfmt
-    sqlite
-    zstd
-  ];
+  doomPackages =
+    with pkgs;
+    [
+      (ripgrep.override { withPCRE2 = true; })
+      (aspellWithDicts (dictionaries: [ dictionaries.en ]))
+      editorconfig-core-c
+      fd
+      gnutls
+      gnupg
+      graphviz
+      pandoc
+      shfmt
+      sqlite
+      zstd
+    ]
+    ++ doomConfig.extraRuntimePackages;
 
   doomNodePackages = optionals config.modules.development.node.enable [
     pkgs.prettier
@@ -499,21 +522,19 @@ in
       description = "Whether to install the pinned Doom framework and render its configuration.";
     };
   }
-  // doomPrivateOptions;
+  // doomOptions;
 
   config = mkMerge [
     (optionalAttrs (!isDarwin) {
       home-manager.users.${config.user.name}.imports = [
         {
-          options.modules.editors.emacs.doom = doomPrivateOptions;
+          options.modules.editors.emacs.doom = doomOptions;
         }
       ];
     })
 
     (mkIf (config.modules.editors.emacs.enable && config.modules.editors.emacs.doom.enable) (mkMerge [
-      {
-        modules.editors.emacs.runtimeEnvironment = doomEnvironment;
-      }
+      { modules.editors.emacs.runtimeEnvironment = doomEnvironment; }
 
       (platformEnv {
         inherit config isDarwin;

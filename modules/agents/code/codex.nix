@@ -443,6 +443,12 @@ in
       default = "retrowave";
       description = "Codex syntax-highlighting theme.";
     };
+
+    remoteControl.enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Start the Codex managed remote-control daemon at login.";
+    };
   };
 
   config = mkIf config.modules.agents.code.codex.enable (mkMerge [
@@ -456,6 +462,25 @@ in
       inherit shellExports;
       envVars = codexEnvVars;
       target = "both";
+    })
+
+    (optionalAttrs (!isDarwin) {
+      home-manager.users.${config.user.name}.systemd.user.services.codex-remote-control =
+        mkIf config.modules.agents.code.codex.remoteControl.enable
+          {
+            Unit.Description = "Enable Codex remote control";
+
+            Service = {
+              Environment = [
+                "CODEX_HOME=${config.modules.agents.code.codex.configHome}"
+              ];
+              ExecStart = "${pkgs.codex}/bin/codex remote-control start";
+              RemainAfterExit = true;
+              Type = "oneshot";
+            };
+
+            Install.WantedBy = [ "default.target" ];
+          };
     })
 
     (

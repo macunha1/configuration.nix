@@ -38,6 +38,7 @@ let
 
   claudeEnvVars = {
     ANTHROPIC_MODEL = config.modules.agents.code.claude.model;
+    CLAUDE_CODE_CERT_STORE = "bundled,system";
     CLAUDE_CODE_EFFORT_LEVEL = config.modules.agents.code.claude.effortLevel;
     CLAUDE_CONFIG_DIR = config.modules.agents.code.claude.configHome;
   };

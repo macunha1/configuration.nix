@@ -68,6 +68,7 @@ let
 
     text = ''
       ${generatedFileWarning { file = ./codegraphcontext.nix; }}
+      ${shellExports config.modules.agents.mcp.codegraphcontext.environment}
       ${codegraphcontextRuntimeEnv}
       exec uv tool run --python "${getExe codegraphcontextPython}" \
         --from "${config.modules.agents.mcp.codegraphcontext.source}" \
@@ -81,6 +82,7 @@ let
 
     text = ''
       ${generatedFileWarning { file = ./codegraphcontext.nix; }}
+      ${shellExports config.modules.agents.mcp.codegraphcontext.environment}
       ${codegraphcontextRuntimeEnv}
       exec uv tool run --python "${getExe codegraphcontextPython}" \
         --from "${config.modules.agents.mcp.codegraphcontext.source}" \
@@ -92,17 +94,6 @@ let
     codegraphcontextPackage
     cgcPackage
   ];
-
-  codegraphcontextEnvVars = {
-    DEFAULT_DATABASE = "falkordb";
-    CGC_CONFIG_DIR = config.modules.agents.mcp.codegraphcontext.configHome;
-    CGC_DATA_DIR = config.modules.agents.mcp.codegraphcontext.dataHome;
-    CGC_CACHE_DIR = config.modules.agents.mcp.codegraphcontext.cacheHome;
-    FALKORDB_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb";
-    FALKORDB_SOCKET_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb.sock";
-    LOG_FILE_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/cgc.log";
-    DEBUG_LOG_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/debug.log";
-  };
 in
 {
   options.modules.agents.mcp.codegraphcontext = {
@@ -113,7 +104,7 @@ in
 
     source = mkOption {
       type = types.str;
-      default = "git+https://github.com/macunha1/CodeGraphContext@306745228cf7a219b484c316d3bd06c9c2497e5a";
+      default = "git+https://github.com/macunha1/CodeGraphContext@04df5e072421c2bf7fef0da9f2bbf2dc6faaf8aa";
       description = "Pinned Python package source for the CodeGraphContext fork.";
     };
 
@@ -134,6 +125,23 @@ in
       default = xdg.concrete.cache "codegraphcontext";
       description = "CodeGraphContext cache directory.";
     };
+
+    environment = mkOption {
+      type = types.attrsOf types.str;
+      default = {
+        DEFAULT_DATABASE = "falkordb";
+        CGC_CONFIG_DIR = config.modules.agents.mcp.codegraphcontext.configHome;
+        CGC_DATA_DIR = config.modules.agents.mcp.codegraphcontext.dataHome;
+        CGC_CACHE_DIR = config.modules.agents.mcp.codegraphcontext.cacheHome;
+        FALKORDB_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb";
+        FALKORDB_SOCKET_PATH = "${config.modules.agents.mcp.codegraphcontext.dataHome}/global/db/falkordb.sock";
+        LOG_FILE_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/cgc.log";
+        DEBUG_LOG_PATH = "${config.modules.agents.mcp.codegraphcontext.cacheHome}/logs/debug.log";
+      };
+      readOnly = true;
+      internal = true;
+      description = "Environment shared by CodeGraphContext launch surfaces.";
+    };
   };
 
   config = mkIf config.modules.agents.mcp.codegraphcontext.enable (mkMerge [
@@ -152,7 +160,7 @@ in
     (platformEnv {
       inherit config isDarwin;
       inherit shellExports;
-      envVars = codegraphcontextEnvVars;
+      envVars = config.modules.agents.mcp.codegraphcontext.environment;
       target = "both";
     })
   ]);

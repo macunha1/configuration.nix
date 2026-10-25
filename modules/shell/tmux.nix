@@ -113,9 +113,24 @@ let
 
   # vi copy-mode keybindings parametrised by the platform clipboard command.
   copyModeBindings = clipCmd: ''
+    unbind -T copy-mode-vi /
+    unbind -T copy-mode-vi ?
     unbind -T copy-mode-vi v
     unbind -T copy-mode-vi V
     unbind -T copy-mode-vi y
+
+    # Use the reserved status line for panes along the top edge. Lower panes
+    # keep tmux 3.8's pane-local prompt so the search remains near its pane.
+    bind-key -T copy-mode-vi / if-shell -F '#{pane_at_top}' {
+      command-prompt -T search -p '(search down)' { send-keys -X search-forward -- '%%' }
+    } {
+      command-prompt -P -T search -p '(search down)' { send-keys -X search-forward -- '%%' }
+    }
+    bind-key -T copy-mode-vi ? if-shell -F '#{pane_at_top}' {
+      command-prompt -T search -p '(search up)' { send-keys -X search-backward -- '%%' }
+    } {
+      command-prompt -P -T search -p '(search up)' { send-keys -X search-backward -- '%%' }
+    }
 
     bind-key -T copy-mode-vi v send-keys -X begin-selection
     bind-key -T copy-mode-vi V send-keys -X select-line

@@ -3,7 +3,10 @@ _:
 {
   modules = {
     agents = {
-      code.codex.enable = true;
+      code.codex = {
+        enable = true;
+        remoteControl.enable = true;
+      };
 
       mcp = {
         codegraphcontext.enable = true;
