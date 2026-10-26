@@ -4,7 +4,6 @@
 #
 {
   config,
-  options,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -23,15 +22,21 @@ let
     platformPackages
     ;
 
+  inherit (lib.my or (import ../../../lib/modules/agents/integrations.nix { inherit lib; }))
+    mkCommandHook
+    ;
+
   xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
     inherit config isDarwin;
   };
 
+  contextModeVersion = "1.0.169";
+
   contextModePackage = pkgs.buildNpmPackage {
     pname = "context-mode";
-    version = "1.0.169";
+    version = contextModeVersion;
     src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/context-mode/-/context-mode-1.0.169.tgz";
+      url = "https://registry.npmjs.org/context-mode/-/context-mode-${contextModeVersion}.tgz";
       hash = "sha256-CcQeTPd7IVZsdrjqL9vX89gjBV/uLwLCFm/Vu1ddryw=";
     };
     postPatch = ''
@@ -58,6 +63,101 @@ let
       toString config.modules.agents.plugins.context-mode.storageHome
     );
   };
+
+  contextModeAgents = {
+    claude = {
+      harness = "claude-code";
+      platform = "claude-code";
+      preToolUseMatcher = "Bash|WebFetch|Read|Grep|Agent|mcp__";
+      postToolUseMatcher = concatStringsSep "|" [
+        "Bash"
+        "Read"
+        "Write"
+        "Edit"
+        "NotebookEdit"
+        "Glob"
+        "Grep"
+        "TodoWrite"
+        "TaskCreate"
+        "TaskUpdate"
+        "EnterPlanMode"
+        "ExitPlanMode"
+        "Skill"
+        "Agent"
+        "AskUserQuestion"
+        "EnterWorktree"
+        "mcp__"
+      ];
+    };
+    codex = {
+      harness = "codex";
+      platform = "codex";
+      preToolUseMatcher = concatStringsSep "|" [
+        "local_shell"
+        "shell"
+        "shell_command"
+        "exec_command"
+        "Bash"
+        "Shell"
+        "apply_patch"
+        "Edit"
+        "Write"
+        "grep_files"
+        "ctx_execute"
+        "ctx_execute_file"
+        "ctx_batch_execute"
+        "ctx_fetch_and_index"
+        "ctx_search"
+        "ctx_index"
+        "mcp__"
+      ];
+      postToolUseMatcher = "";
+    };
+  };
+
+  contextModeHookEvents = {
+    PreToolUse = {
+      command = "pretooluse";
+      matcher = agent: agent.preToolUseMatcher;
+      timeout = 60;
+    };
+    PostToolUse = {
+      command = "posttooluse";
+      matcher = agent: agent.postToolUseMatcher;
+      timeout = 60;
+    };
+    SessionStart = {
+      command = "sessionstart";
+      matcher = _agent: "";
+      timeout = 60;
+    };
+    PreCompact = {
+      command = "precompact";
+      matcher = _agent: "";
+      timeout = 120;
+    };
+    UserPromptSubmit = {
+      command = "userpromptsubmit";
+      matcher = _agent: "";
+      timeout = 60;
+    };
+    Stop = {
+      command = "stop";
+      matcher = _agent: "";
+      timeout = 60;
+    };
+  };
+
+  contextModeHooks =
+    agent:
+    mapAttrs (_event: hook: [
+      {
+        matcher = hook.matcher agent;
+        hooks = [
+          (mkCommandHook "${contextModePackage}/bin/context-mode hook ${agent.harness} ${hook.command}" hook.timeout)
+        ];
+      }
+    ]) contextModeHookEvents;
 in
 {
   options.modules.agents.plugins.context-mode = {
@@ -76,6 +176,26 @@ in
   config = mkIf config.modules.agents.plugins.context-mode.enable (mkMerge [
     {
       modules.development.python.enable = true;
+
+      modules.agents.integrations = {
+        mcpServers.context-mode = {
+          command = "${contextModePackage}/bin/context-mode";
+          env = contextModeEnvVars;
+          agents = mapAttrs (
+            agentName: agent:
+            {
+              env.CONTEXT_MODE_PLATFORM = agent.platform;
+            }
+            // optionalAttrs (agentName == "claude") {
+              # context-mode's Claude hooks route to the namespace used by its
+              # upstream plugin. Preserve it for the direct Nix-managed server.
+              name = "plugin_context-mode_context-mode";
+            }
+          ) contextModeAgents;
+        };
+
+        hooks = mapAttrs (_agentName: agent: contextModeHooks agent) contextModeAgents;
+      };
     }
 
     (platformPackages {

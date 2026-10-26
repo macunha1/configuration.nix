@@ -145,6 +145,21 @@ in
   };
 
   config = mkIf config.modules.agents.mcp.codegraphcontext.enable (mkMerge [
+    {
+      modules.agents.integrations.mcpServers.CodeGraphContext = {
+        command = "${codegraphcontextPackage}/bin/codegraphcontext";
+        args = [
+          "mcp"
+          "start"
+        ];
+        env = config.modules.agents.mcp.codegraphcontext.environment;
+        agents.codex.settings = {
+          required = false;
+          startup_timeout_sec = 60;
+        };
+      };
+    }
+
     # CodeGraphContext's redislite dependency starts a bundled generic Linux
     # redis-server binary instead of resolving redis-server from PATH. NixOS
     # needs nix-ld to execute that binary.

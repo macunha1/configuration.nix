@@ -4,8 +4,6 @@
 #
 {
   config,
-  options,
-  inputs,
   lib,
   pkgs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
@@ -25,84 +23,168 @@ let
     platformPackages
     ;
 
-  inherit (lib.my or (import ../../../lib/modules/agents/mcp.nix { inherit lib; }))
-    managedMcpServerNames
-    mkMcpServers
+  inherit (lib.my or (import ../../../lib/modules/agents/integrations.nix { inherit lib; }))
+    renderAgentHooks
+    renderMcpServers
     ;
 
   xdg = (lib.my or (import ../../../lib/paths.nix { inherit lib; })).xdgPaths {
     inherit config isDarwin;
   };
 
-  homeManagerLib = inputs.home-manager.lib.hm;
+  homeManagerConfig = if isDarwin then config else config.home-manager.users.${config.user.name};
 
-  codexPackages = with pkgs; [
-    codex
-  ];
+  codexConfigHome =
+    replaceStrings
+      [
+        "$XDG_CACHE_HOME"
+        "$XDG_CONFIG_HOME"
+        "$XDG_DATA_HOME"
+        "$XDG_STATE_HOME"
+      ]
+      [
+        (toString homeManagerConfig.xdg.cacheHome)
+        (toString homeManagerConfig.xdg.configHome)
+        (toString homeManagerConfig.xdg.dataHome)
+        (toString homeManagerConfig.xdg.stateHome)
+      ]
+      (toString config.modules.agents.code.codex.configHome);
+
+  codexConfigHomeRelative = removePrefix "${toString homeManagerConfig.home.homeDirectory}/" codexConfigHome;
+
+  codexManagedProfileName = "nix-managed";
+
+  codexManagedProfilePath = "${codexConfigHome}/${codexManagedProfileName}.config.toml";
+
+  codexProfileWrapper = pkgs.writeShellScript "codex-with-managed-profile" ''
+    set -e
+
+    codex_command=""
+    debug_prompt_input=false
+
+    for argument in "$@"; do
+      case "$argument" in
+        -p|--profile|--profile=*)
+          exec ${pkgs.codex}/bin/codex "$@"
+          ;;
+        -h|--help|-V|--version)
+          exec ${pkgs.codex}/bin/codex "$@"
+          ;;
+        prompt-input)
+          debug_prompt_input=true
+          ;;
+        agents|exec|review|login|logout|mcp|plugin|app-server|remote-control|app|completion|update|doctor|debug|apply|resume|queue|archive|delete|unarchive|fork|cloud|exec-server|features|help|sandbox)
+          if [[ -z "$codex_command" ]]; then
+            codex_command="$argument"
+          fi
+          ;;
+      esac
+    done
+
+    case "$codex_command" in
+      login|logout|plugin|app-server|remote-control|app|completion|update|doctor|apply|cloud|exec-server|features|help|agents)
+        exec ${pkgs.codex}/bin/codex "$@"
+        ;;
+      debug)
+        if [[ "$debug_prompt_input" != true ]]; then
+          exec ${pkgs.codex}/bin/codex "$@"
+        fi
+        ;;
+    esac
+
+    exec ${pkgs.codex}/bin/codex --profile ${escapeShellArg codexManagedProfileName} "$@"
+  '';
+
+  codexPackage = pkgs.symlinkJoin {
+    name = "codex-${pkgs.codex.version}-nix-managed";
+    paths = [ pkgs.codex ];
+    postBuild = ''
+      ln -sfn ${codexProfileWrapper} "$out/bin/codex"
+    '';
+  };
+
+  codexPackages = [ (if isDarwin then codexPackage else pkgs.codex) ];
 
   codexEnvVars = {
     CODEX_HOME = config.modules.agents.code.codex.configHome;
   };
 
-  userProfileDirectory =
-    if isDarwin then config.home.profileDirectory else "/etc/profiles/per-user/${config.user.name}";
-
-  contextModeCodexHookCommands = {
-    PreToolUse = "context-mode hook codex pretooluse";
-    PostToolUse = "context-mode hook codex posttooluse";
-    SessionStart = "context-mode hook codex sessionstart";
-    PreCompact = "context-mode hook codex precompact";
-    UserPromptSubmit = "context-mode hook codex userpromptsubmit";
-    Stop = "context-mode hook codex stop";
-  };
-
-  codexContextModeHooks = optionalAttrs config.modules.agents.plugins.context-mode.enable (
-    mapAttrs (hookName: command: [
-      {
-        matcher =
-          if hookName == "PreToolUse" then
-            "local_shell|shell|shell_command|exec_command|Bash|Shell|apply_patch|Edit|Write|grep_files|ctx_execute|ctx_execute_file|ctx_batch_execute|ctx_fetch_and_index|ctx_search|ctx_index|mcp__"
-          else
-            "";
-        hooks = [
-          {
-            type = "command";
-            command = "${userProfileDirectory}/bin/${command}";
-          }
-        ];
-      }
-    ]) contextModeCodexHookCommands
-  );
-
-  sharedMcpServers = mkMcpServers {
+  codexHooks = renderAgentHooks {
     inherit config;
-    contextModePlatform = "codex";
-    profileDirectory = userProfileDirectory;
+    agent = "codex";
   };
 
-  codexMcpServers = map (
-    server:
-    if
-      elem server.name [
-        "mempalace"
-        "CodeGraphContext"
-      ]
-    then
-      {
-        required = false;
-        startup_timeout_sec = 60;
-      }
-      // server
-    else
-      server
-  ) sharedMcpServers;
+  codexMcpServers = renderMcpServers {
+    inherit config;
+    agent = "codex";
+  };
 
-  codexMcpServersJson = pkgs.writeText "codex-mcp-servers.json" (builtins.toJSON codexMcpServers);
-  managedMcpServerNamesJson = pkgs.writeText "codex-managed-mcp-server-names.json" (
-    builtins.toJSON managedMcpServerNames
+  # Codex treats profile hooks as user hooks, so they require an exact trust
+  # hash even though Nix owns the profile. Pre-trust only the generated hook
+  # definitions; changing a command, matcher, timeout, or list position changes
+  # the corresponding hash and makes Codex request review again.
+  codexHookEventNames = {
+    PreToolUse = "pre_tool_use";
+    PermissionRequest = "permission_request";
+    PostToolUse = "post_tool_use";
+    PreCompact = "pre_compact";
+    PostCompact = "post_compact";
+    SessionStart = "session_start";
+    SessionEnd = "session_end";
+    UserPromptSubmit = "user_prompt_submit";
+    SubagentStart = "subagent_start";
+    SubagentStop = "subagent_stop";
+    Stop = "stop";
+    Interrupt = "interrupt";
+  };
+
+  codexMatcherEvents = [
+    "PreToolUse"
+    "PermissionRequest"
+    "PostToolUse"
+    "PreCompact"
+    "PostCompact"
+    "SessionStart"
+    "SessionEnd"
+    "SubagentStart"
+    "SubagentStop"
+  ];
+
+  codexHookTrust = listToAttrs (
+    flatten (
+      mapAttrsToList (
+        event: groups:
+        flatten (
+          imap0 (
+            groupIndex: group:
+            imap0 (
+              handlerIndex: hook:
+              let
+                eventName = codexHookEventNames.${event};
+                identity = {
+                  event_name = eventName;
+                  hooks = [
+                    (hook // { async = false; })
+                  ];
+                }
+                // optionalAttrs (elem event codexMatcherEvents && group ? matcher) {
+                  inherit (group) matcher;
+                };
+              in
+              nameValuePair
+                "${codexManagedProfilePath}:${eventName}:${toString groupIndex}:${toString handlerIndex}"
+                {
+                  trusted_hash = "sha256:${builtins.hashString "sha256" (builtins.toJSON identity)}";
+                }
+            ) group.hooks
+          ) groups
+        )
+      ) codexHooks
+    )
   );
-  codexSettingsJson = pkgs.writeText "codex-settings.json" (
-    builtins.toJSON {
+
+  codexManagedConfig = (pkgs.formats.toml { }).generate "${codexManagedProfileName}.config.toml" (
+    {
       inherit (config.modules.agents.code.codex) model;
       model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
       tui = {
@@ -110,12 +192,13 @@ let
         theme = config.modules.agents.code.codex.theme;
       };
     }
-  );
-  codexContextModeHooksJson = pkgs.writeText "codex-context-mode-hooks.json" (
-    builtins.toJSON codexContextModeHooks
-  );
-  contextModeCodexHookCommandsJson = pkgs.writeText "context-mode-codex-hook-commands.json" (
-    builtins.toJSON contextModeCodexHookCommands
+    // optionalAttrs (codexMcpServers != { }) {
+      mcp_servers = codexMcpServers;
+    }
+    // optionalAttrs (codexHooks != { }) {
+      features.hooks = true;
+      hooks = codexHooks // optionalAttrs isDarwin { state = codexHookTrust; };
+    }
   );
 
   codexRetrowaveTheme = pkgs.writeText "retrowave.tmTheme" ''
@@ -129,283 +212,18 @@ let
     ${builtins.readFile ../../../config/codex/retrowave.tmTheme}
   '';
 
-  codexConfigUpdater = pkgs.writeShellApplication {
-    name = "update-codex-config";
-    runtimeInputs = [ pkgs.python3 ];
-
-    text = ''
-      ${generatedFileWarning { file = ./codex.nix; }}
-      python3 - "$1" "${codexMcpServersJson}" "${managedMcpServerNamesJson}" "${codexSettingsJson}" "${codexRetrowaveTheme}" <<'PY'
-      import json
-      import os
-      import sys
-      from pathlib import Path
-
-      def expand_xdg_path(value):
-          xdg_defaults = {
-              "XDG_CACHE_HOME": Path.home() / ".cache",
-              "XDG_CONFIG_HOME": Path.home() / ".config",
-              "XDG_DATA_HOME": Path.home() / ".local/share",
-              "XDG_STATE_HOME": Path.home() / ".local/state",
-          }
-
-          for variable, default in xdg_defaults.items():
-              value = value.replace(f"''${variable}", os.environ.get(variable, str(default)))
-
-          return value
-
-      config_path = Path(expand_xdg_path(sys.argv[1]))
-      servers = json.loads(Path(sys.argv[2]).read_text())
-      managed_server_names = set(json.loads(Path(sys.argv[3]).read_text()))
-      settings = json.loads(Path(sys.argv[4]).read_text())
-      theme_source_path = Path(sys.argv[5])
-
-      def toml_value(value):
-          if isinstance(value, bool):
-              return "true" if value else "false"
-          if isinstance(value, str):
-              value = expand_xdg_path(value)
-          return json.dumps(value)
-
-      def section_name(line):
-          stripped = line.strip()
-          if stripped.startswith("[") and stripped.endswith("]"):
-              return stripped.strip("[]")
-          return None
-
-      def managed_section(section):
-          return any(
-              section == f"mcp_servers.{name}" or section == f"mcp_servers.{name}.env"
-              for name in managed_server_names
-          )
-
-      def ensure_section_setting(lines, target_section, setting_name, value):
-          section_index = next(
-              (index for index, line in enumerate(lines) if target_section == section_name(line)),
-              None,
-          )
-          rendered = f"{setting_name} = {toml_value(value)}"
-
-          if section_index is None:
-              if lines:
-                  lines.append("")
-              lines.extend([f"[{target_section}]", rendered])
-              return
-
-          section_end = next(
-              (
-                  index
-                  for index in range(section_index + 1, len(lines))
-                  if section_name(lines[index]) is not None
-              ),
-              len(lines),
-          )
-          setting_index = next(
-              (
-                  index
-                  for index in range(section_index + 1, section_end)
-                  if "=" in lines[index]
-                  and lines[index].split("=", 1)[0].strip() == setting_name
-              ),
-              None,
-          )
-
-          if setting_index is None:
-              lines.insert(section_index + 1, rendered)
-          else:
-              lines[setting_index] = rendered
-
-      def ensure_top_level_setting(lines, setting_name, value):
-          first_section_index = next(
-              (index for index, line in enumerate(lines) if section_name(line) is not None),
-              len(lines),
-          )
-          setting_index = next(
-              (
-                  index
-                  for index in range(first_section_index)
-                  if "=" in lines[index]
-                  and lines[index].split("=", 1)[0].strip() == setting_name
-              ),
-              None,
-          )
-          rendered = f"{setting_name} = {toml_value(value)}"
-
-          if setting_index is not None:
-              lines[setting_index] = rendered
-              return
-
-          insertion_index = first_section_index
-          while insertion_index > 0 and lines[insertion_index - 1] == "":
-              insertion_index -= 1
-          lines.insert(insertion_index, rendered)
-
-      lines = []
-      if config_path.exists():
-          current_section = None
-          skipping = False
-
-          for line in config_path.read_text().splitlines():
-              section = section_name(line)
-              if section is not None:
-                  current_section = section
-                  skipping = managed_section(current_section)
-
-              if not skipping:
-                  lines.append(line)
-
-          while lines and lines[-1] == "":
-              lines.pop()
-
-      for setting_name, value in settings.items():
-          if isinstance(value, dict):
-              continue
-          ensure_top_level_setting(lines, setting_name, value)
-
-      ensure_section_setting(lines, "features", "hooks", True)
-
-      for target_section, section_settings in settings.items():
-          if not isinstance(section_settings, dict):
-              continue
-          for setting_name, value in section_settings.items():
-              ensure_section_setting(lines, target_section, setting_name, value)
-
-      for server in servers:
-          if lines:
-              lines.append("")
-
-          name = server["name"]
-          lines.append(f"[mcp_servers.{name}]")
-          lines.append(f"command = {toml_value(server['command'])}")
-
-          if server.get("args"):
-              lines.append(f"args = {toml_value(server['args'])}")
-
-          for key, value in server.items():
-              if key in {"name", "command", "args", "env"}:
-                  continue
-              lines.append(f"{key} = {toml_value(value)}")
-
-          env = server.get("env", {})
-          if env:
-              lines.append("")
-              lines.append(f"[mcp_servers.{name}.env]")
-              for key in sorted(env):
-                  lines.append(f"{key} = {toml_value(env[key])}")
-
-      config_path.parent.mkdir(parents=True, exist_ok=True)
-      desired = "\n".join(lines) + "\n"
-      current = config_path.read_text() if config_path.exists() else None
-
-      if current != desired:
-          config_path.write_text(desired)
-
-      theme_path = config_path.parent / "themes" / "retrowave.tmTheme"
-      desired_theme = theme_source_path.read_text()
-      current_theme = theme_path.read_text() if theme_path.exists() else None
-
-      if current_theme != desired_theme:
-          theme_path.parent.mkdir(parents=True, exist_ok=True)
-          temporary_theme_path = theme_path.with_name(f".{theme_path.name}.tmp")
-          temporary_theme_path.write_text(desired_theme)
-          temporary_theme_path.replace(theme_path)
-      PY
-    '';
+  codexManagedHomeFiles = {
+    "${codexConfigHomeRelative}/themes/retrowave.tmTheme" = {
+      force = true;
+      source = codexRetrowaveTheme;
+    };
+  }
+  // optionalAttrs isDarwin {
+    "${codexConfigHomeRelative}/${codexManagedProfileName}.config.toml" = {
+      force = true;
+      source = codexManagedConfig;
+    };
   };
-
-  codexHooksConfigUpdater = pkgs.writeShellApplication {
-    name = "update-codex-hooks-config";
-    runtimeInputs = [ pkgs.python3 ];
-
-    text = ''
-      ${generatedFileWarning { file = ./codex.nix; }}
-      python3 - "$1" "${codexContextModeHooksJson}" "${contextModeCodexHookCommandsJson}" <<'PY'
-      import json
-      import os
-      import stat
-      import sys
-      from pathlib import Path
-
-      def expand_xdg_path(value):
-          xdg_defaults = {
-              "XDG_CACHE_HOME": Path.home() / ".cache",
-              "XDG_CONFIG_HOME": Path.home() / ".config",
-              "XDG_DATA_HOME": Path.home() / ".local/share",
-              "XDG_STATE_HOME": Path.home() / ".local/state",
-          }
-
-          for variable, default in xdg_defaults.items():
-              value = value.replace(f"''${variable}", os.environ.get(variable, str(default)))
-
-          return value
-
-      def entry_commands(entry):
-          if not isinstance(entry, dict):
-              return []
-          hooks = entry.get("hooks", [])
-          if not isinstance(hooks, list):
-              return []
-          return [
-              hook.get("command", "")
-              for hook in hooks
-              if isinstance(hook, dict) and isinstance(hook.get("command"), str)
-          ]
-
-      config_path = Path(expand_xdg_path(sys.argv[1]))
-      desired_hooks = json.loads(Path(sys.argv[2]).read_text())
-      managed_commands = json.loads(Path(sys.argv[3]).read_text())
-
-      config_data = {}
-      if config_path.exists():
-          config_data = json.loads(config_path.read_text())
-          if not isinstance(config_data, dict):
-              raise ValueError(f"{config_path} must contain a JSON object")
-
-      hooks = config_data.get("hooks", {})
-      if not isinstance(hooks, dict):
-          raise ValueError(f"{config_path} hooks must be a JSON object")
-
-      for hook_name, managed_command in managed_commands.items():
-          current_entries = hooks.get(hook_name, [])
-          if not isinstance(current_entries, list):
-              raise ValueError(f"{config_path} hooks.{hook_name} must be a JSON array")
-
-          entries = [
-              entry
-              for entry in current_entries
-              if not any(managed_command in command for command in entry_commands(entry))
-          ]
-          entries.extend(desired_hooks.get(hook_name, []))
-
-          if entries:
-              hooks[hook_name] = entries
-          else:
-              hooks.pop(hook_name, None)
-
-      if hooks:
-          config_data["hooks"] = hooks
-      else:
-          config_data.pop("hooks", None)
-
-      desired = json.dumps(config_data, indent=2) + "\n"
-      current = config_path.read_text() if config_path.exists() else None
-      if current != desired:
-          config_path.parent.mkdir(parents=True, exist_ok=True)
-          temporary_path = config_path.with_name(f".{config_path.name}.tmp")
-          temporary_path.write_text(desired)
-          if config_path.exists():
-              temporary_path.chmod(stat.S_IMODE(config_path.stat().st_mode))
-          temporary_path.replace(config_path)
-      PY
-    '';
-  };
-
-  codexConfigActivation = homeManagerLib.dag.entryAfter [ "writeBoundary" ] ''
-    run ${codexConfigUpdater}/bin/update-codex-config \
-      ${escapeShellArg "${config.modules.agents.code.codex.configHome}/config.toml"}
-    run ${codexHooksConfigUpdater}/bin/update-codex-hooks-config \
-      ${escapeShellArg "${config.modules.agents.code.codex.configHome}/hooks.json"}
-  '';
 in
 {
   options.modules.agents.code.codex = {
@@ -422,7 +240,7 @@ in
 
     model = mkOption {
       type = types.str;
-      default = "gpt-5.6-sol";
+      default = "gpt-6.1-sol";
       description = "Default Codex model.";
     };
 
@@ -452,6 +270,15 @@ in
   };
 
   config = mkIf config.modules.agents.code.codex.enable (mkMerge [
+    {
+      assertions = [
+        {
+          assertion = hasPrefix "${toString homeManagerConfig.home.homeDirectory}/" codexConfigHome;
+          message = "modules.agents.code.codex.configHome must be inside the managed user's home directory.";
+        }
+      ];
+    }
+
     (platformPackages {
       inherit isDarwin;
       packages = codexPackages;
@@ -465,31 +292,32 @@ in
     })
 
     (optionalAttrs (!isDarwin) {
-      home-manager.users.${config.user.name}.systemd.user.services.codex-remote-control =
-        mkIf config.modules.agents.code.codex.remoteControl.enable
-          {
-            Unit.Description = "Enable Codex remote control";
+      environment.etc."codex/config.toml".source = codexManagedConfig;
 
-            Service = {
-              Environment = [
-                "CODEX_HOME=${config.modules.agents.code.codex.configHome}"
-              ];
-              ExecStart = "${pkgs.codex}/bin/codex remote-control start";
-              RemainAfterExit = true;
-              Type = "oneshot";
+      home-manager.users.${config.user.name} = {
+        home.file = codexManagedHomeFiles;
+
+        systemd.user.services.codex-remote-control =
+          mkIf config.modules.agents.code.codex.remoteControl.enable
+            {
+              Unit.Description = "Enable Codex remote control";
+
+              Service = {
+                Environment = [
+                  "CODEX_HOME=${codexConfigHome}"
+                ];
+                ExecStart = "${pkgs.codex}/bin/codex remote-control start";
+                RemainAfterExit = true;
+                Type = "oneshot";
+              };
+
+              Install.WantedBy = [ "default.target" ];
             };
-
-            Install.WantedBy = [ "default.target" ];
-          };
+      };
     })
 
-    (
-      if isDarwin then
-        { home.activation.updateCodexConfig = codexConfigActivation; }
-      else
-        {
-          home-manager.users.${config.user.name}.home.activation.updateCodexConfig = codexConfigActivation;
-        }
-    )
+    (optionalAttrs isDarwin {
+      home.file = codexManagedHomeFiles;
+    })
   ]);
 }

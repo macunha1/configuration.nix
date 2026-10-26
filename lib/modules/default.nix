@@ -1,3 +1,3 @@
 { lib, ... }:
 
-(import ./utils.nix { inherit lib; }) // (import ./agents/mcp.nix { inherit lib; })
+(import ./utils.nix { inherit lib; }) // (import ./agents/integrations.nix { inherit lib; })

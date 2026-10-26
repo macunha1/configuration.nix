@@ -48,19 +48,21 @@ let
     lib.mapAttrsToList (name: _: dir + "/${name}") nixEntries;
 in
 {
-  imports =
-    nixFilesIn ../../modules/agents/code
-    ++ nixFilesIn ../../modules/agents/mcp
-    ++ nixFilesIn ../../modules/agents/plugins
-    ++ nixFilesIn ../../modules/editors
-    ++ nixFilesIn ../../modules/shell
-    ++ nixFilesIn ../../modules/development
-    ++ nixFilesIn ../../modules/networking
-    ++ [
-      ../../modules/desktop/fonts.nix
-      ./modules.nix
-    ]
-    ++ lib.optional (builtins.pathExists privateConfig) privateConfig;
+  imports = [
+    ../../modules/agents/integrations.nix
+  ]
+  ++ nixFilesIn ../../modules/agents/code
+  ++ nixFilesIn ../../modules/agents/mcp
+  ++ nixFilesIn ../../modules/agents/plugins
+  ++ nixFilesIn ../../modules/editors
+  ++ nixFilesIn ../../modules/shell
+  ++ nixFilesIn ../../modules/development
+  ++ nixFilesIn ../../modules/networking
+  ++ [
+    ../../modules/desktop/fonts.nix
+    ./modules.nix
+  ]
+  ++ lib.optional (builtins.pathExists privateConfig) privateConfig;
 
   home = {
     username = "mcunha";
