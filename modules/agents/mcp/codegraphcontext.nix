@@ -31,9 +31,9 @@ let
 
   codegraphcontextPython = pkgs.python314;
 
+  # FalkorDB Lite supplies its own Redis server and matching graph module.
   codegraphcontextRuntimeInputs = [
     codegraphcontextPython
-    pkgs.redis
     pkgs.uv
   ];
 

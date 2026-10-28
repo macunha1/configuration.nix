@@ -74,6 +74,8 @@ let
 
     set -g window-status-current-style fg=colour10,bold
     set -g mode-style reverse
+    set -g copy-mode-current-match-style 'bg=#F6019D,fg=#FFFFFF,bold'
+    set -g copy-mode-match-style 'bg=#00FFBB,fg=#000000'
   '';
 
   # tmux-plugin-sysstat (samoshkin/tmux-plugin-sysstat) display templates.
@@ -113,6 +115,9 @@ let
 
   # vi copy-mode keybindings parametrised by the platform clipboard command.
   copyModeBindings = clipCmd: ''
+    # Start in the middle of the page so J/K scroll immediately.
+    bind-key PPage copy-mode -u \; send-keys -X middle-line
+
     unbind -T copy-mode-vi /
     unbind -T copy-mode-vi ?
     unbind -T copy-mode-vi v
@@ -135,6 +140,13 @@ let
     bind-key -T copy-mode-vi v send-keys -X begin-selection
     bind-key -T copy-mode-vi V send-keys -X select-line
     bind-key -T copy-mode-vi y send-keys -X copy-pipe '${clipCmd}'
+
+    # Follow the selection endpoint as it moves. scroll-up/down stop selection
+    # extension in tmux 3.8; scroll-middle preserves it.
+    bind-key -T copy-mode-vi H send-keys -X cursor-left
+    bind-key -T copy-mode-vi J send-keys -X cursor-down \; send-keys -X scroll-middle
+    bind-key -T copy-mode-vi K send-keys -X cursor-up \; send-keys -X scroll-middle
+    bind-key -T copy-mode-vi L send-keys -X cursor-right
   '';
 
   resurrectConfig = "set -g @resurrect-strategy-nvim 'session'";
