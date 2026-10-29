@@ -13,6 +13,12 @@
 }:
 with lib;
 let
+  inherit (lib.my or (import ../../../lib/modules/browser/search-engines.nix { inherit lib; }))
+    browserSearchEngines
+    ;
+
+  searchEngine = browserSearchEngines.${config.modules.desktop.browsers.chromium.config.searchEngine};
+
   chromiumPackage = pkgs.chromium.override {
     commandLineArgs = "--disable-features=FedCm";
   };
@@ -22,6 +28,12 @@ in
     enable = mkOption {
       type = types.bool;
       default = false;
+    };
+
+    config.searchEngine = mkOption {
+      type = types.enum (attrNames browserSearchEngines);
+      default = "DuckDuckGo";
+      description = "Default search engine for Chromium.";
     };
   };
 
@@ -34,7 +46,25 @@ in
         DefaultZoomFactor = 1.25;
         DefaultFontSize = 20;
         DefaultFixedFontSize = 16;
+
+        DefaultSearchProviderEnabled = true;
+        DefaultSearchProviderName = config.modules.desktop.browsers.chromium.config.searchEngine;
+        DefaultSearchProviderKeyword = searchEngine.keyword;
+        DefaultSearchProviderSearchURL = searchEngine.searchURL;
+
+        # Keep password and payment storage outside Chromium, including sync.
         PasswordManagerEnabled = false;
+        AutofillSettings = [
+          {
+            url_pattern = "*";
+            blocked_types = [ "payments" ];
+          }
+        ];
+        PaymentMethodQueryEnabled = false;
+        SyncTypesListDisabled = [
+          "passwords"
+          "payments"
+        ];
 
         # Disable Chromium AI features for a Google-free setup. Individual
         # features can be enabled on demand if desired.
