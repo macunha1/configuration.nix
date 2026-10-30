@@ -20,7 +20,9 @@ let
   searchEngine = browserSearchEngines.${config.modules.desktop.browsers.chromium.config.searchEngine};
 
   chromiumPackage = pkgs.chromium.override {
-    commandLineArgs = "--disable-features=FedCm";
+    # Stop federated sign-in prompts, Google Autofill crowdsourcing and remote
+    # optimization hints in both desktop and command-line launches.
+    commandLineArgs = "--disable-features=FedCm,AutofillServerCommunication,OptimizationHints";
   };
 in
 {
@@ -52,24 +54,57 @@ in
         DefaultSearchProviderKeyword = searchEngine.keyword;
         DefaultSearchProviderSearchURL = searchEngine.searchURL;
 
-        # Keep password and payment storage outside Chromium, including sync.
+        # Block saving/filling every Autofill category on every site. Keep the
+        # legacy switches for paths that still consult the global preferences.
         PasswordManagerEnabled = false;
+        PasswordManagerPasskeysEnabled = false;
+        PasswordLeakDetectionEnabled = false;
+        AutofillAddressEnabled = false;
+        AutofillCreditCardEnabled = false;
         AutofillSettings = [
           {
             url_pattern = "*";
-            blocked_types = [ "payments" ];
+            blocked_types = [ "all" ];
           }
         ];
         PaymentMethodQueryEnabled = false;
-        SyncTypesListDisabled = [
-          "passwords"
-          "payments"
-        ];
+        BrowserSignin = 0;
+        SyncDisabled = true;
 
-        # Disable Chromium AI features for a Google-free setup. Individual
-        # features can be enabled on demand if desired.
+        # Keep typed text, page contents and diagnostics out of Google services.
+        MetricsReportingEnabled = false;
+        UrlKeyedAnonymizedDataCollectionEnabled = false;
+        UserFeedbackAllowed = false;
+        FeedbackSurveysEnabled = false;
+        WebRtcEventLogCollectionAllowed = false;
+        SearchSuggestEnabled = false;
+        SpellCheckServiceEnabled = false;
+        TranslateEnabled = false;
+        AlternateErrorPagesEnabled = false;
+        NetworkPredictionOptions = 2;
+        BrowserNetworkTimeQueriesEnabled = false;
+        DnsOverHttpsMode = "off"; # Use the host's configured resolver.
+        DefaultGeolocationSetting = 2;
+
+        # Disable Google search/shopping surfaces, Cast and background activity.
+        GoogleSearchSidePanelEnabled = false;
+        ShoppingListEnabled = false;
+        NTPCardsVisible = false;
+        PromotionsEnabled = false;
+        EnableMediaRouter = false;
+        BackgroundModeEnabled = false;
+
+        # Keep standard phishing/malware protection, without enhanced protection,
+        # real-time lookups or uploading suspicious downloads to Google.
+        SafeBrowsingProtectionLevel = 1;
+        SafeBrowsingProxiedRealTimeChecksAllowed = false;
+        SafeBrowsingDeepScanningEnabled = false;
+        SafeBrowsingSurveysEnabled = false;
+
+        # Disable AI features individually: GenAiDefaultSettings is cloud-only
+        # and is ignored when supplied through local Linux policy files.
         AIModeSettings = 1;
-        AutofillPredictionSettings = 2;
+        AutofillGenAiSettings = 2;
         AutomatedPasswordChangeSettings = 2;
         BuiltInAIAPIsEnabled = false;
         ChromeSuggestionsSettings = 1;
