@@ -390,12 +390,10 @@ in
         ];
       };
 
-      # Darwin-specific env.zsh content: brew path setup and GPG_TTY.
+      # Darwin-specific env.zsh content: brew path setup.
       # brew shellenv must run before completions so Homebrew binaries are in PATH.
-      # GPG_TTY must be set per-session (not via home.sessionVariables, login-only).
       modules.shell.zsh.env = ''
         eval "$(/opt/homebrew/bin/brew shellenv)"
-        export GPG_TTY=$(tty)
       '';
 
       xdg.configFile."zsh/env.zsh".text = zshEnvText;

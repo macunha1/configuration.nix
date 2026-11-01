@@ -458,7 +458,7 @@ let
       }
     else
       {
-        cmp = "${pkgs.coreutils}/bin/cmp";
+        cmp = "${pkgs.diffutils}/bin/cmp";
         install = "${pkgs.coreutils}/bin/install";
         mkdir = "${pkgs.coreutils}/bin/mkdir";
       };

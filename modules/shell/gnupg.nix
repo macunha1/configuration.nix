@@ -85,6 +85,14 @@ in
 
   config = mkIf config.modules.shell.gnupg.enable (mkMerge [
 
+    (mkIf config.modules.shell.zsh.enable {
+      modules.shell.zsh.env = ''
+        if [[ -t 0 ]]; then
+          export GPG_TTY="$(tty)"
+        fi
+      '';
+    })
+
     # Linux (NixOS)
     (optionalAttrs (!isDarwin) {
       # home-manager.users.* is the NixOS proxy for per-user home-manager options
