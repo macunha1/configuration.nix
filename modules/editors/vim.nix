@@ -29,17 +29,16 @@ let
   vimrcSrc = pkgs.fetchFromGitHub {
     owner = "macunha1";
     repo = "definitely-not-vimrc";
-    rev = "2fae56a962aa2213609b6c27d4d775e1473f005c";
-    sha256 = "0j15w7q2imlsqvgpmik8fg3f4l7z1gr565ijg941kcxb9bqv9ix7";
+    rev = "c0f6d1d06c63fa07f1eaf8bdb35905b5be2640cb";
+    sha256 = "0nbrq5va8y92wqddlyk26av56y2nam43lanzrcppf4b85f4069g6";
   };
 
-  # dein.vim is the plugin manager; fetched separately so it doesn't race
-  # with the rest of the vim config directory on first symlink.
-  deinSrc = pkgs.fetchFromGitHub {
-    owner = "Shougo";
-    repo = "dein.vim";
-    rev = "21a5c41f0289e98b8086279e62f046b2402dac7c";
-    sha256 = "0kcln63kiivc0gyb82hc7ihgf9h2maj7y9ixn83z5sfk0yilmpxb";
+  # Bootstrap vim-plug separately from the read-only configuration source.
+  vimPlugSrc = pkgs.fetchFromGitHub {
+    owner = "junegunn";
+    repo = "vim-plug";
+    rev = "7e5aae5e1187842cb0b1d8def986e48d481c4410";
+    sha256 = "1hb20bpbif44vl6savp69gwrcc94zhf7c662pzwkzmk5br5hqq3g";
   };
 
   vimAliases = {
@@ -79,9 +78,8 @@ in
         source = vimrcSrc;
         recursive = true;
       };
-      home.configFile."vim/plugins/dein.vim" = {
-        source = deinSrc;
-        recursive = true;
+      home.configFile."vim/autoload/plug.vim" = {
+        source = "${vimPlugSrc}/plug.vim";
       };
     })
 
@@ -99,9 +97,8 @@ in
         recursive = true;
       };
 
-      xdg.configFile."vim/plugins/dein.vim" = {
-        source = deinSrc;
-        recursive = true;
+      xdg.configFile."vim/autoload/plug.vim" = {
+        source = "${vimPlugSrc}/plug.vim";
       };
     })
   ]);
