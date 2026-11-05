@@ -52,11 +52,10 @@ let
 
   codexConfigHomeRelative = removePrefix "${toString homeManagerConfig.home.homeDirectory}/" codexConfigHome;
 
-  codexManagedProfileName = "nix-managed";
-
-  codexManagedProfilePath = "${codexConfigHome}/${codexManagedProfileName}.config.toml";
-
-  codexProfileWrapper = pkgs.writeShellScript "codex-with-managed-profile" ''
+  # A selected profile is also Codex's persistence target. Keep managed defaults
+  # in session flags so trust decisions and TUI changes go to writable config.toml.
+  # These settings outrank project config; caller-supplied CLI overrides win.
+  codexConfigWrapper = pkgs.writeShellScript "codex-with-managed-config" ''
     set -e
 
     codex_command=""
@@ -92,14 +91,14 @@ let
         ;;
     esac
 
-    exec ${pkgs.codex}/bin/codex --profile ${escapeShellArg codexManagedProfileName} "$@"
+    exec ${pkgs.codex}/bin/codex ${escapeShellArgs codexConfigOverrides} "$@"
   '';
 
   codexPackage = pkgs.symlinkJoin {
     name = "codex-${pkgs.codex.version}-nix-managed";
     paths = [ pkgs.codex ];
     postBuild = ''
-      ln -sfn ${codexProfileWrapper} "$out/bin/codex"
+      ln -sfn ${codexConfigWrapper} "$out/bin/codex"
     '';
   };
 
@@ -119,8 +118,8 @@ let
     agent = "codex";
   };
 
-  # Codex treats profile hooks as user hooks, so they require an exact trust
-  # hash even though Nix owns the profile. Pre-trust only the generated hook
+  # Codex treats session-flag hooks as user hooks, so they require an exact trust
+  # hash even though Nix owns the flags. Pre-trust only the generated hook
   # definitions; changing a command, matcher, timeout, or list position changes
   # the corresponding hash and makes Codex request review again.
   codexHookEventNames = {
@@ -172,7 +171,7 @@ let
                 };
               in
               nameValuePair
-                "${codexManagedProfilePath}:${eventName}:${toString groupIndex}:${toString handlerIndex}"
+                "/<session-flags>/config.toml:${eventName}:${toString groupIndex}:${toString handlerIndex}"
                 {
                   trusted_hash = "sha256:${builtins.hashString "sha256" (builtins.toJSON identity)}";
                 }
@@ -183,22 +182,46 @@ let
     )
   );
 
-  codexManagedConfig = (pkgs.formats.toml { }).generate "${codexManagedProfileName}.config.toml" (
-    {
-      inherit (config.modules.agents.code.codex) model;
-      model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
-      tui = {
-        alternate_screen = "never";
-        theme = config.modules.agents.code.codex.theme;
-      };
-    }
-    // optionalAttrs (codexMcpServers != { }) {
-      mcp_servers = codexMcpServers;
-    }
-    // optionalAttrs (codexHooks != { }) {
-      features.hooks = true;
-      hooks = codexHooks // optionalAttrs isDarwin { state = codexHookTrust; };
-    }
+  codexManagedSettings = {
+    inherit (config.modules.agents.code.codex) model;
+    model_reasoning_effort = config.modules.agents.code.codex.modelReasoningEffort;
+    tui = {
+      alternate_screen = "never";
+      theme = config.modules.agents.code.codex.theme;
+    };
+  }
+  // optionalAttrs (codexMcpServers != { }) {
+    mcp_servers = codexMcpServers;
+  }
+  // optionalAttrs (codexHooks != { }) {
+    features.hooks = true;
+    hooks = codexHooks // optionalAttrs isDarwin { state = codexHookTrust; };
+  };
+
+  codexManagedConfig =
+    (pkgs.formats.toml { }).generate "codex-managed.config.toml"
+      codexManagedSettings;
+
+  # --config accepts TOML values, including nested inline tables. Render the
+  # same Nix settings at build time without reading or rewriting user state.
+  inlineToml =
+    value:
+    if builtins.isAttrs value then
+      "{ ${
+        concatStringsSep ", " (
+          mapAttrsToList (name: item: "${builtins.toJSON name} = ${inlineToml item}") value
+        )
+      } }"
+    else if builtins.isList value then
+      "[${concatMapStringsSep ", " inlineToml value}]"
+    else
+      builtins.toJSON value;
+
+  codexConfigOverrides = concatLists (
+    mapAttrsToList (name: value: [
+      "--config"
+      "${name}=${inlineToml value}"
+    ]) codexManagedSettings
   );
 
   codexRetrowaveTheme = pkgs.writeText "retrowave.tmTheme" ''
@@ -216,12 +239,6 @@ let
     "${codexConfigHomeRelative}/themes/retrowave.tmTheme" = {
       force = true;
       source = codexRetrowaveTheme;
-    };
-  }
-  // optionalAttrs isDarwin {
-    "${codexConfigHomeRelative}/${codexManagedProfileName}.config.toml" = {
-      force = true;
-      source = codexManagedConfig;
     };
   };
 in
