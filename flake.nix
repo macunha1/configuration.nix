@@ -143,6 +143,26 @@
 
               case "$system_name" in
                 Darwin)
+                  ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+                    # nix-installer includes nix.custom.conf; keep other daemon
+                    # settings intact and own only the devenv cache fragment.
+                    daemon_config=${
+                      self.homeConfigurations.mcunha.config.xdg.configFile."nix/devenv-daemon.conf".source
+                        or (pkgs.writeText "devenv-daemon-disabled.conf" "")
+                    }
+                    if ! grep -Eq '^!?include (.*/)?nix\.custom\.conf$' /etc/nix/nix.conf; then
+                      echo 'Expected nix-installer to include nix.custom.conf in /etc/nix/nix.conf.' >&2
+                      exit 1
+                    fi
+                    if ! cmp -s "$daemon_config" /etc/nix/devenv.conf \
+                      || ! grep -Fxq '!include devenv.conf' /etc/nix/nix.custom.conf; then
+                      sudo install -m 0644 "$daemon_config" /etc/nix/devenv.conf
+                      if ! grep -Fxq '!include devenv.conf' /etc/nix/nix.custom.conf; then
+                        printf '\n!include devenv.conf\n' | sudo tee -a /etc/nix/nix.custom.conf > /dev/null
+                      fi
+                      sudo launchctl kickstart -k system/org.nixos.nix-daemon
+                    fi
+                  ''}
                   home_config="''${HOME_CONFIG:-''${CONFIG_USER:-''${USER:-mcunha}}}"
                   exec home-manager switch --flake "$flake#$home_config" --impure
                   ;;

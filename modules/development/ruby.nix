@@ -27,7 +27,7 @@ let
   };
 
   rubyPackages = with pkgs; [
-    ruby_2_7.devEnv # full Ruby dev environment (headers, gems)
+    ruby_4_0.devEnv # full Ruby dev environment (headers, gems)
     libxml2 # required by Nokogiri and many XML gems
     libxslt # required by Nokogiri XSLT support
   ];

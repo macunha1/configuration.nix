@@ -35,16 +35,16 @@ let
   pythonPackageManagerPackage =
     pythonPackageManagers.${config.modules.development.python.packageManager};
 
-  pythonPackages = with pkgs; [
-    python3
+  pythonPackages = with pkgs.python315.pkgs; [
+    python
 
-    python3Packages.pip # package installer
+    pip # package installer
     pythonPackageManagerPackage # Python tool manager
 
-    python3Packages.pytest # test runner
-    python3Packages.autopep8 # pep8 prettify
-    python3Packages.flake8 # code lint
-    python3Packages.setuptools # distutils++
+    pytest # test runner
+    autopep8 # pep8 prettify
+    flake8 # code lint
+    setuptools # distutils++
   ];
 
   # XDG-compliant Python paths; concrete on Darwin, shell-expanded on Linux.

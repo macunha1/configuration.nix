@@ -31,7 +31,7 @@ let
 
   flutterPackages = with pkgs; [
     flutter # framework + CLI (dart bundled)
-    dart # explicit dart SDK for IDE tooling
+    flutter.dart # matching Dart SDK for IDE tooling
   ];
 
   # Flutter path configuration — same values on both platforms.

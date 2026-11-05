@@ -26,8 +26,8 @@ let
     inherit config isDarwin;
   };
 
-  elixirPackages = with pkgs.beamPackages; [
-    elixir
+  elixirPackages = with pkgs.beam29Packages; [
+    elixir_1_20
     erlang # exposes erl/escript for Mix dependencies compiled through rebar3
   ];
 

@@ -85,6 +85,7 @@ _:
     };
 
     shell = {
+      devenv.enable = true;
       git.user.name = "Matheus Cunha";
 
       zsh.enable = true;

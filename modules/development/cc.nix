@@ -26,11 +26,11 @@ let
   ccPackages = with pkgs; [
     # GCC must own shared compiler names such as cc and c++ so enabling this
     # module provides GNU GCC (and its collect2) instead of another Clang shim.
-    clang # LLVM C/C++ compiler frontend
+    llvmPackages_latest.clang # LLVM C/C++ compiler frontend
     (lib.hiPrio gcc) # GNU C/C++ compiler
     gdb # GNU debugger
     cmake # cross-platform build system
-    llvmPackages.libcxx # LLVM C++ standard library
+    llvmPackages_latest.libcxx # LLVM C++ standard library
   ];
 in
 {

@@ -25,6 +25,7 @@ _:
     desktop.fonts.enable = true;
 
     shell = {
+      devenv.enable = true;
       git.enable = true;
       zsh.enable = true;
       direnv.enable = true;

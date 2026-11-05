@@ -33,7 +33,7 @@ let
   };
 
   nodeRuntimePackages = with pkgs; [
-    nodejs # JavaScript runtime
+    nodejs_latest # JavaScript runtime
   ];
 
   bunPackages = with pkgs; [

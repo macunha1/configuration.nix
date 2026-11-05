@@ -56,14 +56,14 @@ in
     {
       programs.java = {
         enable = true;
-        package = pkgs.openjdk21; # Java 21 LTS (supported until Sep 2031)
+        package = pkgs.temurin-bin-27; # Latest packaged stable Java release
       };
     }
 
     (mkIf config.modules.development.java.gradle.enable (mkMerge [
       (platformPackages {
         inherit isDarwin;
-        packages = with pkgs; [ gradle ];
+        packages = with pkgs; [ gradle_9 ];
       })
 
       (platformEnv {

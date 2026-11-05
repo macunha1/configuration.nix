@@ -89,13 +89,13 @@ in
     (optionalAttrs (!isDarwin) {
       user.packages = with pkgs; [
         libcap # Linux-only: POSIX capabilities (used by some Go tools)
-        go
+        go_latest
       ];
     })
 
     # Darwin (MacOS)
     (optionalAttrs isDarwin {
-      home.packages = with pkgs; [ go ];
+      home.packages = with pkgs; [ go_latest ];
     })
   ]);
 }

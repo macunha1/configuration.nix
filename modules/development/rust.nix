@@ -45,8 +45,8 @@ let
       pkgs.rustup;
 
   rustPackages = with pkgs; [
-    llvmPackages.libclang.lib # libclang shared library used by bindgen-based crates
-    llvmPackages.llvm.dev # llvm-config and LLVM development metadata
+    llvmPackages_latest.libclang.lib # libclang shared library used by bindgen-based crates
+    llvmPackages_latest.llvm.dev # llvm-config and LLVM development metadata
 
     nasm # assembler (used by some Rust crates with C interop)
     rustupPackage # toolchain manager (installs stable/nightly via rustup)
@@ -59,8 +59,8 @@ let
     CARGO_HOME = "${config.modules.development.rust.path}/cargo";
     CARGO_TARGET_DIR = "${config.modules.development.rust.path}/cargo/target";
 
-    LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-    LLVM_CONFIG_PATH = "${pkgs.llvmPackages.llvm.dev}/bin/llvm-config";
+    LIBCLANG_PATH = "${pkgs.llvmPackages_latest.libclang.lib}/lib";
+    LLVM_CONFIG_PATH = "${pkgs.llvmPackages_latest.llvm.dev}/bin/llvm-config";
   };
 in
 {
