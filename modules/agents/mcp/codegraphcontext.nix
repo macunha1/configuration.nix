@@ -104,8 +104,53 @@ in
 
     source = mkOption {
       type = types.str;
-      default = "git+https://github.com/macunha1/CodeGraphContext@04df5e072421c2bf7fef0da9f2bbf2dc6faaf8aa";
+      default = "git+https://github.com/macunha1/CodeGraphContext@591d13e57dff8918f8886aeb826f8d07ba661394";
       description = "Pinned Python package source for the CodeGraphContext fork.";
+    };
+
+    enabledTools = mkOption {
+      type = types.listOf types.str;
+      default = [
+        "get_graph_guide"
+        "find_code"
+        "analyze_code_relationships"
+        "execute_cypher_query"
+        "list_indexed_repositories"
+        "get_repository_stats"
+        "add_code_to_graph"
+        "watch_directory"
+        "list_watched_paths"
+        "check_job_status"
+        "list_jobs"
+        "discover_codegraph_contexts"
+        "switch_context"
+      ];
+      description = "Server-side tool allow list shared by every agent. An empty list exposes the full catalog.";
+    };
+
+    maxToolResponseTokens = mkOption {
+      type = types.ints.unsigned;
+      default = 4096;
+      description = "CGC response budget using its approximate character conversion; zero disables the limit.";
+    };
+
+    scip = {
+      enable = mkEnableOption "optional compiler-aware SCIP indexing";
+      languages = mkOption {
+        type = types.listOf (
+          types.enum [
+            "python"
+            "go"
+            "rust"
+          ]
+        );
+        default = [
+          "python"
+          "go"
+          "rust"
+        ];
+        description = "Languages selected for a SCIP trial; indexer executables and project environments must be available.";
+      };
     };
 
     configHome = mkOption {
@@ -130,6 +175,10 @@ in
       type = types.attrsOf types.str;
       default = {
         DEFAULT_DATABASE = "falkordb";
+        CGC_ENABLED_TOOLS = concatStringsSep "," config.modules.agents.mcp.codegraphcontext.enabledTools;
+        MAX_TOOL_RESPONSE_TOKENS = toString config.modules.agents.mcp.codegraphcontext.maxToolResponseTokens;
+        SCIP_INDEXER = if config.modules.agents.mcp.codegraphcontext.scip.enable then "true" else "false";
+        SCIP_LANGUAGES = concatStringsSep "," config.modules.agents.mcp.codegraphcontext.scip.languages;
         CGC_CONFIG_DIR = config.modules.agents.mcp.codegraphcontext.configHome;
         CGC_DATA_DIR = config.modules.agents.mcp.codegraphcontext.dataHome;
         CGC_CACHE_DIR = config.modules.agents.mcp.codegraphcontext.cacheHome;

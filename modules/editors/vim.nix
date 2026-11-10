@@ -29,8 +29,8 @@ let
   vimrcSrc = pkgs.fetchFromGitHub {
     owner = "macunha1";
     repo = "definitely-not-vimrc";
-    rev = "c0f6d1d06c63fa07f1eaf8bdb35905b5be2640cb";
-    sha256 = "0nbrq5va8y92wqddlyk26av56y2nam43lanzrcppf4b85f4069g6";
+    rev = "1605951cb69c913d3afd8b5a12bbacee0783ba1e";
+    hash = "sha256-xAOo79WTbZ19XNqwHFxPZ6dAvtMXEubvxeH8W2MErYA=";
   };
 
   # Bootstrap vim-plug separately from the read-only configuration source.

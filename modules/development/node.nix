@@ -15,6 +15,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
@@ -70,11 +74,25 @@ in
       default = false;
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.node.languageServer;
+      package = pkgs.javascript-typescript-langserver;
+      command = [
+        "${config.modules.development.node.languageServer.package}/bin/javascript-typescript-stdio"
+      ]
+      ++ config.modules.development.node.languageServer.arguments;
+      runtimePackages = nodeRuntimePackages;
+      environment = nodeEnvVars;
+      adapter = "generic";
+      languageId = "typescript";
+      extensions = [
+        ".ts"
+        ".tsx"
+        ".js"
+        ".jsx"
+        ".mjs"
+        ".cjs"
+      ];
     };
 
     includeBinToPath = mkOption {
@@ -113,10 +131,14 @@ in
       })
     ]))
 
-    (mkIf config.modules.development.node.languageServer.enable (platformPackages {
-      inherit isDarwin;
-      packages = with pkgs; [ javascript-typescript-langserver ];
-    }))
+    (mkIf
+      (config.modules.development.node.enable && config.modules.development.node.languageServer.enable)
+      (mkLanguageServerContribution {
+        inherit isDarwin;
+        name = "typescript";
+        server = config.modules.development.node.languageServer;
+      })
+    )
 
     (mkIf
       (

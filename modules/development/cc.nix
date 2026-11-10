@@ -17,6 +17,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
     platformPath
     platformPackages
@@ -40,11 +44,11 @@ in
       default = false;
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.cc.languageServer;
+      package = pkgs.ccls;
+      runtimePackages = [ pkgs.gcc ];
+      languageId = "cpp_ccls";
     };
   };
 
@@ -68,9 +72,10 @@ in
       target = "session";
     }))
 
-    (mkIf config.modules.development.cc.languageServer.enable (platformPackages {
+    (mkIf config.modules.development.cc.languageServer.enable (mkLanguageServerContribution {
       inherit isDarwin;
-      packages = with pkgs; [ ccls ]; # C/C++/Objective-C language server
+      name = "cpp_ccls";
+      server = config.modules.development.cc.languageServer;
     }))
   ]);
 }

@@ -11,6 +11,7 @@ _:
       mcp = {
         codegraphcontext.enable = true;
         mempalace.enable = true;
+        serena.enable = true;
       };
 
       plugins.context-mode.enable = true;
@@ -60,8 +61,19 @@ _:
     };
 
     development = {
+      nix = {
+        enable = true;
+        languageServer.enable = true;
+      };
+      bash = {
+        enable = true;
+        languageServer.enable = true;
+      };
       cc.enable = true;
-      elixir.enable = true;
+      elixir = {
+        enable = true;
+        languageServer.enable = true;
+      };
       java.enable = true;
 
       python = {
@@ -110,13 +122,22 @@ _:
       kubernetes = {
         enable = true;
         helm.enable = true;
+        languageServer.enable = true;
+        helm.languageServer.enable = true;
       };
 
-      ansible.enable = true;
-      terraform.enable = true;
+      ansible = {
+        enable = true;
+        languageServer.enable = true;
+      };
+      terraform = {
+        enable = true;
+        languageServer.enable = true;
+      };
     };
 
     shell = {
+      grep.enable = true;
       devenv.enable = true;
       git.user.name = "Matheus Cunha";
 

@@ -13,6 +13,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     shellExports
     ;
@@ -43,6 +47,15 @@ in
       default = false;
     };
 
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.elixir.languageServer;
+      package = pkgs.beam29Packages.expert;
+      arguments = [ "--stdio" ];
+      runtimePackages = elixirPackages;
+      environment = elixirEnvVars;
+      languageId = "elixir";
+    };
+
     # Elixir package manager
     mix = {
       path = mkOption {
@@ -60,6 +73,11 @@ in
   };
 
   config = mkIf config.modules.development.elixir.enable (mkMerge [
+    (mkIf config.modules.development.elixir.languageServer.enable (mkLanguageServerContribution {
+      inherit isDarwin;
+      name = "elixir";
+      server = config.modules.development.elixir.languageServer;
+    }))
     (platformPackages {
       inherit isDarwin;
       packages = elixirPackages;

@@ -17,13 +17,16 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     shellExports
     ;
 
   inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
     platformEnv
-    platformPackages
     platformPath
     ;
 
@@ -53,11 +56,12 @@ in
       description = "Go workspace path used for GOPATH.";
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.go.languageServer;
+      package = pkgs.gopls;
+      runtimePackages = [ pkgs.go_latest ];
+      environment = goEnvVars;
+      languageId = "go";
     };
 
     includeBinToPath = mkOption {
@@ -80,9 +84,10 @@ in
       target = "both";
     }))
 
-    (mkIf config.modules.development.go.languageServer.enable (platformPackages {
+    (mkIf config.modules.development.go.languageServer.enable (mkLanguageServerContribution {
       inherit isDarwin;
-      packages = with pkgs; [ gopls ];
+      name = "go";
+      server = config.modules.development.go.languageServer;
     }))
 
     # Linux (NixOS)

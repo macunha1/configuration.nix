@@ -14,6 +14,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     shellExports
     ;
@@ -75,11 +79,12 @@ in
       default = xdg.concrete.data "rust";
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.rust.languageServer;
+      package = pkgs.rust-analyzer;
+      runtimePackages = [ rustupPackage ];
+      environment = rustEnvVars;
+      languageId = "rust";
     };
 
     includeBinToPath = mkOption {
@@ -101,9 +106,10 @@ in
       target = "both";
     })
 
-    (mkIf config.modules.development.rust.languageServer.enable (platformPackages {
+    (mkIf config.modules.development.rust.languageServer.enable (mkLanguageServerContribution {
       inherit isDarwin;
-      packages = with pkgs; [ rust-analyzer ];
+      name = "rust";
+      server = config.modules.development.rust.languageServer;
     }))
 
     (mkIf config.modules.development.rust.includeBinToPath (platformPath {

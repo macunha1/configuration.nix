@@ -21,6 +21,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
     platformEnv
     platformPackages
@@ -50,6 +54,17 @@ let
 in
 {
   options.modules.networking.ansible = {
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.networking.ansible.languageServer;
+      package = pkgs.ansible-language-server;
+      environment = ansibleEnvVars;
+      arguments = [ "--stdio" ];
+      runtimePackages = [
+        pkgs.ansible
+        pkgs.ansible-lint
+      ];
+      languageId = "ansible";
+    };
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -64,6 +79,11 @@ in
   };
 
   config = mkIf config.modules.networking.ansible.enable (mkMerge [
+    (mkIf config.modules.networking.ansible.languageServer.enable (mkLanguageServerContribution {
+      inherit isDarwin;
+      name = "ansible";
+      server = config.modules.networking.ansible.languageServer;
+    }))
     (platformPackages {
       inherit isDarwin;
       packages = ansiblePackages;

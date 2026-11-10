@@ -35,7 +35,6 @@ let
     htop # colorful top
     tldr # short man pages
     tree # directory tree view
-    ripgrep # fast grep (also used by Doom Emacs)
     stow # GNU Stow, symlink manager
     jq # JSON for the shell
     fastfetch # system info banner (neofetch successor)

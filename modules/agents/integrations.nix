@@ -5,6 +5,9 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    languageServerType
+    ;
   commandHookType = types.submodule {
     options = {
       command = mkOption {
@@ -97,6 +100,12 @@ let
 in
 {
   options.modules.agents.integrations = {
+    languageServers = mkOption {
+      type = types.attrsOf languageServerType;
+      default = { };
+      internal = true;
+      description = "Derived language-server contributions. Configure each server through its owning module's languageServer options.";
+    };
     mcpServers = mkOption {
       type = types.attrsOf mcpServerType;
       default = { };

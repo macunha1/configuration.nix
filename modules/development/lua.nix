@@ -25,6 +25,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/modules/utils.nix { inherit lib; }))
     platformPackages
     ;
@@ -59,11 +63,10 @@ in
       };
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.lua.languageServer;
+      package = pkgs.lua-language-server;
+      languageId = "lua";
     };
 
     includeBinToPath = mkOption {
@@ -87,9 +90,10 @@ in
         packages = basePkgs;
       })
 
-      (mkIf config.modules.development.lua.languageServer.enable (platformPackages {
+      (mkIf config.modules.development.lua.languageServer.enable (mkLanguageServerContribution {
         inherit isDarwin;
-        packages = [ pkgs.lua-language-server ];
+        name = "lua";
+        server = config.modules.development.lua.languageServer;
       }))
 
       # Both platforms: prepend luarocks bin dir to PATH via zsh init.

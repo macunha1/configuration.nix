@@ -38,6 +38,7 @@ let
     CLAUDE_CODE_EFFORT_LEVEL = config.modules.agents.code.claude.effortLevel;
     CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT = "120000";
     CLAUDE_CONFIG_DIR = config.modules.agents.code.claude.configHome;
+    MCP_TIMEOUT = "60000";
     MCP_TOOL_TIMEOUT = "300000";
   };
 

@@ -15,6 +15,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
     shellExports
     ;
@@ -89,11 +93,18 @@ in
       description = "Command used to run tools with the configured Python package manager.";
     };
 
-    languageServer = {
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-      };
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.development.python.languageServer;
+      package = pkgs.zuban;
+      arguments = [ "server" ];
+      runtimePackages = [ pkgs.python315 ];
+      environment = pythonEnvVars;
+      adapter = "generic";
+      extensions = [
+        ".py"
+        ".pyi"
+      ];
+      languageId = "python";
     };
   };
 
@@ -110,9 +121,10 @@ in
       target = "both";
     })
 
-    (mkIf config.modules.development.python.languageServer.enable (platformPackages {
+    (mkIf config.modules.development.python.languageServer.enable (mkLanguageServerContribution {
       inherit isDarwin;
-      packages = with pkgs; [ zuban ];
+      name = "python";
+      server = config.modules.development.python.languageServer;
     }))
 
     (optionalAttrs (!isDarwin) {

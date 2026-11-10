@@ -23,6 +23,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
@@ -169,6 +173,13 @@ let
 in
 {
   options.modules.networking.terraform = {
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.networking.terraform.languageServer;
+      package = pkgs.terraform-ls;
+      arguments = [ "serve" ];
+      runtimePackages = [ terraformBin ];
+      languageId = "terraform";
+    };
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -184,6 +195,11 @@ in
   };
 
   config = mkIf config.modules.networking.terraform.enable (mkMerge [
+    (mkIf config.modules.networking.terraform.languageServer.enable (mkLanguageServerContribution {
+      inherit isDarwin;
+      name = "terraform";
+      server = config.modules.networking.terraform.languageServer;
+    }))
 
     # Source the zsh plugin on both platforms when zsh is active.
     # Sourced from the Nix store.

@@ -1,0 +1,21 @@
+--- a/src/serena/config/serena_config.py
++++ b/src/serena/config/serena_config.py
+@@ -957 +957,5 @@
++        managed_config = os.environ.get("SERENA_CONFIG_FILE")
++        if managed_config:
++            return managed_config
++
+         config_path = os.path.join(SerenaPaths().serena_user_home_dir, cls.CONFIG_FILE)
+@@ -978 +982 @@
+-            if not generate_if_missing:
++            if not generate_if_missing or os.environ.get("SERENA_CONFIG_FILE"):
+@@ -984 +988 @@
+-        if os.name == "posix":
++        if os.name == "posix" and not os.environ.get("SERENA_CONFIG_FILE"):
+@@ -1002 +1006,5 @@
+-        instance = cls(_loaded_commented_yaml=loaded_commented_yaml, _config_file_path=config_file_path)
++        instance = cls(
++            _loaded_commented_yaml=loaded_commented_yaml,
++            # Managed configuration is immutable; project registrations are session-local.
++            _config_file_path=None if os.environ.get("SERENA_CONFIG_FILE") else config_file_path,
++        )

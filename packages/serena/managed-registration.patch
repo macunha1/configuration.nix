@@ -1,0 +1,7 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -73 +73,4 @@
++[project.entry-points."solidlsp.language_server_registration"]
++nix-managed = "solidlsp.managed_servers:register"
++
+ [project.optional-dependencies]

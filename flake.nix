@@ -42,6 +42,8 @@
 
     # Extras
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    serena.url = "github:oraios/serena/6e5c3776d4e67befaab7c290bc29b0279c98d1ed";
+    serena.inputs.nixpkgs.follows = "nixpkgs";
     doom-emacs = {
       url = "github:doomemacs/doomemacs/6ba99cb50cddc4441963a0ef68f971112ab4807e";
       flake = false;
@@ -184,9 +186,9 @@
             program = "${activate}/bin/activate";
             meta.description = "Activate the local NixOS or standalone Home Manager configuration";
           };
-          packages = builtins.removeAttrs (mapModules ./packages (p: pkgs.callPackage p { })) (
-            lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [ "emacs-plus-darwin" ]
-          );
+          packages = builtins.removeAttrs (mapModules ./packages (
+            p: (pkgs.newScope { inherit inputs; }) p { }
+          )) (lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [ "emacs-plus-darwin" ]);
 
           checks.configuration-evaluation = pkgs.writeText "configuration-evaluation" (
             lib.concatStringsSep "\n" (
@@ -200,6 +202,16 @@
             )
             + "\n"
           );
+          checks.serena-modules =
+            let
+              results = import ./packages/serena/tests/module-integration.nix { flake = self; };
+              passed =
+                value: if builtins.isAttrs value then lib.all passed (builtins.attrValues value) else value == true;
+            in
+            assert lib.assertMsg (passed results)
+              "Code-intelligence ownership or server selection checks failed";
+            pkgs.writeText "code-intelligence-checks.json" (builtins.toJSON results);
+          checks.serena = pkgs.my.serena.tests.managed-servers;
           devShells.default = import ./shell.nix { inherit pkgs; };
         };
 
@@ -223,10 +235,7 @@
           ignoredHosts = [ "macbook" ];
           hostSystemOverrides = builtins.removeAttrs hostSystems [ "macbook" ];
           inherit nixpkgsConfig;
-          nixpkgsOverlays = [
-            self.overlays.default
-            inputs.emacs-overlay.overlay
-          ];
+          nixpkgsOverlays = [ inputs.emacs-overlay.overlay ] ++ attrValues self.overlays;
         };
 
         ## macOS standalone home-manager configurations

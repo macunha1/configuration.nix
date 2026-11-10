@@ -20,6 +20,10 @@
 with lib;
 
 let
+  inherit (lib.my or (import ../../lib/modules/development/language-servers.nix { inherit lib; }))
+    mkLanguageServerOptions
+    mkLanguageServerContribution
+    ;
   # Some standalone evaluations pass plain nixpkgs.lib, so lib.my may be absent.
   # Import the generator directly in that case.
   inherit (lib.my or (import ../../lib/generators.nix { inherit lib pkgs; }))
@@ -95,6 +99,30 @@ let
 in
 {
   options.modules.networking.kubernetes = {
+    languageServer = mkLanguageServerOptions {
+      config = config.modules.networking.kubernetes.languageServer;
+      package = pkgs.yaml-language-server;
+      arguments = [ "--stdio" ];
+      languageId = "yaml";
+    };
+    helm.languageServer = mkLanguageServerOptions {
+      config = config.modules.networking.kubernetes.helm.languageServer;
+      package = pkgs.helm-ls;
+      arguments = [ "serve" ];
+      runtimePackages = [
+        helm
+        pkgs.yaml-language-server
+      ];
+      adapter = "generic";
+      languageId = "helm";
+      extensions = [
+        ".tpl"
+        ".yaml"
+        ".yml"
+      ];
+      filenamePattern = "(^|/)templates/.*\\.(yaml|yml)$|\\.tpl$";
+      priority = 1;
+    };
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -124,6 +152,22 @@ in
   };
 
   config = mkIf config.modules.networking.kubernetes.enable (mkMerge [
+    (mkIf config.modules.networking.kubernetes.languageServer.enable (mkLanguageServerContribution {
+      inherit isDarwin;
+      name = "yaml";
+      server = config.modules.networking.kubernetes.languageServer;
+    }))
+    (mkIf
+      (
+        config.modules.networking.kubernetes.helm.enable
+        && config.modules.networking.kubernetes.helm.languageServer.enable
+      )
+      (mkLanguageServerContribution {
+        inherit isDarwin;
+        name = "helm";
+        server = config.modules.networking.kubernetes.helm.languageServer;
+      })
+    )
     # Both platforms: source kubectl plugin (aliases + cached completion) when zsh is enabled.
     # Plugin handles completion with caching - does not spawn kubectl on every shell start.
     (mkIf config.modules.shell.zsh.enable {
