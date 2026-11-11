@@ -38,6 +38,10 @@ MOUNT_PATH ?= /
 
 NIX := nix
 NIX_FLAGS := --no-warn-dirty
+# Full host builds can compile several large Rust crates. Keep the machine usable.
+BUILD_JOBS ?= 2
+BUILD_CORES ?= 4
+NIX_BUILD_FLAGS := --max-jobs $(BUILD_JOBS) --cores $(BUILD_CORES)
 NIXOS_INSTALL := nixos-install
 NIXOS_REBUILD := nixos-rebuild
 
@@ -64,6 +68,7 @@ help:
 		'Usage: make <target> [CONFIG_USER=user] [NIXOS_HOST=host]'
 	@printf '%s\n' \
 		'                    [HOME_CONFIG=name]'
+	@printf '%s\n' '                    [BUILD_JOBS=2] [BUILD_CORES=4]'
 	@printf '%s\n' ''
 	@printf '%s\n' 'Install targets:'
 	@printf '%s\n' \
@@ -85,6 +90,7 @@ help:
 	@printf '%s\n' 'Maintenance targets:'
 	@printf '%s\n' '  update          Update flake inputs'
 	@printf '%s\n' '  check           Run flake checks'
+	@printf '%s\n' '  ci              Run flake checks and build the selected NixOS host'
 	@printf '%s\n' '  upgrade         Update inputs and switch'
 	@printf '%s\n' '  gc              Collect old NixOS generations and garbage'
 	@printf '%s\n' '  clean           Remove ./result'
@@ -93,11 +99,14 @@ update:
 	@$(NIX) flake update $(NIX_FLAGS)
 
 check:
-	@$(NIX) flake check $(NIX_FLAGS)
+	@$(NIX) flake check $(NIX_FLAGS) $(NIX_BUILD_FLAGS) --no-update-lock-file $(WORKTREE_FLAKE)
+
+ci: check
+	@$(MAKE) build
 
 build:
 	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
-		$(NIX) build $(NIX_FLAGS) --impure $(NIXOS_TOPLEVEL)
+		$(NIX) build $(NIX_FLAGS) $(NIX_BUILD_FLAGS) --no-update-lock-file --impure $(NIXOS_TOPLEVEL)
 
 install:
 	@case "$(SYSTEM)" in \
@@ -143,5 +152,5 @@ i: install
 s: switch
 u: upgrade
 
-.PHONY: help update check build install activate install-nixos install-darwin switch
+.PHONY: help update check ci build install activate install-nixos install-darwin switch
 .PHONY: upgrade rollback gc vm clean i s u

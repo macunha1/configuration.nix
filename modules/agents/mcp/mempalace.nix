@@ -33,6 +33,8 @@ let
   homeManagerConfig = if isDarwin then config else config.home-manager.users.${config.user.name};
 
   mempalaceVersion = "3.11.0";
+  # onnxruntime wheels do not yet support the development module's Python 3.15.
+  mempalacePython = pkgs.python314;
   mempalaceConfigHome = "${homeManagerConfig.xdg.configHome}/mempalace";
 
   pythonRuntimeEnv = optionalString (!isDarwin) ''
@@ -48,20 +50,24 @@ let
 
   mempalacePackage = pkgs.writeShellApplication {
     name = "mempalace";
+    runtimeInputs = [ mempalacePython ];
 
     text = ''
       ${mempalaceRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
+        --python "${getExe mempalacePython}" \
         --from mempalace==${mempalaceVersion} mempalace "$@"
     '';
   };
 
   mempalaceMcpPackage = pkgs.writeShellApplication {
     name = "mempalace-mcp";
+    runtimeInputs = [ mempalacePython ];
 
     text = ''
       ${mempalaceRuntimeEnv}
       exec ${config.modules.development.python.packageManagerRunCommand} \
+        --python "${getExe mempalacePython}" \
         --from mempalace==${mempalaceVersion} mempalace-mcp "$@"
     '';
   };

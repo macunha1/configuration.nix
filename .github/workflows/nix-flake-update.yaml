@@ -11,9 +11,9 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@91f6a0f59e94dfb2cfed0f4000f36a68ead1d20c # v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
@@ -23,15 +23,18 @@ jobs:
       - name: Nix | Flake Update (latest versions to flake.lock)
         run: make update
 
+      - name: Nix | Validate updated lock before committing
+        run: make CONFIG_USER=runner NIXOS_HOST=nixbox ci
+
       - name: SSH | Load deploy key to SSH Agent
-        uses: webfactory/ssh-agent@v0.10.0
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: |
             ${{ secrets.GIT_REPO_SSH_KEY }}
 
       - name: Git | Import GPG key to sign commits
         id: git_import_gpg
-        uses: crazy-max/ghaction-import-gpg@v7
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7
         with:
           gpg_private_key: ${{ secrets.GH_ACTIONS_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GH_ACTIONS_GPG_PASSPHRASE }}

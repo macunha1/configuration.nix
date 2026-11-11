@@ -1,6 +1,6 @@
 # packages/terraform-bin.nix -- https://www.terraform.io/
 #
-# Binary Terraform package pinned to the latest stable upstream release.
+# Binary Terraform package pinned to a reviewed stable upstream release.
 # This avoids building Terraform from source and keeps macOS/Linux installs
 # aligned with the release binaries HashiCorp publishes.
 

@@ -32,7 +32,7 @@ let
   };
 
   awsPackages = with pkgs; [
-    awscli # AWS CLI v1
+    awscli2
   ];
 
   # XDG-compliant AWS paths; concrete on Darwin, shell-expanded on Linux.
