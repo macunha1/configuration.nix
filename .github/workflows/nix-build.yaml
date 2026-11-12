@@ -25,4 +25,4 @@ jobs:
             extra-trusted-public-keys = nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
       - name: Nix | Check and build Nixbox
-        run: make CONFIG_USER=runner NIXOS_HOST=nixbox ci
+        run: make ci

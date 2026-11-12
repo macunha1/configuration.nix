@@ -112,6 +112,17 @@ into a mounted target filesystem from a NixOS installer environment. Linux
 targets invoke `sudo` automatically; macOS uses the normal user-level Home
 Manager activation.
 
+## Validate Before Pushing
+
+Run the GitHub Actions checks and build `nixbox` as `runner` on `x86_64-linux`:
+
+```sh
+make ci
+```
+
+CI includes tracked worktree changes; add new source files to Git before running.
+Override `CONFIG_USER` and `NIXOS_HOST` to validate another configuration.
+
 ## Module Conventions
 
 Modules should keep shared knowledge in local attrsets and use the repo helpers

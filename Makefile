@@ -52,6 +52,7 @@ endef
 export NIX_CONFIG
 
 WORKTREE_FLAKE := path:$(DOTFILES)
+CI_FLAKE := git+file://$(DOTFILES)
 
 ACTIVATE_APP := $(WORKTREE_FLAKE)\#activate
 
@@ -90,7 +91,7 @@ help:
 	@printf '%s\n' 'Maintenance targets:'
 	@printf '%s\n' '  update          Update flake inputs'
 	@printf '%s\n' '  check           Run flake checks'
-	@printf '%s\n' '  ci              Run flake checks and build the selected NixOS host'
+	@printf '%s\n' '  ci              Match Actions: check and build nixbox as runner'
 	@printf '%s\n' '  upgrade         Update inputs and switch'
 	@printf '%s\n' '  gc              Collect old NixOS generations and garbage'
 	@printf '%s\n' '  clean           Remove ./result'
@@ -101,8 +102,25 @@ update:
 check:
 	@$(NIX) flake check $(NIX_FLAGS) $(NIX_BUILD_FLAGS) --no-update-lock-file $(WORKTREE_FLAKE)
 
-ci: check
-	@$(MAKE) build
+# Keep the public CI configuration independent of local installation defaults.
+# Explicit user/host overrides (including legacy aliases) still take precedence.
+ci: CONFIG_USER = $(if $(filter command line,$(origin USER)),$(USER),runner)
+ci: NIXOS_HOST = $(if $(filter command line,$(origin HOST)),$(HOST),nixbox)
+ci:
+	@printf 'CI source: %s\nCI host: %s\nCI user: %s\n' \
+		"$(CI_FLAKE)" "$(NIXOS_HOST)" "$(CONFIG_USER)"
+	@$(NIX) --version
+	@printf 'CI lock hash: '
+	@$(NIX) hash file --type sha256 "$(DOTFILES)/flake.lock"
+	@printf 'CI host derivation: '
+	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
+		$(NIX) eval $(NIX_FLAGS) --no-update-lock-file --impure --raw \
+		"$(CI_FLAKE)#nixosConfigurations.$(NIXOS_HOST).$(NIXOS_SYSTEM_BUILD).drvPath"
+	@printf '\n'
+	@$(MAKE) CONFIG_USER=$(CONFIG_USER) NIXOS_HOST=$(NIXOS_HOST) \
+		WORKTREE_FLAKE="$(CI_FLAKE)" check
+	@$(MAKE) CONFIG_USER=$(CONFIG_USER) NIXOS_HOST=$(NIXOS_HOST) \
+		WORKTREE_FLAKE="$(CI_FLAKE)" build
 
 build:
 	@CONFIG_USER=$(CONFIG_USER) USER=$(CONFIG_USER) \
